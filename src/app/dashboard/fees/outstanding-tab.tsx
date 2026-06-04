@@ -9,6 +9,7 @@ export default function OutstandingTab() {
   const [report, setReport] = useState<StudentBalance[]>([]);
   const [loading, setLoading] = useState(true);
   const [filterClass, setFilterClass] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => { loadReport(); }, []);
 
@@ -52,7 +53,11 @@ export default function OutstandingTab() {
     setLoading(false);
   }
 
-  const filtered = filterClass ? report.filter(r => r.class_name === filterClass) : report;
+  const filtered = report.filter(r => {
+    if (filterClass && r.class_name !== filterClass) return false;
+    if (searchQuery && !r.student_name.toLowerCase().includes(searchQuery.toLowerCase())) return false;
+    return true;
+  });
   const totalOutstanding = filtered.reduce((a, r) => a + r.balance, 0);
   const uniqueClasses = [...new Set(report.map(r => r.class_name))];
 
@@ -67,12 +72,18 @@ export default function OutstandingTab() {
       </div>
 
       <div className="flex items-center gap-2.5 mb-4">
+        <div className="relative flex-1 max-w-xs">
+          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[#64748B] text-xs">🔍</span>
+          <input type="text" value={searchQuery} onChange={e => setSearchQuery(e.target.value)} placeholder="Search student…"
+            className="w-full pl-8 pr-3 py-2 rounded-lg border border-[#DDE5F0] text-sm outline-none focus:border-[#1A7A4A]" />
+        </div>
         <select value={filterClass} onChange={e => setFilterClass(e.target.value)}
           className="text-sm border border-[#DDE5F0] rounded-lg px-3 py-2 bg-white text-[#64748B] outline-none">
           <option value="">All classes</option>
           {uniqueClasses.map(c => <option key={c} value={c}>{c}</option>)}
         </select>
-        {filterClass && <button onClick={() => setFilterClass('')} className="text-xs text-[#1A7A4A] hover:underline">Clear</button>}
+        <button onClick={() => { setSearchQuery(''); setFilterClass(''); }} className="text-xs text-[#1A7A4A] hover:underline">Clear</button>
+        <p className="text-xs text-[#64748B] ml-auto">{filtered.length} of {report.length} students</p>
       </div>
 
       <div className="bg-white border border-[#DDE5F0] rounded-xl overflow-hidden">

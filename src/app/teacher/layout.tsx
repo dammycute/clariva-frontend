@@ -19,10 +19,11 @@ export default function TeacherLayout({ children }: { children: React.ReactNode 
   const [name, setName] = useState('Teacher');
 
   useEffect(() => {
+    if (!auth.getToken()) { router.push('/'); return; }
     auth.me().then(user => {
       if (user.role !== 'teacher') { router.push('/'); return; }
       setName(user.first_name || user.email);
-    }).catch(() => router.push('/'));
+    }).catch(() => {});
   }, [router]);
 
   return (

@@ -35,9 +35,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const [userInitials, setUserInitials] = useState('AD');
 
   useEffect(() => {
+    if (!auth.getToken()) { router.push('/'); return; }
     auth.me().then(user => {
       if (user?.email) setUserInitials(user.email.substring(0, 2).toUpperCase());
-    }).catch(() => router.push('/'));
+    }).catch(() => {});
   }, [router]);
 
   const handleLogout = () => {

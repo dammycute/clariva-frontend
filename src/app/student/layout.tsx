@@ -19,10 +19,11 @@ export default function StudentLayout({ children }: { children: React.ReactNode 
   const [name, setName] = useState('Student');
 
   useEffect(() => {
+    if (!auth.getToken()) { router.push('/'); return; }
     auth.me().then(user => {
       if (user.role !== 'student') { router.push('/'); return; }
       setName(user.first_name || user.email);
-    }).catch(() => router.push('/'));
+    }).catch(() => {});
   }, [router]);
 
   return (

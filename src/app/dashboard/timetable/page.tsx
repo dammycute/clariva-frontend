@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { api } from '@/lib/api';
+import ConfirmDialog from '@/components/confirm-dialog';
 
 interface Subject { id: string; name: string; year_group: string | null; }
 interface Staff { id: string; full_name: string; }
@@ -68,6 +69,9 @@ export default function TimetablePage() {
   const [slots, setSlots] = useState<Record<string, TimeSlot>>({});
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState('');
+  const [selectedSubject, setSelectedSubject] = useState<{ id: string; name: string } | null>(null);
+  const [editCell, setEditCell] = useState<string | null>(null);
+  const [confirmClear, setConfirmClear] = useState(false);
 
   // Period settings (editable)
   const [showSettings, setShowSettings] = useState(false);
@@ -235,6 +239,10 @@ export default function TimetablePage() {
               className="text-sm px-4 py-2 rounded-lg bg-[#1A7A4A] text-white hover:bg-[#14663D] disabled:opacity-50">
               {saving ? 'Saving...' : 'Save Timetable'}
             </button>
+            <button onClick={() => setConfirmClear(true)}
+              className="text-sm px-3 py-2 rounded-lg border border-[#B91C1C] text-[#B91C1C] hover:bg-[#FEE2E2]">
+              Clear All Slots
+            </button>
             <button onClick={() => setShowSettings(!showSettings)}
               className="text-sm px-3 py-2 rounded-lg border border-[#DDE5F0] bg-white text-[#0D2B55] hover:bg-[#F0F4FA]">
               Period Settings
@@ -323,14 +331,28 @@ export default function TimetablePage() {
       {/* Legend / Subject Palette */}
       {selectedClass && ygSubjects.length > 0 && (
         <div className="flex flex-wrap gap-1.5 mb-3">
-          {ygSubjects.map(s => (
-            <div key={s.id}
-              draggable
-              onDragStart={e => e.dataTransfer.setData('subject', JSON.stringify({ id: s.id, name: s.name }))}
-              className="px-2.5 py-1 text-[11px] rounded-lg bg-white border border-[#DDE5F0] cursor-grab hover:border-[#1A7A4A] select-none">
-              {s.name}
-            </div>
-          ))}
+          {ygSubjects.map(s => {
+            const isSelected = selectedSubject?.id === s.id;
+            return (
+              <div key={s.id}
+                draggable
+                onDragStart={e => e.dataTransfer.setData('subject', JSON.stringify({ id: s.id, name: s.name }))}
+                onClick={() => setSelectedSubject(isSelected ? null : { id: s.id, name: s.name })}
+                className={`px-2.5 py-1 text-[11px] rounded-lg border cursor-pointer select-none transition-colors ${
+                  isSelected ? 'bg-[#1A7A4A] text-white border-[#1A7A4A]' : 'bg-white border-[#DDE5F0] hover:border-[#1A7A4A]'
+                }`}>
+                {s.name}
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {/* Click-to-assign indicator */}
+      {selectedSubject && (
+        <div className="flex items-center gap-2 mb-3 px-3 py-1.5 bg-[#D1FAE5] border border-[#6EE7B7] rounded-lg text-xs text-[#065F46]">
+          <span>Tap any empty cell to assign: <strong>{selectedSubject.name}</strong></span>
+          <button onClick={() => setSelectedSubject(null)} className="ml-auto text-[#065F46] hover:text-[#B91C1C] font-bold">&times;</button>
         </div>
       )}
 
@@ -362,6 +384,7 @@ export default function TimetablePage() {
                         const key = slotKey(day, period);
                         const slot = slots[key];
                         const clashes = getClashes(day, period, slot?.teacher || null);
+                        const isEditCell = editCell === key;
                         return (
                           <td key={key}
                             onDragOver={e => { e.preventDefault(); }}
@@ -372,34 +395,49 @@ export default function TimetablePage() {
                                 setSlot(day, period, { subject: data.id, subject_name: data.name });
                               } catch { /* ignore */ }
                             }}
-                            className={`border-r border-b border-[#DDE5F0] p-1.5 min-h-[60px] align-top transition-colors bg-white`}>
+                            onClick={() => {
+                              if (selectedSubject && !slot?.subject) {
+                                setSlot(day, period, { subject: selectedSubject.id, subject_name: selectedSubject.name });
+                                setSelectedSubject(null);
+                              } else if (!selectedSubject && slot?.subject) {
+                                setEditCell(isEditCell ? null : key);
+                              }
+                            }}
+                            className={`border-r border-b border-[#DDE5F0] p-1.5 min-h-[60px] align-top transition-colors ${
+                              selectedSubject && !slot?.subject ? 'bg-[#F0FDF4] cursor-pointer hover:bg-[#DCFCE7]' : 'bg-white'
+                            }`}>
                             {slot?.subject ? (
                               <div className="space-y-1">
                                 <div className="flex items-start justify-between gap-1">
                                   <span className="font-semibold text-[#0D2B55] leading-tight">{slot.subject_name}</span>
-                                  <button onClick={() => {
-                                    const newSlots = { ...slots };
-                                    delete newSlots[key];
-                                    setSlots(newSlots);
-                                  }} className="text-[#B91C1C] hover:text-[#991B1B] text-[10px] leading-none" aria-label="Remove">&times;</button>
+                                  <button onClick={e => { e.stopPropagation(); const newSlots = { ...slots }; delete newSlots[key]; setSlots(newSlots); setEditCell(null); }}
+                                    className="text-[#B91C1C] hover:text-[#991B1B] text-[10px] leading-none" aria-label="Remove">&times;</button>
                                 </div>
-                                <select value={slot.teacher || ''} onChange={e => setSlot(day, period, { teacher: e.target.value || null })}
-                                  onClick={e => e.stopPropagation()}
-                                  className="w-full text-[10px] px-1 py-0.5 rounded border border-[#DDE5F0] bg-white outline-none">
-                                  <option value="">No teacher</option>
-                                  {staffList.map(st => (
-                                    <option key={st.id} value={st.id}>{st.full_name}</option>
-                                  ))}
-                                </select>
-                                <input value={slot.room || ''} onChange={e => setSlot(day, period, { room: e.target.value })}
-                                  placeholder="Room" onClick={e => e.stopPropagation()}
-                                  className="w-full text-[10px] px-1 py-0.5 rounded border border-[#DDE5F0] outline-none" />
+                                {isEditCell ? (
+                                  <div className="space-y-1">
+                                    <select value={slot.teacher || ''} onChange={e => setSlot(day, period, { teacher: e.target.value || null })}
+                                      onClick={e => e.stopPropagation()}
+                                      className="w-full text-[10px] px-1 py-0.5 rounded border border-[#DDE5F0] bg-white outline-none">
+                                      <option value="">No teacher</option>
+                                      {staffList.map(st => (
+                                        <option key={st.id} value={st.id}>{st.full_name}</option>
+                                      ))}
+                                    </select>
+                                    <input value={slot.room || ''} onChange={e => setSlot(day, period, { room: e.target.value })}
+                                      placeholder="Room" onClick={e => e.stopPropagation()}
+                                      className="w-full text-[10px] px-1 py-0.5 rounded border border-[#DDE5F0] outline-none" />
+                                    <button onClick={e => { e.stopPropagation(); setEditCell(null); }}
+                                      className="text-[10px] text-[#1A7A4A] font-semibold">Done</button>
+                                  </div>
+                                ) : null}
                                 {clashes.length > 0 && (
                                   <p className="text-[9px] text-[#B91C1C]">Clash: {clashes.join(', ')}</p>
                                 )}
                               </div>
                             ) : (
-                              <div className="text-[10px] text-[#CBD5E1] text-center py-2">Drop subject here</div>
+                              <div className="text-[10px] text-[#CBD5E1] text-center py-2">
+                                {selectedSubject ? `+ ${selectedSubject.name}` : 'Drop subject here'}
+                              </div>
                             )}
                           </td>
                         );
@@ -412,6 +450,15 @@ export default function TimetablePage() {
           </div>
         )}
       </div>
+
+      <ConfirmDialog
+        open={confirmClear}
+        title="Clear All Slots"
+        message="This will remove all subjects from the timetable. Are you sure?"
+        onConfirm={() => { setSlots({}); setConfirmClear(false); }}
+        onCancel={() => setConfirmClear(false)}
+        confirmLabel="Clear"
+      />
     </div>
   );
 }

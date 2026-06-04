@@ -28,6 +28,7 @@ export default function GradeEntryTab({ onRefresh }: { onRefresh: () => void }) 
   const [existingGrades, setExistingGrades] = useState<Grade[]>([]);
   const [grading, setGrading] = useState<GradingConfig | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
 
   const [selectedClass, setSelectedClass] = useState('');
   const [selectedSubject, setSelectedSubject] = useState('');
@@ -39,24 +40,30 @@ export default function GradeEntryTab({ onRefresh }: { onRefresh: () => void }) 
 
   async function loadAll() {
     setLoading(true);
-    const me = await auth.me();
-    const [clsRes, stuRes, subRes, gdRes] = await Promise.all([
-      api.classes.list(),
-      api.students.list({ status: 'active' }),
-      api.subjects.list(),
-      api.grades.list(),
-    ]);
-    setClsList(clsRes as Cls[]);
-    setStudents(stuRes as Student[]);
-    setSubjects(subRes as Subject[]);
-    setExistingGrades(gdRes as Grade[]);
+    setError('');
+    try {
+      const me = await auth.me();
+      const [clsRes, stuRes, subRes, gdRes] = await Promise.all([
+        api.classes.list(),
+        api.students.list({ status: 'active' }),
+        api.subjects.list(),
+        api.grades.list(),
+      ]);
+      setClsList(clsRes as Cls[]);
+      setStudents(stuRes as Student[]);
+      setSubjects(subRes as Subject[]);
+      setExistingGrades(gdRes as Grade[]);
 
-    // Fetch grading config
-    if (me?.school_id) {
-      const gc = await api.gradingConfig.get(me.school_id) as unknown as GradingConfig;
-      setGrading(gc);
+      // Fetch grading config
+      if (me?.school_id) {
+        const gc = await api.gradingConfig.get(me.school_id) as unknown as GradingConfig;
+        setGrading(gc);
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to load data');
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   }
   useEffect(() => { loadAll(); }, []);
 
@@ -193,6 +200,13 @@ export default function GradeEntryTab({ onRefresh }: { onRefresh: () => void }) 
           <span>Assignment: <strong className="text-[#0D2B55]">/{cfg.max_assignment}</strong></span>
           <span>Exam: <strong className="text-[#0D2B55]">/{cfg.max_exam}</strong></span>
           <span>Total: <strong className="text-[#0D2B55]">/{maxPossible}</strong></span>
+        </div>
+      )}
+
+      {error && (
+        <div className="bg-[#FEE2E2] border border-[#FCA5A5] text-[#B91C1C] rounded-xl p-6 text-center mb-4">
+          <p className="text-sm mb-3">{error}</p>
+          <button onClick={loadAll} className="text-sm px-4 py-2 rounded-lg bg-[#B91C1C] text-white hover:bg-[#991B1B]">Try Again</button>
         </div>
       )}
 

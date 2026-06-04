@@ -1,6 +1,7 @@
 import { type NextRequest, NextResponse } from 'next/server';
 
 const protectedPaths = ['/dashboard', '/guardian/dashboard', '/teacher', '/student'];
+const publicPaths = ['/portal'];
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -10,6 +11,10 @@ export async function middleware(request: NextRequest) {
   const requestHeaders = new Headers(request.headers);
   if (subdomain && subdomain !== 'www' && subdomain !== 'clariva' && !hostname.includes('localhost')) {
     requestHeaders.set('x-school-subdomain', subdomain);
+  }
+
+  if (publicPaths.some((p) => pathname.startsWith(p))) {
+    return NextResponse.next({ request: { headers: requestHeaders } });
   }
 
   if (protectedPaths.some((p) => pathname.startsWith(p))) {

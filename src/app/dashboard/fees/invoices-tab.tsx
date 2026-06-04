@@ -28,12 +28,14 @@ interface Invoice {
   items: InvoiceItem[];
 }
 
-interface FeeItem { id: string; name: string; amount: number; class_group: string | null; year_group: string | null; }
+interface FeeItem { id: string; name: string; amount: number; class_group: string | null; year_group: string | null; arm: string | null; pricing_tiers: Record<string, number> | null; is_mandatory: boolean; }
 interface Student { id: string; full_name: string; class_group: string | null; }
-interface Cls { id: string; name: string; year_group: string | null; }
+interface Cls { id: string; name: string; year_group: string | null; arm: string | null; }
 
 const PAYMENT_METHODS = ['Cash', 'Bank Transfer', 'POS', 'Cheque'];
 const YEAR_GROUPS = ['JSS1', 'JSS2', 'JSS3', 'SS1', 'SS2', 'SS3'];
+const CATEGORY_GROUPS = ['JSS', 'SS'];
+const ARMS = ['A', 'B', 'C'];
 
 export default function InvoicesTab({ onRefresh }: { onRefresh: () => void }) {
   const [invoices, setInvoices] = useState<Invoice[]>([]);
@@ -41,6 +43,7 @@ export default function InvoicesTab({ onRefresh }: { onRefresh: () => void }) {
   const [students, setStudents] = useState<Student[]>([]);
   const [clsList, setClsList] = useState<Cls[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
   const [schoolName, setSchoolName] = useState('Clariva');
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
 
@@ -53,21 +56,39 @@ export default function InvoicesTab({ onRefresh }: { onRefresh: () => void }) {
   const [showPayment, setShowPayment] = useState(false);
   const [payInvoice, setPayInvoice] = useState<Invoice | null>(null);
   const [payForm, setPayForm] = useState({ amount: '', method: 'Cash', ref: '' });
+  const [searchQuery, setSearchQuery] = useState('');
+  const [statusFilter, setStatusFilter] = useState('');
+  const [selectedFeeItemIds, setSelectedFeeItemIds] = useState<Set<string>>(new Set());
+
+  function filteredInvoices() {
+    return invoices.filter(inv => {
+      if (searchQuery && !inv.student_name?.toLowerCase().includes(searchQuery.toLowerCase())) return false;
+      if (statusFilter && inv.status !== statusFilter) return false;
+      return true;
+    });
+  }
 
   async function loadAll() {
-    const [invRes, feeRes, stuRes, clsRes, me] = await Promise.all([
-      api.feeInvoices.list(),
-      api.feeItems.list(),
-      api.students.list({ status: 'active' }),
-      api.classes.list(),
-      auth.me(),
-    ]);
-    setInvoices(invRes as Invoice[]);
-    setFeeItems(feeRes as FeeItem[]);
-    setStudents(stuRes as Student[]);
-    setClsList(clsRes as Cls[]);
-    if (me?.school_id) setSchoolName('Clariva');
-    setLoading(false);
+    setLoading(true);
+    setError('');
+    try {
+      const [invRes, feeRes, stuRes, clsRes, me] = await Promise.all([
+        api.feeInvoices.list(),
+        api.feeItems.list(),
+        api.students.list({ status: 'active' }),
+        api.classes.list(),
+        auth.me(),
+      ]);
+      setInvoices(invRes as Invoice[]);
+      setFeeItems(feeRes as FeeItem[]);
+      setStudents(stuRes as Student[]);
+      setClsList(clsRes as Cls[]);
+      if (me?.school_id) setSchoolName('Clariva');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to load data');
+    } finally {
+      setLoading(false);
+    }
   }
 
   useEffect(() => { loadAll(); }, []);
@@ -76,6 +97,7 @@ export default function InvoicesTab({ onRefresh }: { onRefresh: () => void }) {
     setGenForm({ fee_item_id: '', class_group: '', year_group: '', student_ids: [] });
     setGenStudents([]);
     setGenError('');
+    setSelectedFeeItemIds(new Set(feeItems.filter(f => f.is_mandatory).map(f => f.id)));
     setShowGenerate(true);
   }
 
@@ -85,11 +107,12 @@ export default function InvoicesTab({ onRefresh }: { onRefresh: () => void }) {
       setGenForm({ ...genForm, class_group: '', year_group: yg, student_ids: [] });
       setGenStudents(students.filter(s => {
         const sc = clsList.find(c => c.id === s.class_group);
-        return sc?.year_group === yg;
+        if (!sc?.year_group) return false;
+        return CATEGORY_GROUPS.includes(yg) ? sc.year_group.startsWith(yg) : sc.year_group === yg;
       }));
     } else {
       setGenForm({ ...genForm, class_group: value, year_group: '', student_ids: [] });
-      setGenStudents(value ? students.filter(s => s.class_group === value) : []);
+      setGenStudents(value ? students.filter(s => String(s.class_group) === value) : students);
     }
   }
 
@@ -99,13 +122,27 @@ export default function InvoicesTab({ onRefresh }: { onRefresh: () => void }) {
   function selectAll() { setGenForm({ ...genForm, student_ids: genStudents.map(s => s.id) }); }
   function deselectAll() { setGenForm({ ...genForm, student_ids: [] }); }
 
+  function getStudentInfo(studentId: string): { arm: string | null; yg: string | null } {
+    const student = students.find(s => s.id === studentId);
+    if (!student) return { arm: null, yg: null };
+    const cls = clsList.find(c => c.id === student.class_group);
+    return { arm: cls?.arm ?? null, yg: cls?.year_group ?? null };
+  }
+
+  function effectiveAmount(fee: FeeItem, yg: string | null): number {
+    if (fee.pricing_tiers && yg && fee.pricing_tiers[yg]) return fee.pricing_tiers[yg];
+    return Number(fee.amount);
+  }
+
   function getApplicableFeeItems(studentId: string): FeeItem[] {
     const student = students.find(s => s.id === studentId);
     if (!student) return [];
     const studentCls = clsList.find(c => c.id === student.class_group);
     return feeItems.filter(f => {
-      if (f.class_group) return f.class_group === student.class_group;
-      if (f.year_group) return studentCls?.year_group === f.year_group;
+      if (f.class_group) return String(f.class_group) === String(student.class_group);
+      const ygMatch = !f.year_group || (studentCls?.year_group?.startsWith(f.year_group) ?? false);
+      const armMatch = !f.arm || studentCls?.arm === f.arm;
+      if (f.year_group || f.arm) return ygMatch && armMatch;
       return true;
     });
   }
@@ -127,15 +164,17 @@ export default function InvoicesTab({ onRefresh }: { onRefresh: () => void }) {
       if (feeItemId === '__all__') {
         for (const studentId of studentIds) {
           if (existingStudentIds.has(studentId)) continue;
-          const applicable = getApplicableFeeItems(studentId);
+          const applicable = getApplicableFeeItems(studentId).filter(f => selectedFeeItemIds.has(f.id));
           if (applicable.length === 0) continue;
-          const total = applicable.reduce((s, f) => s + Number(f.amount), 0);
+          const info = getStudentInfo(studentId);
+          const items = applicable.map(f => ({ fee_item: f.id, amount_due: effectiveAmount(f, info.yg), amount_paid: 0 }));
+          const total = items.reduce((s, it) => s + it.amount_due, 0);
           await api.feeInvoices.create({
             student: studentId,
             amount_due: total,
             amount_paid: 0,
             status: 'unpaid',
-            items: applicable.map(f => ({ fee_item: f.id, amount_due: f.amount, amount_paid: 0 })),
+            items,
           } as Partial<Invoice>);
         }
       } else {
@@ -143,12 +182,14 @@ export default function InvoicesTab({ onRefresh }: { onRefresh: () => void }) {
         if (!feeItem) { setGenError('Fee item not found.'); return; }
         for (const studentId of studentIds) {
           if (existingStudentIds.has(studentId)) continue;
+          const info = getStudentInfo(studentId);
+          const amt = effectiveAmount(feeItem, info.yg);
           await api.feeInvoices.create({
             student: studentId,
-            amount_due: feeItem.amount,
+            amount_due: amt,
             amount_paid: 0,
             status: 'unpaid',
-            items: [{ fee_item: feeItemId, amount_due: feeItem.amount, amount_paid: 0 }],
+            items: [{ fee_item: feeItemId, amount_due: amt, amount_paid: 0 }],
           } as Partial<Invoice>);
         }
       }
@@ -227,10 +268,33 @@ export default function InvoicesTab({ onRefresh }: { onRefresh: () => void }) {
         <button onClick={openGenerate} className="text-sm px-4 py-2 rounded-lg bg-[#1A7A4A] text-white hover:bg-[#14663D]">+ Generate Invoices</button>
       </div>
 
+      {error && (
+        <div className="bg-[#FEE2E2] border border-[#FCA5A5] text-[#B91C1C] rounded-xl p-6 text-center mb-4">
+          <p className="text-sm mb-3">{error}</p>
+          <button onClick={loadAll} className="text-sm px-4 py-2 rounded-lg bg-[#B91C1C] text-white hover:bg-[#991B1B]">Try Again</button>
+        </div>
+      )}
+
+      <div className="flex items-center gap-2.5 mb-3">
+        <div className="relative flex-1 max-w-xs">
+          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[#64748B] text-xs">🔍</span>
+          <input type="text" value={searchQuery} onChange={e => setSearchQuery(e.target.value)} placeholder="Search student…"
+            className="w-full pl-8 pr-3 py-2 rounded-lg border border-[#DDE5F0] text-sm outline-none focus:border-[#1A7A4A]" />
+        </div>
+        <select value={statusFilter} onChange={e => setStatusFilter(e.target.value)}
+          className="text-sm border border-[#DDE5F0] rounded-lg px-3 py-2 bg-white text-[#64748B] outline-none">
+          <option value="">All statuses</option>
+          <option value="unpaid">Unpaid</option>
+          <option value="partial">Partial</option>
+          <option value="paid">Paid</option>
+        </select>
+        <p className="text-xs text-[#64748B] ml-auto">{filteredInvoices().length} of {invoices.length} invoices</p>
+      </div>
+
       <div className="bg-white border border-[#DDE5F0] rounded-xl overflow-hidden">
         {loading ? <div className="p-8 text-center text-sm text-[#64748B]">Loading invoices…</div>
-        : invoices.length === 0 ? (
-          <div className="p-8 text-center text-sm text-[#64748B]">No invoices yet. Click Generate Invoices to create them.</div>
+        : filteredInvoices().length === 0 ? (
+          <div className="p-8 text-center text-sm text-[#64748B]">{invoices.length === 0 ? 'No invoices yet. Click Generate Invoices to create them.' : 'No invoices match your filters.'}</div>
         ) : (
           <table className="w-full text-xs">
             <thead>
@@ -246,7 +310,7 @@ export default function InvoicesTab({ onRefresh }: { onRefresh: () => void }) {
               </tr>
             </thead>
             <tbody>
-              {invoices.map(inv => {
+              {filteredInvoices().map(inv => {
                 const items = inv.items || [];
                 const balance = Number(inv.amount_due) - Number(inv.amount_paid);
                 const isExpanded = expanded.has(inv.id);
@@ -332,6 +396,10 @@ export default function InvoicesTab({ onRefresh }: { onRefresh: () => void }) {
                   <select value={genForm.year_group ? `yg:${genForm.year_group}` : genForm.class_group} onChange={e => handleClassSelect(e.target.value)}
                     className="w-full px-3 py-2 rounded-lg border border-[#DDE5F0] text-sm outline-none focus:border-[#1A7A4A] bg-white">
                     <option value="">All classes</option>
+                    <option disabled className="text-[#64748B] bg-[#F7F9FC]">— Categories —</option>
+                    {CATEGORY_GROUPS.map(cg => (
+                      <option key={cg} value={`yg:${cg}`}>{cg} (All Classes)</option>
+                    ))}
                     <option disabled className="text-[#64748B] bg-[#F7F9FC]">— Year Groups —</option>
                     {YEAR_GROUPS.map(yg => (
                       <option key={yg} value={`yg:${yg}`}>{yg} (All Arms)</option>
@@ -343,6 +411,28 @@ export default function InvoicesTab({ onRefresh }: { onRefresh: () => void }) {
                   </select>
                 </div>
               </div>
+              {genForm.fee_item_id === '__all__' && (
+                <div>
+                  <label className="text-[11px] font-bold text-[#64748B] uppercase mb-1.5 block">Fee Items to Include</label>
+                  <div className="border border-[#DDE5F0] rounded-lg divide-y divide-[#DDE5F0] max-h-[180px] overflow-y-auto">
+                    {feeItems
+                      .slice()
+                      .sort((a, b) => (a.is_mandatory === b.is_mandatory ? 0 : a.is_mandatory ? -1 : 1))
+                      .map(f => {
+                        const checked = selectedFeeItemIds.has(f.id);
+                        return (
+                          <label key={f.id} className={`flex items-center gap-2.5 px-3 py-1.5 cursor-pointer hover:bg-[#F8FAFF] ${f.is_mandatory ? 'bg-[#F0FBF4]' : ''}`}>
+                            <input type="checkbox" checked={checked}
+                              onChange={() => setSelectedFeeItemIds(prev => { const n = new Set(prev); n.has(f.id) ? n.delete(f.id) : n.add(f.id); return n; })}
+                              className="w-4 h-4 rounded border-[#DDE5F0] text-[#1A7A4A] focus:ring-[#1A7A4A]" />
+                            <span className="text-sm text-[#0D2B55] flex-1">{f.name}</span>
+                            <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${f.is_mandatory ? 'bg-[#D1FAE5] text-[#065F46]' : 'bg-[#FEF3C7] text-[#D4930A]'}`}>{f.is_mandatory ? 'Mandatory' : 'Optional'}</span>
+                          </label>
+                        );
+                      })}
+                  </div>
+                </div>
+              )}
               {genStudents.length > 0 && (
                 <div>
                   <div className="flex items-center justify-between mb-2">

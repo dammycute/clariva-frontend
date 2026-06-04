@@ -25,6 +25,7 @@ export default function StudentsTab() {
   const [search, setSearch] = useState('');
   const [filterClass, setFilterClass] = useState('');
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
   const [states, setStates] = useState<State[]>([]);
   const [lgas, setLgas] = useState<LGA[]>([]);
   const [showModal, setShowModal] = useState(false);
@@ -57,15 +58,21 @@ export default function StudentsTab() {
 
   async function loadData() {
     setLoading(true);
-    const [stuRes, clsRes] = await Promise.all([api.students.list({ page_size: '500' }), api.classes.list()]);
-    setClasses(clsRes as Class[]);
-    setStudents(stuRes as Student[]);
-    setLoading(false);
+    setError('');
+    try {
+      const [stuRes, clsRes] = await Promise.all([api.students.list({ page_size: '500' }), api.classes.list()]);
+      setClasses(clsRes as Class[]);
+      setStudents(stuRes as Student[]);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to load data');
+    } finally {
+      setLoading(false);
+    }
   }
 
   const filtered = students.filter(s => {
     const q = !search || s.full_name.toLowerCase().includes(search.toLowerCase()) || s.admission_no?.includes(search);
-    const c = !filterClass || s.class_group === filterClass;
+    const c = !filterClass || String(s.class_group) === filterClass;
     return q && c;
   });
 
@@ -122,6 +129,13 @@ export default function StudentsTab() {
           <button onClick={openAdd} className="text-sm px-3.5 py-2 rounded-lg bg-[#1A7A4A] text-white hover:bg-[#14663D]">+ Add Student</button>
         </div>
       </div>
+
+      {error && (
+        <div className="bg-[#FEE2E2] border border-[#FCA5A5] text-[#B91C1C] rounded-xl p-6 text-center mb-4">
+          <p className="text-sm mb-3">{error}</p>
+          <button onClick={loadData} className="text-sm px-4 py-2 rounded-lg bg-[#B91C1C] text-white hover:bg-[#991B1B]">Try Again</button>
+        </div>
+      )}
 
       <div className="bg-white border border-[#DDE5F0] rounded-xl overflow-hidden">
         {loading ? (
@@ -264,7 +278,7 @@ export default function StudentsTab() {
               </div>
               {promoteSource && promoteTarget && (
                 <p className="text-xs text-[#64748B]">
-                  {students.filter(s => s.class_group === promoteSource && s.status === 'active').length} active students will be promoted.
+                  {students.filter(s => String(s.class_group) === promoteSource && s.status === 'active').length} active students will be promoted.
                 </p>
               )}
               <div className="flex justify-end gap-2 pt-2">
@@ -273,7 +287,7 @@ export default function StudentsTab() {
                   if (!promoteSource || !promoteTarget) return;
                   setPromoting(true);
                   try {
-                    const ids = students.filter(s => s.class_group === promoteSource).map(s => s.id);
+                    const ids = students.filter(s => String(s.class_group) === promoteSource).map(s => s.id);
                     const token = auth.getToken();
                     const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api'}/students/promote/`, {
                       method: 'POST',

@@ -11,12 +11,21 @@ interface Exam {
   start_time: string | null; end_time: string | null;
   status: string; instructions: string;
   shuffle_questions: boolean; shuffle_options: boolean;
+  time_limit_enforced?: boolean;
 }
 
 interface Subject { id: string; name: string; year_group: string | null; }
 interface Class { id: string; name: string; year_group: string | null; }
 
 const STATUS_OPTIONS = ['draft', 'published', 'ongoing', 'completed', 'archived'];
+
+const statusColors: Record<string, string> = {
+  draft: 'bg-gray-100 text-gray-600',
+  published: 'bg-blue-100 text-blue-700',
+  ongoing: 'bg-green-100 text-green-700',
+  completed: 'bg-amber-100 text-amber-700',
+  archived: 'bg-red-100 text-red-700',
+};
 
 export default function CBTExamsPage() {
   const [exams, setExams] = useState<Exam[]>([]);
@@ -29,7 +38,7 @@ export default function CBTExamsPage() {
   const [form, setForm] = useState({
     title: '', subject: '', class_group: '', duration_mins: '30', pass_mark: '40',
     start_time: '', end_time: '', status: 'draft', instructions: '',
-    shuffle_questions: false, shuffle_options: false,
+    shuffle_questions: false, shuffle_options: false, time_limit_enforced: true,
   });
 
   useEffect(() => { loadAll(); }, []);
@@ -43,17 +52,9 @@ export default function CBTExamsPage() {
     setLoading(false);
   }
 
-  const statusColors: Record<string, string> = {
-    draft: 'bg-[#F0F4FA] text-[#64748B]',
-    published: 'bg-[#E8F0FA] text-[#0D2B55]',
-    ongoing: 'bg-[#DCFCE7] text-[#1A7A4A]',
-    completed: 'bg-[#FEF3C7] text-[#D4930A]',
-    archived: 'bg-[#FEE2E2] text-[#B91C1C]',
-  };
-
   function openAdd() {
     setEditId(null);
-    setForm({ title: '', subject: '', class_group: '', duration_mins: '30', pass_mark: '40', start_time: '', end_time: '', status: 'draft', instructions: '', shuffle_questions: false, shuffle_options: false });
+    setForm({ title: '', subject: '', class_group: '', duration_mins: '30', pass_mark: '40', start_time: '', end_time: '', status: 'draft', instructions: '', shuffle_questions: false, shuffle_options: false, time_limit_enforced: true });
     setShowForm(true);
   }
   function openEdit(exam: Exam) {
@@ -65,8 +66,17 @@ export default function CBTExamsPage() {
       end_time: exam.end_time ? exam.end_time.slice(0, 16) : '',
       status: exam.status, instructions: exam.instructions || '',
       shuffle_questions: exam.shuffle_questions, shuffle_options: exam.shuffle_options,
+      time_limit_enforced: exam.time_limit_enforced ?? true,
     });
     setShowForm(true);
+  }
+
+  async function handleDuplicate(exam: Exam) {
+    if (!confirm(`Duplicate "${exam.title}" including all questions?`)) return;
+    try {
+      await api.exams.duplicate(exam.id);
+      loadAll();
+    } catch { alert('Failed to duplicate exam'); }
   }
 
   async function handleSave(e: React.FormEvent) {
@@ -111,7 +121,7 @@ export default function CBTExamsPage() {
         ) : (
           <div className="divide-y divide-[#DDE5F0]">
             {exams.map(exam => (
-              <div key={exam.id} className="px-4 py-3.5 hover:bg-[#F8FAFF]">
+              <div key={exam.id} className="px-4 py-3 hover:bg-[#F8FAFF]">
                 <div className="flex items-start justify-between">
                   <div className="flex-1 min-w-0 mr-4">
                     <div className="flex items-center gap-2">
@@ -120,19 +130,21 @@ export default function CBTExamsPage() {
                         <Link href={`/dashboard/cbt/take/${exam.id}`} className="text-[10px] px-2 py-0.5 rounded bg-[#1A7A4A] text-white font-bold">Take Exam</Link>
                       )}
                       <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-bold ${statusColors[exam.status] || statusColors.draft}`}>{exam.status}</span>
+                      <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-[#E8F0FA] text-[#0D2B55] font-bold">{exam.question_count}</span>
                     </div>
                     <div className="flex items-center gap-3 mt-1 text-[10px] text-[#64748B]">
                       <span>{exam.subject_name || exam.subject}</span>
                       <span>{exam.class_name || 'All classes'}</span>
                       <span>{exam.duration_mins} min</span>
-                      <span>{exam.question_count} questions</span>
+                      <span>{exam.question_count} Qs</span>
                       <span>Pass: {exam.pass_mark}%</span>
                     </div>
                   </div>
                   <div className="flex items-center gap-1 shrink-0">
-                    <button onClick={() => openEdit(exam)} className="text-[11px] px-2 py-1 rounded border border-[#DDE5F0] hover:bg-[#F0F4FA]">✏️</button>
-                    <Link href={`/dashboard/cbt/${exam.id}`} className="text-[11px] px-2 py-1 rounded border border-[#DDE5F0] hover:bg-[#F0F4FA]">📝 Qs</Link>
-                    <Link href={`/dashboard/cbt/results/${exam.id}`} className="text-[11px] px-2 py-1 rounded border border-[#DDE5F0] hover:bg-[#F0F4FA]">📊 Results</Link>
+                    <button onClick={() => openEdit(exam)} className="text-[11px] px-2 py-1 rounded border border-[#DDE5F0] hover:bg-[#F0F4FA]" title="Edit">✏️</button>
+                    <button onClick={() => handleDuplicate(exam)} className="text-[11px] px-2 py-1 rounded border border-[#DDE5F0] hover:bg-[#F0F4FA]" title="Duplicate">📋</button>
+                    <Link href={`/dashboard/cbt/${exam.id}`} className="text-[11px] px-2 py-1 rounded border border-[#DDE5F0] hover:bg-[#F0F4FA]" title="Questions">📝</Link>
+                    <Link href={`/dashboard/cbt/results/${exam.id}`} className="text-[11px] px-2 py-1 rounded border border-[#DDE5F0] hover:bg-[#F0F4FA]" title="Results">📊</Link>
                   </div>
                 </div>
               </div>
@@ -218,6 +230,11 @@ export default function CBTExamsPage() {
                   <input type="checkbox" checked={form.shuffle_options} onChange={e => setForm({ ...form, shuffle_options: e.target.checked })}
                     className="w-4 h-4 rounded border-[#DDE5F0] text-[#1A7A4A] focus:ring-[#1A7A4A]" />
                   Shuffle options
+                </label>
+                <label className="flex items-center gap-2 cursor-pointer text-sm">
+                  <input type="checkbox" checked={form.time_limit_enforced} onChange={e => setForm({ ...form, time_limit_enforced: e.target.checked })}
+                    className="w-4 h-4 rounded border-[#DDE5F0] text-[#1A7A4A] focus:ring-[#1A7A4A]" />
+                  Enforce time limit
                 </label>
               </div>
               <div className="flex justify-end gap-2 pt-2">

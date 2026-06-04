@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { api } from '@/lib/api';
 
 interface Cls { id: string; name: string; year_group: string | null; }
@@ -15,12 +15,15 @@ export default function AttendancePage() {
   const [attendance, setAttendance] = useState<Record<string, string>>({});
   const [savedRecords, setSavedRecords] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
 
   const [selectedClass, setSelectedClass] = useState('');
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
   const [mode, setMode] = useState<'mark' | 'dashboard' | 'calendar'>('mark');
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState('');
+  const [toast, setToast] = useState<{ text: string; type: 'success' | 'error' } | null>(null);
+  const toastTimer = useRef<NodeJS.Timeout | null>(null);
 
   // Dashboard
   const [dashDate, setDashDate] = useState(date);
@@ -33,13 +36,19 @@ export default function AttendancePage() {
 
   async function loadAll() {
     setLoading(true);
-    const [clsRes, stuRes] = await Promise.all([
-      api.classes.list(),
-      api.students.list({ status: 'active' }),
-    ]);
-    setClsList(clsRes as Cls[]);
-    setStudents(stuRes as Student[]);
-    setLoading(false);
+    setError('');
+    try {
+      const [clsRes, stuRes] = await Promise.all([
+        api.classes.list(),
+        api.students.list({ status: 'active' }),
+      ]);
+      setClsList(clsRes as Cls[]);
+      setStudents(stuRes as Student[]);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to load data');
+    } finally {
+      setLoading(false);
+    }
   }
   useEffect(() => { loadAll(); }, []);
 
@@ -50,11 +59,14 @@ export default function AttendancePage() {
     if (!selectedClass || !date) return;
     (async () => {
       const records = await api.attendance.list({ class_id: selectedClass, date }) as { student: string; status: string }[];
-      const map: Record<string, string> = {};
       const saved: Record<string, string> = {};
       for (const r of records) {
-        map[r.student] = r.status;
         saved[r.student] = r.status;
+      }
+      // Default all students to present, then overlay saved records
+      const map: Record<string, string> = {};
+      for (const s of classStudents) {
+        map[s.id] = saved[s.id] || 'present';
       }
       setAttendance(map);
       setSavedRecords(saved);
@@ -69,6 +81,12 @@ export default function AttendancePage() {
     const map: Record<string, string> = {};
     for (const s of classStudents) map[s.id] = status;
     setAttendance(map);
+  }
+
+  function showToast(text: string, type: 'success' | 'error') {
+    if (toastTimer.current) clearTimeout(toastTimer.current);
+    setToast({ text, type });
+    toastTimer.current = setTimeout(() => setToast(null), 3000);
   }
 
   async function handleSave() {
@@ -98,14 +116,15 @@ export default function AttendancePage() {
         }
         saved++;
       }
-      setMessage(`Saved ${saved} record${saved !== 1 ? 's' : ''}.`);
       // Refresh saved state
       const records = await api.attendance.list({ class_id: selectedClass, date }) as { student: string; status: string }[];
       const savedMap: Record<string, string> = {};
       for (const r of records) savedMap[r.student] = r.status;
       setSavedRecords(savedMap);
+      const clsName = clsList.find(c => c.id === selectedClass)?.name || selectedClass;
+      showToast(`Saved — ${clsName} attendance for ${date}`, 'success');
     } catch (err: unknown) {
-      setMessage(err instanceof Error ? err.message : 'Save failed');
+      showToast(err instanceof Error ? err.message : 'Save failed', 'error');
     } finally {
       setSaving(false);
     }
@@ -178,6 +197,22 @@ export default function AttendancePage() {
         ))}
       </div>
 
+      {error && (
+        <div className="bg-[#FEE2E2] border border-[#FCA5A5] text-[#B91C1C] rounded-xl p-6 text-center mb-4">
+          <p className="text-sm mb-3">{error}</p>
+          <button onClick={loadAll} className="text-sm px-4 py-2 rounded-lg bg-[#B91C1C] text-white hover:bg-[#991B1B]">Try Again</button>
+        </div>
+      )}
+
+      {/* Toast notification */}
+      {toast && (
+        <div className={`fixed top-4 right-4 z-50 px-4 py-2.5 rounded-lg text-xs font-semibold shadow-lg transition-all ${
+          toast.type === 'success' ? 'bg-[#D1FAE5] text-[#065F46] border border-[#6EE7B7]' : 'bg-[#FEE2E2] text-[#B91C1C] border border-[#FCA5A5]'
+        }`}>
+          {toast.text}
+        </div>
+      )}
+
       {mode === 'mark' && (
         <>
           <div className="flex items-center gap-3 mb-4 flex-wrap">
@@ -195,27 +230,32 @@ export default function AttendancePage() {
             <input type="date" value={date} onChange={e => setDate(e.target.value)}
               className="text-sm border border-[#DDE5F0] rounded-lg px-3 py-2 bg-white text-[#0D2B55] outline-none" />
             {selectedClass && (
-              <>
-                <div className="flex gap-1 ml-2">
-                  <button onClick={() => markAll('present')} className="text-[11px] px-2 py-1 rounded bg-[#D1FAE5] text-[#065F46]">All Present</button>
-                  <button onClick={() => markAll('absent')} className="text-[11px] px-2 py-1 rounded bg-[#FEE2E2] text-[#B91C1C]">All Absent</button>
-                  <button onClick={() => markAll('late')} className="text-[11px] px-2 py-1 rounded bg-[#FEF3C7] text-[#D4930A]">All Late</button>
-                </div>
-                <button onClick={handleSave} disabled={saving}
-                  className="text-sm px-4 py-2 rounded-lg bg-[#1A7A4A] text-white hover:bg-[#14663D] disabled:opacity-50">
-                  {saving ? 'Saving…' : 'Save Attendance'}
-                </button>
-              </>
+              <div className="flex gap-1">
+                <button onClick={() => markAll('present')} className="text-[11px] px-2 py-1 rounded border border-[#DDE5F0] text-[#64748B] hover:bg-[#F0F4FA]">All Present</button>
+                <button onClick={() => markAll('absent')} className="text-[11px] px-2 py-1 rounded border border-[#DDE5F0] text-[#64748B] hover:bg-[#F0F4FA]">All Absent</button>
+                <button onClick={() => markAll('late')} className="text-[11px] px-2 py-1 rounded border border-[#DDE5F0] text-[#64748B] hover:bg-[#F0F4FA]">All Late</button>
+              </div>
             )}
           </div>
 
-          {message && (
-            <div className={`px-4 py-2 rounded-lg text-xs mb-3 ${message.includes('Saved') ? 'bg-[#D1FAE5] text-[#065F46]' : 'bg-[#FEE2E2] text-[#B91C1C]'}`}>
-              {message}
+          {/* Live summary bar */}
+          {selectedClass && classStudents.length > 0 && (
+            <div className="text-xs text-[#64748B] mb-3">
+              {classStudents.length} students —
+              {' '}<span className="text-[#065F46] font-semibold">{Object.values(attendance).filter(v => v === 'present').length} Present</span>
+              {' · '}<span className="text-[#B91C1C] font-semibold">{Object.values(attendance).filter(v => v === 'absent').length} Absent</span>
+              {' · '}<span className="text-[#D4930A] font-semibold">{Object.values(attendance).filter(v => v === 'late').length} Late</span>
             </div>
           )}
 
-          <div className="bg-white border border-[#DDE5F0] rounded-xl overflow-hidden">
+          {/* Yellow banner for existing records */}
+          {selectedClass && Object.keys(savedRecords).length > 0 && (
+            <div className="bg-[#FEF3C7] border border-[#F59E0B] text-[#92400E] px-4 py-2 rounded-lg text-xs mb-3">
+              Attendance already marked for this date. You are updating existing records.
+            </div>
+          )}
+
+          <div className="bg-white border border-[#DDE5F0] rounded-xl overflow-hidden mb-20">
             {!selectedClass ? (
               <div className="p-8 text-center text-sm text-[#64748B]">Select a class and date to mark attendance.</div>
             ) : classStudents.length === 0 ? (
@@ -225,26 +265,41 @@ export default function AttendancePage() {
                 <thead>
                   <tr className="text-[11px] font-bold tracking-wider text-[#64748B] uppercase bg-[#F7F9FC]">
                     <th className="text-left px-4 py-3">#</th><th className="text-left px-4 py-3">Student</th>
-                    <th className="text-center px-2 py-3">Present</th>
-                    <th className="text-center px-2 py-3">Absent</th>
-                    <th className="text-center px-2 py-3">Late</th>
+                    <th className="text-center px-2 py-3 w-1/3">Status</th>
                   </tr>
                 </thead>
                 <tbody>
                   {classStudents.map((student, idx) => {
-                    const current = attendance[student.id] || savedRecords[student.id] || '';
+                    const current = attendance[student.id] || '';
+                    const rowBg = current === 'absent' ? 'bg-red-50' : current === 'late' ? 'bg-amber-50' : '';
                     return (
-                      <tr key={student.id} className="hover:bg-[#F8FAFF] border-t border-[#DDE5F0]">
-                        <td className="px-4 py-2.5 text-[#64748B]">{idx + 1}</td>
-                        <td className="px-4 py-2.5 font-semibold">{student.full_name}</td>
-                        {STATUSES.map(status => (
-                          <td key={status} className="px-2 py-2.5 text-center">
-                            <input type="radio" name={`att-${student.id}`} value={status}
-                              checked={current === status}
-                              onChange={() => setStatus(student.id, status)}
-                              className="w-4 h-4 text-[#1A7A4A] focus:ring-[#1A7A4A]" />
-                          </td>
-                        ))}
+                      <tr key={student.id} className={`${rowBg} border-t border-[#DDE5F0] hover:bg-[#F8FAFF]`}>
+                        <td className="px-4 py-2 text-[#64748B]">{idx + 1}</td>
+                        <td className="px-4 py-2 font-semibold">{student.full_name}</td>
+                        <td className="px-2 py-2 text-center">
+                          <div className="flex items-center justify-center gap-1.5">
+                            {STATUSES.map(status => {
+                              const isActive = current === status;
+                              const btnStyles: Record<string, string> = {
+                                present: isActive
+                                  ? 'bg-[#D1FAE5] text-[#065F46] border-[#065F46]'
+                                  : 'bg-white text-[#64748B] border-[#DDE5F0] hover:border-[#065F46]',
+                                absent: isActive
+                                  ? 'bg-[#FEE2E2] text-[#B91C1C] border-[#B91C1C]'
+                                  : 'bg-white text-[#64748B] border-[#DDE5F0] hover:border-[#B91C1C]',
+                                late: isActive
+                                  ? 'bg-[#FEF3C7] text-[#D4930A] border-[#D4930A]'
+                                  : 'bg-white text-[#64748B] border-[#DDE5F0] hover:border-[#D4930A]',
+                              };
+                              return (
+                                <button key={status} onClick={() => setStatus(student.id, status)}
+                                  className={`text-[11px] font-semibold px-3 border rounded-lg transition-colors min-h-[40px] ${btnStyles[status]}`}>
+                                  {status === 'present' ? 'P' : status === 'absent' ? 'A' : 'L'}
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </td>
                       </tr>
                     );
                   })}
@@ -252,6 +307,21 @@ export default function AttendancePage() {
               </table>
             )}
           </div>
+
+          {/* Sticky save bar */}
+          {selectedClass && classStudents.length > 0 && (
+            <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-[#DDE5F0] px-6 py-3 z-20 flex items-center justify-between shadow-lg">
+              <span className="text-xs text-[#64748B]">
+                {Object.values(attendance).filter(v => v === 'present').length} Present
+                {' · '}{Object.values(attendance).filter(v => v === 'absent').length} Absent
+                {' · '}{Object.values(attendance).filter(v => v === 'late').length} Late
+              </span>
+              <button onClick={handleSave} disabled={saving}
+                className="text-sm px-6 py-2.5 rounded-lg bg-[#1A7A4A] text-white font-bold hover:bg-[#14663D] disabled:opacity-50">
+                {saving ? 'Saving…' : 'Save Attendance'}
+              </button>
+            </div>
+          )}
         </>
       )}
 

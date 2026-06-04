@@ -7,6 +7,7 @@ import Link from 'next/link';
 
 export default function DashboardHome() {
   const [loaded, setLoaded] = useState(false);
+  const [error, setError] = useState<string[]>([]);
   const [stats, setStats] = useState({
     students: 0, staff: 0, classes: 0, subjects: 0,
     outstanding: 0, totalFees: 0, collected: 0,
@@ -17,6 +18,7 @@ export default function DashboardHome() {
 
   useEffect(() => {
     (async () => {
+      const errors: string[] = [];
       try {
         const [s, st, c, inv, sub, att] = await Promise.all([
           api.students.list({ status: 'active' }),
@@ -48,7 +50,10 @@ export default function DashboardHome() {
         });
         setRecentStudents(studentsArr.slice(0, 5));
         setLoaded(true);
-      } catch { /* ignore */ }
+      } catch (err) {
+        errors.push(err instanceof Error ? err.message : 'Failed to load dashboard data');
+        setError(errors);
+      }
     })();
   }, []);
 
@@ -82,10 +87,10 @@ export default function DashboardHome() {
       {/* Metric Cards */}
       {!loaded ? <CardSkeleton count={4} /> : (
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-        <MetricCard label="Students" value={stats.students} color="#0D2B55" bg="#E8F0FA" icon="👥" href="/dashboard/students" />
-        <MetricCard label="Staff" value={stats.staff} color="#1A7A4A" bg="#DCFCE7" icon="👨‍🏫" href="/dashboard/teachers" />
-        <MetricCard label="Classes" value={stats.classes} color="#D4930A" bg="#FEF3C7" icon="🏫" href="/dashboard/students" />
-        <MetricCard label="Subjects" value={stats.subjects} color="#7C3AED" bg="#F3E8FF" icon="📚" href="/dashboard/grades" />
+        <MetricCard label="Students" value={error.length > 0 && stats.students === 0 ? '—' : stats.students} color="#0D2B55" bg="#E8F0FA" icon={error.length > 0 && stats.students === 0 ? '⚠️' : '👥'} href="/dashboard/students" />
+        <MetricCard label="Staff" value={error.length > 0 && stats.staff === 0 ? '—' : stats.staff} color="#1A7A4A" bg="#DCFCE7" icon={error.length > 0 && stats.staff === 0 ? '⚠️' : '👨‍🏫'} href="/dashboard/teachers" />
+        <MetricCard label="Classes" value={error.length > 0 && stats.classes === 0 ? '—' : stats.classes} color="#D4930A" bg="#FEF3C7" icon={error.length > 0 && stats.classes === 0 ? '⚠️' : '🏫'} href="/dashboard/students" />
+        <MetricCard label="Subjects" value={error.length > 0 && stats.subjects === 0 ? '—' : stats.subjects} color="#7C3AED" bg="#F3E8FF" icon={error.length > 0 && stats.subjects === 0 ? '⚠️' : '📚'} href="/dashboard/grades" />
       </div>
       )}
 

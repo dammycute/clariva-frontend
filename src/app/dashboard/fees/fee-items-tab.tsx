@@ -5,15 +5,24 @@ import { api } from '@/lib/api';
 import ConfirmDialog from '@/components/confirm-dialog';
 
 const YEAR_GROUPS = ['JSS1', 'JSS2', 'JSS3', 'SS1', 'SS2', 'SS3'];
+const CATEGORY_GROUPS = ['JSS', 'SS'];
+const ARMS = ['A', 'B', 'C'];
 
-interface FeeItem { id: string; name: string; amount: number; class_group: string | null; year_group: string | null; term: string | null; academic_year: string | null; is_mandatory: boolean; class_name?: string; }
-interface Class { id: string; name: string; year_group: string | null; }
+interface FeeItem { id: string; name: string; amount: number; class_group: string | null; year_group: string | null; arm: string | null; pricing_tiers: Record<string, number | Record<string, number>> | null; term: string | null; academic_year: string | null; is_mandatory: boolean; class_name?: string; }
+interface Class { id: string; name: string; year_group: string | null; arm: string | null; }
 
 const TERMS = ['1st Term', '2nd Term', '3rd Term'];
 
 function feeClassLabel(item: FeeItem, classes: Class[]): string {
-  if (item.year_group) return `${item.year_group} (All Arms)`;
+  if (item.year_group && item.arm) return `${item.year_group} ${item.arm} Arms (All Classes)`;
+  if (item.arm) return `Arm ${item.arm} (All Year Groups)`;
+  if (item.year_group) {
+    if (item.pricing_tiers && Object.keys(item.pricing_tiers).some(k => k.startsWith(item.year_group!))) return `${item.year_group} (Tiered)`;
+    const label = (item.year_group.length <= 3) ? 'All Classes' : 'All Arms';
+    return `${item.year_group} (${label})`;
+  }
   if (item.class_group) return classes.find(c => c.id === item.class_group)?.name || '—';
+  if (item.pricing_tiers && Object.keys(item.pricing_tiers).length > 0) return 'Tiered (All Classes)';
   return 'All Classes';
 }
 
@@ -23,9 +32,10 @@ export default function FeeItemsTab({ onRefresh }: { onRefresh: () => void }) {
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [form, setForm] = useState({ name: '', amount: '', class_group: '', year_group: '', term: '', academic_year: '2025/2026', is_mandatory: true });
+  const [form, setForm] = useState({ name: '', amount: '', class_group: '', year_group: '', arm: '', pricing_tiers: '' as string, term: '', academic_year: '2025/2026', is_mandatory: true });
   const [showBulk, setShowBulk] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
+  const [expandedTiers, setExpandedTiers] = useState<Set<string>>(new Set());
 
   useEffect(() => { loadItems(); }, []);
 
@@ -39,22 +49,26 @@ export default function FeeItemsTab({ onRefresh }: { onRefresh: () => void }) {
 
   function openAdd() {
     setEditingId(null);
-    setForm({ name: '', amount: '', class_group: '', year_group: '', term: '', academic_year: '2025/2026', is_mandatory: true });
+    setForm({ name: '', amount: '', class_group: '', year_group: '', arm: '', pricing_tiers: '', term: '', academic_year: '2025/2026', is_mandatory: true });
     setShowModal(true);
   }
   function openEdit(i: FeeItem) {
     setEditingId(i.id);
-    setForm({ name: i.name, amount: String(i.amount), class_group: i.class_group || '', year_group: i.year_group || '', term: i.term || '', academic_year: i.academic_year || '2025/2026', is_mandatory: i.is_mandatory });
+    setForm({ name: i.name, amount: String(i.amount), class_group: i.class_group || '', year_group: i.year_group || '', arm: i.arm || '', pricing_tiers: i.pricing_tiers ? JSON.stringify(i.pricing_tiers) : '', term: i.term || '', academic_year: i.academic_year || '2025/2026', is_mandatory: i.is_mandatory });
     setShowModal(true);
   }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    let pricingTiers = null;
+    try { const p = form.pricing_tiers ? JSON.parse(form.pricing_tiers) : null; if (p && typeof p === 'object') pricingTiers = p; } catch {}
     const payload = {
       name: form.name,
       amount: Number(form.amount),
       class_group: form.class_group || null,
       year_group: form.year_group || null,
+      arm: form.arm || null,
+      pricing_tiers: pricingTiers,
       term: form.term || null,
       academic_year: form.academic_year || null,
       is_mandatory: form.is_mandatory,
@@ -92,6 +106,7 @@ export default function FeeItemsTab({ onRefresh }: { onRefresh: () => void }) {
           <table className="w-full text-xs">
             <thead>
               <tr className="text-[11px] font-bold tracking-wider text-[#64748B] uppercase bg-[#F7F9FC]">
+                <th className="text-left px-4 py-3 w-8"></th>
                 <th className="text-left px-4 py-3">Item</th>
                 <th className="text-left px-4 py-3">Amount</th>
                 <th className="text-left px-4 py-3">Class</th>
@@ -102,22 +117,49 @@ export default function FeeItemsTab({ onRefresh }: { onRefresh: () => void }) {
               </tr>
             </thead>
             <tbody>
-              {items.map(i => (
-                <tr key={i.id} className="hover:bg-[#F8FAFF] border-t border-[#DDE5F0]">
-                  <td className="px-4 py-3 font-semibold">{i.name}</td>
-                  <td className="px-4 py-3">₦{Number(i.amount).toLocaleString()}</td>
-                  <td className="px-4 py-3 text-[#64748B]">{i.class_name}</td>
-                  <td className="px-4 py-3">{i.term || '—'}</td>
-                  <td className="px-4 py-3">{i.academic_year || '—'}</td>
-                  <td className="px-4 py-3"><span className={`px-2 py-0.5 rounded text-[10px] font-bold ${i.is_mandatory ? 'bg-[#FEF3C7] text-[#D4930A]' : 'bg-[#F7F9FC] text-[#64748B]'}`}>{i.is_mandatory ? 'Yes' : 'No'}</span></td>
-                  <td className="px-4 py-3 text-right">
-                    <div className="flex gap-1 justify-end">
-                      <button onClick={() => openEdit(i)} className="text-xs px-2 py-1 rounded-lg border border-[#DDE5F0] bg-white hover:bg-[#F0F4FA]">✏️</button>
+              {items.map(i => {
+                const isExpanded = expandedTiers.has(i.id);
+                const hasTiers = i.pricing_tiers && Object.keys(i.pricing_tiers).length > 0;
+                return (
+                  <>
+                    <tr key={i.id} className="hover:bg-[#F8FAFF] border-t border-[#DDE5F0]">
+                      <td className="px-4 py-3">
+                        {hasTiers && (
+                          <button onClick={() => setExpandedTiers(prev => { const n = new Set(prev); n.has(i.id) ? n.delete(i.id) : n.add(i.id); return n; })} className="text-[#64748B] hover:text-[#0D2B55] text-xs">
+                            {isExpanded ? '▼' : '▶'}
+                          </button>
+                        )}
+                      </td>
+                      <td className="px-4 py-3 font-semibold">{i.name}</td>
+                      <td className="px-4 py-3">₦{Number(i.amount).toLocaleString()}</td>
+                      <td className="px-4 py-3 text-[#64748B]">{i.class_name}</td>
+                      <td className="px-4 py-3">{i.term || '—'}</td>
+                      <td className="px-4 py-3">{i.academic_year || '—'}</td>
+                      <td className="px-4 py-3"><span className={`px-2 py-0.5 rounded text-[10px] font-bold ${i.is_mandatory ? 'bg-[#FEF3C7] text-[#D4930A]' : 'bg-[#F7F9FC] text-[#64748B]'}`}>{i.is_mandatory ? 'Yes' : 'No'}</span></td>
+                      <td className="px-4 py-3 text-right">
+                        <div className="flex gap-1 justify-end">
+                          <button onClick={() => openEdit(i)} className="text-xs px-2 py-1 rounded-lg border border-[#DDE5F0] bg-white hover:bg-[#F0F4FA]">✏️</button>
                       <button onClick={() => setConfirmDelete(i.id)} className="text-xs px-2 py-1 rounded-lg border border-[#FEE2E2] bg-white text-[#B91C1C] hover:bg-[#FEE2E2]">🗑</button>
                     </div>
                   </td>
                 </tr>
-              ))}
+                {isExpanded && hasTiers && (
+                  <tr key={`tiers-${i.id}`} className="bg-[#F7F9FC]">
+                    <td colSpan={8} className="px-4 py-3">
+                      <div className="text-[11px] font-bold text-[#64748B] uppercase mb-2">Year Group Pricing</div>
+                      <div className="flex flex-wrap gap-3">
+                        {Object.entries(i.pricing_tiers!).map(([yg, val]) => (
+                          <div key={yg} className="bg-white border border-[#DDE5F0] rounded-lg px-3 py-2 min-w-[120px]">
+                            <div className="text-[10px] text-[#64748B] uppercase">{yg}</div>
+                            <div className="text-sm font-bold text-[#0D2B55]">₦{Number(val).toLocaleString()}</div>
+                          </div>
+                        ))}
+                      </div>
+                    </td>
+                  </tr>
+                )}
+              </>);
+              })}
             </tbody>
           </table>
         )}
@@ -147,11 +189,15 @@ export default function FeeItemsTab({ onRefresh }: { onRefresh: () => void }) {
                   <select value={form.class_group || form.year_group ? (form.year_group ? `yg:${form.year_group}` : form.class_group) : ''}
                     onChange={e => {
                       const v = e.target.value;
-                      if (v.startsWith('yg:')) setForm({ ...form, year_group: v.slice(3), class_group: '' });
-                      else setForm({ ...form, class_group: v, year_group: '' });
+                      if (v.startsWith('yg:')) setForm({ ...form, year_group: v.slice(3), arm: '', class_group: '' });
+                      else setForm({ ...form, class_group: v, year_group: '', arm: '' });
                     }}
                     className="w-full px-3 py-2 rounded-lg border border-[#DDE5F0] text-sm outline-none focus:border-[#1A7A4A] bg-white">
                     <option value="">All Classes</option>
+                    <option disabled className="text-[#64748B] bg-[#F7F9FC]">— Categories —</option>
+                    {CATEGORY_GROUPS.map(cg => (
+                      <option key={cg} value={`yg:${cg}`}>{cg} (All Classes)</option>
+                    ))}
                     <option disabled className="text-[#64748B] bg-[#F7F9FC]">— Year Groups —</option>
                     {YEAR_GROUPS.map(yg => (
                       <option key={yg} value={`yg:${yg}`}>{yg} (All Arms)</option>
@@ -159,6 +205,44 @@ export default function FeeItemsTab({ onRefresh }: { onRefresh: () => void }) {
                     <option disabled className="text-[#64748B] bg-[#F7F9FC]">— Specific Classes —</option>
                     {classes.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
                   </select>
+                  {form.year_group && !form.class_group && (
+                    <div className="mt-2">
+                      <label className="block text-[11px] font-bold text-[#64748B] uppercase mb-1">Arm (optional)</label>
+                      <select value={form.arm} onChange={e => setForm({ ...form, arm: e.target.value })}
+                        className="w-full px-3 py-2 rounded-lg border border-[#DDE5F0] text-sm outline-none focus:border-[#1A7A4A] bg-white">
+                        <option value="">All Arms</option>
+                        {ARMS.map(a => <option key={a} value={a}>Arm {a}</option>)}
+                      </select>
+                    </div>
+                  )}
+                  <div className="mt-2">
+                    <label className="flex items-center gap-1.5 text-[11px] font-bold text-[#64748B] uppercase cursor-pointer" onClick={() => setForm({ ...form, pricing_tiers: form.pricing_tiers ? '' : '{}' })}>
+                      <span className={`text-xs transition-transform ${form.pricing_tiers ? 'rotate-90' : ''}`}>▶</span>
+                      Pricing per Year Group (expandable)
+                    </label>
+                    {form.pricing_tiers && (
+                      <div className="grid grid-cols-3 gap-2 mt-1.5">
+                        {YEAR_GROUPS.map(yg => {
+                          let cur = '';
+                          try { const p = JSON.parse(form.pricing_tiers); cur = p[yg] !== undefined ? String(p[yg]) : ''; } catch {}
+                          return (
+                            <div key={yg}>
+                              <label className="text-[10px] text-[#64748B] uppercase block mb-0.5">{yg}</label>
+                              <input type="number" min="0" placeholder="₦" value={cur}
+                                onChange={e => {
+                                  let p: Record<string, number | undefined> = {};
+                                  try { p = JSON.parse(form.pricing_tiers) || {}; } catch { p = {}; }
+                                  const next = { ...p, [yg]: e.target.value ? Number(e.target.value) : undefined };
+                                  if (next[yg] === undefined) delete next[yg];
+                                  setForm({ ...form, pricing_tiers: JSON.stringify(next) });
+                                }}
+                                className="w-full px-2 py-1.5 rounded border border-[#DDE5F0] text-sm outline-none focus:border-[#1A7A4A]" />
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-3">
@@ -198,7 +282,10 @@ export default function FeeItemsTab({ onRefresh }: { onRefresh: () => void }) {
 
 function BulkCreateModal({ classes, onClose, onDone }: { classes: Class[]; onClose: () => void; onDone: () => void }) {
   const activeYgs = [...new Set(classes.map(c => c.year_group).filter(Boolean) as string[])];
-  const columns = ['__all__', ...YEAR_GROUPS.filter(yg => activeYgs.includes(yg))];
+  const hasJss = activeYgs.some(yg => yg.startsWith('JSS'));
+  const hasSs = activeYgs.some(yg => yg.startsWith('SS'));
+  const extraCols = [...(hasJss ? ['JSS'] : []), ...(hasSs ? ['SS'] : [])];
+  const columns = ['__all__', ...CATEGORY_GROUPS.filter(cg => extraCols.includes(cg)), ...YEAR_GROUPS.filter(yg => activeYgs.includes(yg))];
   const [rows, setRows] = useState<{ name: string; amounts: Record<string, string>; term: string; academic_year: string; is_mandatory: boolean }[]>([
     { name: 'Tuition', amounts: {}, term: '1st Term', academic_year: '2025/2026', is_mandatory: true },
     { name: 'PTA Levy', amounts: {}, term: '1st Term', academic_year: '2025/2026', is_mandatory: true },
@@ -263,8 +350,8 @@ function BulkCreateModal({ classes, onClose, onDone }: { classes: Class[]; onClo
                 <tr className="bg-[#F7F9FC]">
                   <th className="sticky left-0 bg-[#F7F9FC] z-10 text-left px-3 py-2.5 text-[11px] font-bold text-[#64748B] uppercase min-w-[140px]">Fee Name</th>
                   <th className="text-left px-3 py-2.5 text-[11px] font-bold text-[#1A7A4A] uppercase min-w-[100px]">All Classes</th>
-                  {YEAR_GROUPS.filter(yg => activeYgs.includes(yg)).map(yg => (
-                    <th key={yg} className="text-left px-3 py-2.5 text-[11px] font-bold text-[#0D2B55] uppercase min-w-[100px]">{yg}</th>
+                  {columns.filter(c => c !== '__all__').map(col => (
+                    <th key={col} className="text-left px-3 py-2.5 text-[11px] font-bold text-[#0D2B55] uppercase min-w-[100px]">{col}</th>
                   ))}
                   <th className="w-10" />
                 </tr>

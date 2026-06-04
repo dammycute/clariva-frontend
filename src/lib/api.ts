@@ -22,7 +22,15 @@ function clearTokens() {
   deleteCookie('access_token');
 }
 
+let refreshPromise: Promise<string | null> | null = null;
+
 async function refreshToken(): Promise<string | null> {
+  if (refreshPromise) return refreshPromise;
+  refreshPromise = _refreshToken();
+  try { return await refreshPromise; } finally { refreshPromise = null; }
+}
+
+async function _refreshToken(): Promise<string | null> {
   const refresh = localStorage.getItem('refresh_token');
   if (!refresh) return null;
   try {
@@ -34,6 +42,7 @@ async function refreshToken(): Promise<string | null> {
     if (!res.ok) { clearTokens(); return null; }
     const data = await res.json();
     localStorage.setItem('access_token', data.access);
+    setCookie('access_token', data.access);
     return data.access;
   } catch { clearTokens(); return null; }
 }
@@ -43,50 +52,54 @@ async function request<T = unknown>(
   path: string,
   body?: unknown,
 ): Promise<T> {
-  const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+  const isFormData = body instanceof FormData;
+  const headers: Record<string, string> = {};
+  if (!isFormData) headers['Content-Type'] = 'application/json';
   const token = getToken();
   if (token) headers['Authorization'] = `Bearer ${token}`;
 
-  let res = await fetch(`${API_BASE}${path}`, {
-    method,
-    headers,
-    body: body ? JSON.stringify(body) : undefined,
-  });
+  const fetchOpts: RequestInit = { method, headers };
+  if (body !== undefined) {
+    fetchOpts.body = isFormData ? body : JSON.stringify(body);
+  }
 
-  // Auto-refresh on 401
+  let res = await fetch(`${API_BASE}${path}`, fetchOpts);
+
   if (res.status === 401) {
     const newToken = await refreshToken();
     if (newToken) {
       headers['Authorization'] = `Bearer ${newToken}`;
-      res = await fetch(`${API_BASE}${path}`, {
-        method,
-        headers,
-        body: body ? JSON.stringify(body) : undefined,
-      });
+      res = await fetch(`${API_BASE}${path}`, { ...fetchOpts, headers });
     }
   }
 
   if (!res.ok) {
     const err = await res.json().catch(() => ({ detail: res.statusText }));
     const firstKey = Object.keys(err)[0];
-    let firstMsg = firstKey && err[firstKey]?.[0];
+    if (!firstKey) throw new Error(err.detail || 'Request failed');
+    const val = err[firstKey];
+    let firstMsg = Array.isArray(val) ? val[0] : val;
     if (firstMsg && typeof firstMsg === 'object') {
       const subKey = Object.keys(firstMsg)[0];
       firstMsg = subKey ? `${subKey}: ${firstMsg[subKey]?.[0] || JSON.stringify(firstMsg[subKey])}` : JSON.stringify(firstMsg);
     }
-    throw new Error(firstMsg ? `${firstKey}: ${firstMsg}` : err.detail || 'Request failed');
+    throw new Error(typeof firstMsg === 'string' ? firstMsg : JSON.stringify(firstMsg));
   }
 
   if (res.status === 204) return undefined as T;
   return res.json();
 }
 
-// Auth
-export { request };
+export { request, setTokens };
 
 export const auth = {
   async login(email: string, password: string) {
     const data = await request<{ access: string; refresh: string }>('POST', '/auth/login/', { email, password });
+    setTokens(data.access, data.refresh);
+    return data;
+  },
+  async studentLogin(studentId: string, password: string) {
+    const data = await request<{ access: string; refresh: string }>('POST', '/auth/student-login/', { student_id: studentId, password });
     setTokens(data.access, data.refresh);
     return data;
   },
@@ -101,7 +114,6 @@ export const auth = {
   getToken,
 };
 
-// CRUD helpers
 function unwrap<T>(data: unknown): T[] {
   if (Array.isArray(data)) return data as T[];
   if (data && typeof data === 'object' && 'results' in (data as Record<string, unknown>)) {
@@ -126,6 +138,42 @@ function createApi<T = unknown>(basePath: string) {
   };
 }
 
+export const portal = {
+  lookup: (code: string) => request<{
+    student_id: string; full_name: string; admission_no: string; class_name: string | null;
+    status: string; school_name: string | null;
+    fee_summary: {
+      total_due: number; total_paid: number; balance: number; status: string;
+      items: { description: string; amount_due: number; amount_paid: number }[];
+    };
+    latest_report_card: {
+      term: string; academic_year: string; average: number | null;
+      class_rank: number | null;
+      subjects: { name: string; score: number; grade: string }[];
+    } | null;
+    attendance: {
+      rate: number | null; present: number; absent: number; late: number; total: number;
+    };
+  }>('POST', '/portal/lookup/', { code }),
+
+  setup: (phone: string, pin: string, student_code: string) =>
+    request<{ message: string }>('POST', '/portal/setup/', { phone, pin, student_code }),
+
+  login: (phone: string, pin: string) => request<{
+    access: string; refresh: string; guardian_id: number; phone: string;
+  }>('POST', '/portal/login/', { phone, pin }),
+
+  children: () => request<Array<{
+    id: string; full_name: string; admission_no: string; class_name: string | null;
+    status: string; gender: string | null;
+    fee_summary: { total_due: number; total_paid: number; balance: number };
+    latest_report_card: { term: string; academic_year: string; average: number } | null;
+    attendance_rate: number | null;
+  }>>('GET', '/portal/children/'),
+};
+
+const examsBase = createApi('/exams/exams/');
+
 export const api = {
   schools: createApi('/schools/'),
   gradingConfig: {
@@ -147,7 +195,27 @@ export const api = {
   studentSubjects: createApi('/exams/student-subjects/'),
   timetables: createApi('/exams/timetables/'),
   reportCards: createApi('/exams/report-cards/'),
-  exams: createApi('/exams/exams/'),
+  exams: {
+    ...examsBase,
+    uploadQuestions: (examId: string | number, file: File, replace: boolean): Promise<{ questions_created: number; warnings: string[] }> => {
+      const fd = new FormData();
+      fd.append('questions_file', file);
+      if (replace) fd.append('replace', 'true');
+      return request('POST', `/exams/exams/${examId}/upload_questions/`, fd);
+    },
+    downloadTemplate: () => {
+      const token = getToken();
+      return fetch(`${API_BASE}/exams/exams/question_template/`, {
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      });
+    },
+    startExam: (examId: string | number) =>
+      request<{ session_id: string; time_remaining: number | null; questions: unknown[] }>('POST', `/exams/exams/${examId}/start/`),
+    submitExam: (sessionId: string | number, answers: Record<string, string>, tab_switches: number = 0) =>
+      request<{ score: number; total_marks: number; passed: boolean; percentage: number; late_submission: boolean }>('POST', `/exams/sessions/${sessionId}/submit/`, { answers, tab_switches }),
+    duplicate: (examId: string | number) =>
+      request('POST', `/exams/exams/${examId}/duplicate/`),
+  },
   questions: createApi('/exams/questions/'),
   examSessions: createApi('/exams/sessions/'),
   announcements: createApi('/comms/'),
