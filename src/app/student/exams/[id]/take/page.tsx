@@ -255,7 +255,7 @@ export default function TakeExamPage() {
           <div className="h-3 bg-[#F0F4FA] rounded-full overflow-hidden mb-6">
             <div className={`h-full rounded-full transition-all duration-1000 ${passed ? 'bg-[#1A7A4A]' : 'bg-[#B91C1C]'}`} style={{ width: `${Math.min(pct, 100)}%` }} />
           </div>
-          <button onClick={() => router.push('/dashboard/cbt')} className="text-sm px-6 py-2.5 rounded-lg bg-[#0D2B55] text-white hover:bg-[#0A1F3D]">Back to Exams</button>
+          <button onClick={() => router.push('/student/exams')} className="text-sm px-6 py-2.5 rounded-lg bg-[#0D2B55] text-white hover:bg-[#0A1F3D]">Back to Exams</button>
         </div>
       </div>
     );

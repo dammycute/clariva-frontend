@@ -5,10 +5,10 @@ import { useParams, useRouter } from 'next/navigation';
 import { api } from '@/lib/api';
 
 interface ExamSession {
-  id: string; exam: string; student: string;
+  id: string; exam: string; student: string; student_name: string | null;
   score: number; total_marks: number; passed: boolean;
   started_at: string; submitted_at: string;
-  tab_switches: number; status: string;
+  tab_switches: number; late_submission: boolean; status: string;
 }
 
 interface Exam { id: string; title: string; subject_name?: string; pass_mark: number; }
@@ -78,6 +78,7 @@ export default function ExamResultsPage() {
                 <th className="text-left px-4 py-3">Percentage</th>
                 <th className="text-left px-4 py-3">Result</th>
                 <th className="text-left px-4 py-3">Tab Switches</th>
+                <th className="text-left px-4 py-3">Late</th>
                 <th className="text-left px-4 py-3">Submitted</th>
               </tr>
             </thead>
@@ -86,7 +87,7 @@ export default function ExamResultsPage() {
                 const pct = s.total_marks > 0 ? Math.round((s.score / s.total_marks) * 100) : 0;
                 return (
                   <tr key={s.id} className="hover:bg-[#F8FAFF] border-t border-[#DDE5F0]">
-                    <td className="px-4 py-3 font-semibold">{s.student}</td>
+                    <td className="px-4 py-3 font-semibold">{s.student_name || s.student}</td>
                     <td className="px-4 py-3">{s.score}/{s.total_marks}</td>
                     <td className="px-4 py-3">
                       <span className={`font-bold ${pct >= exam.pass_mark ? 'text-[#1A7A4A]' : 'text-[#B91C1C]'}`}>{pct}%</span>
@@ -95,6 +96,11 @@ export default function ExamResultsPage() {
                       <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${s.passed ? 'bg-[#DCFCE7] text-[#1A7A4A]' : 'bg-[#FEE2E2] text-[#B91C1C]'}`}>{s.passed ? 'Pass' : 'Fail'}</span>
                     </td>
                     <td className="px-4 py-3">{s.tab_switches || 0}</td>
+                    <td className="px-4 py-3">
+                      {s.late_submission
+                        ? <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-700">Late</span>
+                        : <span className="text-[#64748B]">—</span>}
+                    </td>
                     <td className="px-4 py-3 text-[#64748B]">{s.submitted_at ? new Date(s.submitted_at).toLocaleString('en-NG') : '—'}</td>
                   </tr>
                 );

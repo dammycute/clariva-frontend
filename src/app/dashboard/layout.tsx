@@ -34,11 +34,17 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const router = useRouter();
   const [userInitials, setUserInitials] = useState('AD');
 
+  const ADMIN_ROLES = new Set(['school_admin', 'principal', 'teacher', 'super_admin']);
+
   useEffect(() => {
     if (!auth.getToken()) { router.push('/'); return; }
     auth.me().then(user => {
-      if (user?.email) setUserInitials(user.email.substring(0, 2).toUpperCase());
-    }).catch(() => {});
+      if (!user || !ADMIN_ROLES.has(user.role)) {
+        router.push('/');
+        return;
+      }
+      if (user.email) setUserInitials(user.email.substring(0, 2).toUpperCase());
+    }).catch(() => { router.push('/'); });
   }, [router]);
 
   const handleLogout = () => {

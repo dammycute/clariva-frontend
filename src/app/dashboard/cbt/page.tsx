@@ -126,7 +126,7 @@ export default function CBTExamsPage() {
                   <div className="flex-1 min-w-0 mr-4">
                     <div className="flex items-center gap-2">
                       <Link href={`/dashboard/cbt/${exam.id}`} className="text-sm font-bold text-[#0D2B55] hover:underline">{exam.title}</Link>
-                      {(exam.status === 'published' || exam.status === 'ongoing') && (
+                      {false && (exam.status === 'published' || exam.status === 'ongoing') && (
                         <Link href={`/dashboard/cbt/take/${exam.id}`} className="text-[10px] px-2 py-0.5 rounded bg-[#1A7A4A] text-white font-bold">Take Exam</Link>
                       )}
                       <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-bold ${statusColors[exam.status] || statusColors.draft}`}>{exam.status}</span>

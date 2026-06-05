@@ -100,7 +100,7 @@ export default function ExamDetailPage() {
     setUploading(true); setUploadResult(null);
     try {
       const res = await api.exams.uploadQuestions(id, uploadFile, replaceMode);
-      const created = (res as { questions_created?: number })?.questions_created ?? 0;
+      const created = (res as { created?: number })?.created ?? 0;
       const warnings = (res as { warnings?: string[] })?.warnings;
       setUploadResult({
         ok: true,
@@ -186,12 +186,17 @@ export default function ExamDetailPage() {
     setDragIdx(idx);
   }
   async function saveReorder() {
-    // PATCH each question's order field sequentially
     try {
-      await Promise.all(reorderList.map((q, i) => api.questions.update(q.id, { order: i + 1 } as Partial<Question>)));
+      await Promise.all(
+        reorderList.map((q, i) =>
+          api.questions.update(q.id, { order: i + 1 } as Partial<Question>)
+        )
+      );
       setReorderMode(false);
       loadQuestions();
-    } catch { alert('Failed to save order'); }
+    } catch {
+      alert('Failed to save order. Make sure the backend Question order migration has been applied.');
+    }
   }
 
   // ---- computed stats ----

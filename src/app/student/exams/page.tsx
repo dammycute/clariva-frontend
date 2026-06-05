@@ -34,7 +34,7 @@ export default function StudentExamsPage() {
                 <h3 className="text-sm font-bold text-[#0D2B55]">{ex.title}</h3>
                 <p className="text-xs text-[#64748B] mt-0.5">{ex.subject_name || '—'} · {ex.duration_mins} min · {ex.question_count} questions · Pass: {ex.pass_mark}%</p>
               </div>
-              <Link href={`/dashboard/cbt/take/${ex.id}`}
+              <Link href={`/student/exams/${ex.id}/take`}
                 className="text-sm px-4 py-2 rounded-lg bg-[#1A7A4A] text-white hover:bg-[#14663D]">Start Exam</Link>
             </div>
           ))}

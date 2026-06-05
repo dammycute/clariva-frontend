@@ -197,7 +197,7 @@ export const api = {
   reportCards: createApi('/exams/report-cards/'),
   exams: {
     ...examsBase,
-    uploadQuestions: (examId: string | number, file: File, replace: boolean): Promise<{ questions_created: number; warnings: string[] }> => {
+    uploadQuestions: (examId: string | number, file: File, replace: boolean): Promise<{ created: number; warnings: string[]; errors: string[]; replaced: boolean }> => {
       const fd = new FormData();
       fd.append('questions_file', file);
       if (replace) fd.append('replace', 'true');
