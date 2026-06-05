@@ -4,7 +4,8 @@ import { useState, useEffect } from 'react';
 import { api, auth } from '@/lib/api';
 import ConfirmDialog from '@/components/confirm-dialog';
 
-interface Class { id: string; name: string; year_group: string | null; arm: string | null; form_teacher: string | null; academic_year: string | null; }
+interface Class { id: string; name: string; year_group: string | null; arm: string | null; form_teacher: string | null; form_teacher_name: string | null; academic_year: string | null; }
+interface StaffMember { id: string; full_name: string; role: string; }
 
 const YEAR_GROUPS = ['JSS1', 'JSS2', 'JSS3', 'SS1', 'SS2', 'SS3'];
 const ARMS = ['A', 'B', 'C', 'D'];
@@ -14,13 +15,21 @@ export default function ClassesTab() {
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [form, setForm] = useState({ name: '', year_group: '', arm: '', academic_year: '2025/2026' });
+  const [form, setForm] = useState({ name: '', year_group: '', arm: '', form_teacher: '', academic_year: '2025/2026' });
   const [submitError, setSubmitError] = useState('');
   const [confirm, setConfirm] = useState<{ id: string; name: string } | null>(null);
   const [creatingAccounts, setCreatingAccounts] = useState<string | null>(null);
   const [accountsResult, setAccountsResult] = useState<{ name: string; email: string; password: string }[] | null>(null);
+  const [staffList, setStaffList] = useState<StaffMember[]>([]);
 
-  useEffect(() => { loadClasses(); }, []);
+  useEffect(() => { loadClasses(); loadStaff(); }, []);
+
+  async function loadStaff() {
+    try {
+      const data = await api.staff.list();
+      setStaffList((data as StaffMember[]).filter(s => s.role === 'Teacher'));
+    } catch { /* */ }
+  }
 
   async function loadClasses() {
     setLoading(true);
@@ -31,12 +40,12 @@ export default function ClassesTab() {
 
   function openAdd() {
     setEditingId(null);
-    setForm({ name: '', year_group: '', arm: '', academic_year: '2025/2026' });
+    setForm({ name: '', year_group: '', arm: '', form_teacher: '', academic_year: '2025/2026' });
     setShowModal(true);
   }
   function openEdit(c: Class) {
     setEditingId(c.id);
-    setForm({ name: c.name, year_group: c.year_group || '', arm: c.arm || '', academic_year: c.academic_year || '2025/2026' });
+    setForm({ name: c.name, year_group: c.year_group || '', arm: c.arm || '', form_teacher: c.form_teacher || '', academic_year: c.academic_year || '2025/2026' });
     setShowModal(true);
   }
 
@@ -58,7 +67,7 @@ export default function ClassesTab() {
     setSubmitError('');
     if (duplicateName) return;
     try {
-      const payload = { ...form, arm: form.arm || null, academic_year: form.academic_year || null };
+      const payload = { ...form, arm: form.arm || null, form_teacher: form.form_teacher || null, academic_year: form.academic_year || null };
       if (editingId) {
         await api.classes.update(editingId, payload);
       } else {
@@ -96,17 +105,19 @@ export default function ClassesTab() {
                 <th className="text-left px-4 py-3">Class</th>
                 <th className="text-left px-4 py-3">Year Group</th>
                 <th className="text-left px-4 py-3">Arm</th>
+                <th className="text-left px-4 py-3">Form Teacher</th>
                 <th className="text-left px-4 py-3">Academic Year</th>
                 <th className="text-right px-4 py-3">Actions</th>
               </tr>
             </thead>
             <tbody>
               {classes.map(c => (
-                <tr key={c.id} className="hover:bg-[#F8FAFF] border-t border-[#DDE5F0]">
-                  <td className="px-4 py-3 font-semibold truncate max-w-[160px]" title={c.name}>{c.name}</td>
-                  <td className="px-4 py-3 text-[#64748B]">{c.year_group || '—'}</td>
-                  <td className="px-4 py-3">{c.arm || '—'}</td>
-                  <td className="px-4 py-3 truncate max-w-[100px]" title={c.academic_year || ''}>{c.academic_year || '—'}</td>
+                  <tr key={c.id} className="hover:bg-[#F8FAFF] border-t border-[#DDE5F0]">
+                    <td className="px-4 py-3 font-semibold truncate max-w-[160px]" title={c.name}>{c.name}</td>
+                    <td className="px-4 py-3 text-[#64748B]">{c.year_group || '—'}</td>
+                    <td className="px-4 py-3">{c.arm || '—'}</td>
+                    <td className="px-4 py-3 truncate max-w-[160px]" title={c.form_teacher_name || ''}>{c.form_teacher_name || '—'}</td>
+                    <td className="px-4 py-3 truncate max-w-[100px]" title={c.academic_year || ''}>{c.academic_year || '—'}</td>
                     <td className="px-4 py-3 text-right">
                     <div className="flex gap-1 justify-end">
                       <button onClick={async () => {
@@ -194,6 +205,14 @@ export default function ClassesTab() {
                 {duplicateName && (
                   <p className="text-[11px] text-[#B91C1C] mt-1.5">⚠ The name &quot;{form.name}&quot; is already taken.</p>
                 )}
+              </div>
+              <div>
+                <label className="block text-[11px] font-bold text-[#64748B] uppercase mb-1">Form teacher</label>
+                <select value={form.form_teacher || ''} onChange={e => setForm({ ...form, form_teacher: e.target.value || '' })}
+                  className="w-full px-3 py-2 rounded-lg border border-[#DDE5F0] text-sm outline-none focus:border-[#1A7A4A] bg-white">
+                  <option value="">Not assigned</option>
+                  {staffList.map(s => <option key={s.id} value={s.id}>{s.full_name}</option>)}
+                </select>
               </div>
               <div>
                 <label className="block text-[11px] font-bold text-[#64748B] uppercase mb-1">Academic year</label>

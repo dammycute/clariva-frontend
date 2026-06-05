@@ -20,52 +20,36 @@ export default function DashboardHome() {
     (async () => {
       const errors: string[] = [];
       try {
-        const [s, st, c, inv, sub, att] = await Promise.all([
-          api.students.list({ status: 'active' }),
-          api.staff.list(),
-          api.classes.list(),
-          api.feeInvoices.list(),
-          api.subjects.list(),
-          api.attendance.list(),
+        const me = await auth.me();
+        if (!me?.school_id) { setLoaded(true); return; }
+
+        const [analysis, school] = await Promise.all([
+          api.analytics.get(me.school_id),
+          api.schools.get(me.school_id) as Promise<{ name: string; current_term: string; current_academic_year: string }>,
         ]);
-        const studentsArr = Array.isArray(s) ? s as Array<{ id: string; full_name: string; admission_no: string; class_name?: string; status: string }> : [];
-        const invoicesArr = Array.isArray(inv) ? inv as Array<{ amount_due: string | number; amount_paid: string | number }> : [];
-        const attendanceArr = Array.isArray(att) ? att as Array<{ status: string }> : [];
 
-        const outstanding = invoicesArr.reduce((a, i) => a + (Number(i.amount_due) - Number(i.amount_paid)), 0);
-        const totalFees = invoicesArr.reduce((a, i) => a + Number(i.amount_due), 0);
-        const paid = invoicesArr.reduce((a, i) => a + Number(i.amount_paid), 0);
-        const present = attendanceArr.filter(a => a.status === 'present').length;
-
+        setSchool(school);
         setStats({
-          students: studentsArr.length,
-          staff: Array.isArray(st) ? st.length : 0,
-          classes: Array.isArray(c) ? c.length : 0,
-          subjects: Array.isArray(sub) ? sub.length : 0,
-          outstanding,
-          totalFees,
-          collected: paid,
-          present,
-          totalAttendance: attendanceArr.length,
+          students: analysis.students,
+          staff: analysis.staff,
+          classes: analysis.classes,
+          subjects: analysis.subjects,
+          outstanding: analysis.fees.outstanding,
+          totalFees: analysis.fees.total_due,
+          collected: analysis.fees.total_paid,
+          present: analysis.attendance.present,
+          totalAttendance: analysis.attendance.total,
         });
-        setRecentStudents(studentsArr.slice(0, 5));
+
+        const s = await api.students.list({ status: 'active' });
+        setRecentStudents(
+          (Array.isArray(s) ? s as Array<{ id: string; full_name: string; admission_no: string; class_name?: string; status: string }> : []).slice(0, 5)
+        );
         setLoaded(true);
       } catch (err) {
         errors.push(err instanceof Error ? err.message : 'Failed to load dashboard data');
         setError(errors);
-      }
-    })();
-  }, []);
-
-  useEffect(() => {
-    (async () => {
-      try {
-        const me = await auth.me();
-        if (me?.school_id) {
-          const s = await api.schools.get(me.school_id) as { name: string; current_term: string; current_academic_year: string };
-          setSchool(s);
-        }
-      } catch { /* ignore */ }
+      } finally { setLoaded(true); }
     })();
   }, []);
 

@@ -184,11 +184,9 @@ export const api = {
     states: createApi<{ id: number; name: string; code: string }>('/locations/states/'),
     lgas: createApi<{ id: number; name: string; state: number }>('/locations/lgas/'),
   },
-  students: createApi<{ id: string; admission_no: string; full_name: string; gender: string | null; class_group: string | null; guardian_name: string | null; guardian_phone: string | null; status: string; class_name?: string }>('/students/'),
   classes: createApi<{ id: string; name: string; year_group: string | null; arm: string | null; academic_year: string | null }>('/classes/'),
   staff: createApi('/staff/'),
   feeItems: createApi('/fees/items/'),
-  feeInvoices: createApi('/fees/invoices/'),
   attendance: createApi('/attendance/'),
   grades: createApi('/grades/'),
   subjects: createApi('/exams/subjects/'),
@@ -219,5 +217,27 @@ export const api = {
   questions: createApi('/exams/questions/'),
   examSessions: createApi('/exams/sessions/'),
   announcements: createApi('/comms/'),
+  notifications: createApi('/comms/notifications/'),
+  analytics: {
+    get: (schoolId: number | string) => request<{
+      school_name: string; current_term: string; current_academic_year: string;
+      students: number; total_students: number; staff: number; classes: number; subjects: number;
+      fees: { total_due: number; total_paid: number; outstanding: number };
+      attendance: { total: number; present: number; rate: number };
+      exams: { total_sessions: number; submitted: number; avg_score: number };
+    }>('GET', `/schools/${schoolId}/analytics/`),
+  },
+  students: {
+    ...createApi('/students/') as ReturnType<typeof createApi> & { timeline: (id: string) => Promise<unknown[]> },
+    timeline: (id: string) => request<Array<{ type: string; date: string; title: string; description: string }>>('GET', `/students/${id}/timeline/`),
+  },
+  feeInvoices: {
+    ...createApi('/fees/invoices/') as ReturnType<typeof createApi> & { bursarySummary: () => Promise<unknown> },
+    bursarySummary: () => request<{
+      total_students: number; total_due: number; total_paid: number; outstanding: number;
+      collection_rate: number; paid_invoices: number; pending_invoices: number;
+      item_breakdown: { name: string; total_due: number; total_paid: number; outstanding: number }[];
+    }>('GET', '/fees/bursary-summary/'),
+  },
   audit: createApi('/audit/'),
 };

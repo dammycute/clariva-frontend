@@ -7,7 +7,7 @@ import Link from 'next/link';
 
 export default function TeacherDashboard() {
   const router = useRouter();
-  const [stats, setStats] = useState({ classes: 0, students: 0, subjects: 0 });
+  const [stats, setStats] = useState({ classes: 0, students: 0, subjects: 0, examSessions: 0, avgScore: 0 });
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -26,7 +26,21 @@ export default function TeacherDashboard() {
           classes: Array.isArray(cls) ? cls.length : 0,
           students: Array.isArray(stu) ? stu.length : 0,
           subjects: Array.isArray(sub) ? sub.length : 0,
+          examSessions: 0,
+          avgScore: 0,
         });
+
+        try {
+          const sessions = await api.examSessions.list() as Array<{ score: number; total_marks: number }>;
+          if (Array.isArray(sessions)) {
+            const total = sessions.reduce((a, s) => a + (s.score || 0), 0);
+            setStats(prev => ({
+              ...prev,
+              examSessions: sessions.length,
+              avgScore: sessions.length > 0 ? Math.round((total / sessions.length) * 100) / 100 : 0,
+            }));
+          }
+        } catch { /* */ }
       } catch { /* */ }
       finally { setLoading(false); }
     })();
@@ -52,7 +66,18 @@ export default function TeacherDashboard() {
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-2 gap-4 mb-6">
+        <div className="bg-white border border-[#DDE5F0] rounded-xl p-4">
+          <p className="text-[11px] font-bold text-[#64748B] uppercase">Exam Sessions</p>
+          <p className="text-2xl font-bold text-[#0D2B55]">{loading ? '…' : stats.examSessions}</p>
+        </div>
+        <div className="bg-white border border-[#DDE5F0] rounded-xl p-4">
+          <p className="text-[11px] font-bold text-[#64748B] uppercase">Avg Score</p>
+          <p className="text-2xl font-bold text-[#1A7A4A]">{loading ? '…' : `${stats.avgScore}%`}</p>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-2 gap-3">
         {[
           { label: 'Mark Attendance', href: '/teacher/attendance', icon: '✅' },
           { label: 'Enter Grades', href: '/teacher/grades', icon: '📝' },

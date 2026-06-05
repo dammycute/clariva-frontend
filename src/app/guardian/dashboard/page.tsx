@@ -4,12 +4,17 @@ import { useState, useEffect } from 'react';
 import { portal } from '@/lib/api';
 import { useRouter } from 'next/navigation';
 
+interface NotificationItem {
+  id: string; type: string; title: string; message: string; read: boolean; created_at: string;
+}
+
 interface ChildData {
   id: string; full_name: string; admission_no: string; class_name: string | null;
   status: string; gender: string | null;
   fee_summary: { total_due: number; total_paid: number; balance: number };
   latest_report_card: { term: string; academic_year: string; average: number } | null;
   attendance_rate: number | null;
+  recent_notifications: NotificationItem[];
 }
 
 export default function GuardianDashboard() {
@@ -191,6 +196,26 @@ export default function GuardianDashboard() {
                 <p className="text-xs text-[#64748B]">No attendance records yet.</p>
               )}
             </div>
+
+            {/* Notifications */}
+            {child.recent_notifications && child.recent_notifications.length > 0 && (
+              <div>
+                <p className="text-[11px] font-bold text-[#64748B] uppercase mb-2">Recent Updates</p>
+                <div className="space-y-1.5">
+                  {child.recent_notifications.slice(0, 3).map(n => (
+                    <div key={n.id} className="bg-[#F7F9FC] rounded-lg px-3 py-2 flex items-start gap-2">
+                      <span className="text-xs mt-0.5">
+                        {n.type === 'attendance' ? '✅' : n.type === 'exam' ? '📝' : n.type === 'fee' ? '💰' : n.type === 'grade' ? '📊' : '📢'}
+                      </span>
+                      <div className="min-w-0">
+                        <p className="text-[11px] font-semibold text-[#0D2B55]">{n.title}</p>
+                        <p className="text-[10px] text-[#64748B]">{n.message}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         )}
       </div>

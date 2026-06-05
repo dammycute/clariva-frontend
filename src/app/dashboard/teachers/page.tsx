@@ -5,7 +5,7 @@ import { api, auth } from '@/lib/api';
 import { downloadCsv } from '@/lib/csv';
 import ConfirmDialog from '@/components/confirm-dialog';
 
-interface Staff { id: string; full_name: string; role: string; qualification: string | null; subjects: string[] | null; phone: string | null; email: string | null; date_joined: string | null; status: string; has_account: boolean; }
+interface Staff { id: string; full_name: string; role: string; qualification: string | null; subjects: string[] | null; phone: string | null; email: string | null; date_joined: string | null; status: string; has_account: boolean; form_classes: { id: string; name: string }[]; }
 
 const STAFF_ROLES = ['Teacher', 'Principal', 'Vice Principal', 'Head of Department', 'Admin', 'Accountant', 'Nurse', 'Librarian', 'IT Support', 'Security', 'Driver', 'Cleaner'];
 const QUALIFICATIONS = ['NCE', 'OND', 'HND', "Bachelor's", "Master's", 'PhD', 'Other'];
@@ -133,7 +133,7 @@ export default function StaffPage() {
               <tr className="text-[11px] font-bold tracking-wider text-[#64748B] uppercase bg-[#F7F9FC]">
                 <th className="text-left px-4 py-3">Staff</th>
                 <th className="text-left px-4 py-3">Role</th>
-                <th className="text-left px-4 py-3">Qualification</th>
+                <th className="text-left px-4 py-3">Assigned Classes</th>
                 <th className="text-left px-4 py-3">Subjects</th>
                 <th className="text-left px-4 py-3">Contact</th>
                 <th className="text-left px-4 py-3">Joined</th>
@@ -154,7 +154,9 @@ export default function StaffPage() {
                       </div>
                     </td>
                     <td className="px-4 py-3"><span className={`px-2 py-0.5 rounded text-[10px] font-bold ${s.role === 'Teacher' ? 'bg-[#E8F0FA] text-[#0D2B55]' : s.role === 'Principal' || s.role === 'Vice Principal' ? 'bg-[#FEF3C7] text-[#D4930A]' : 'bg-[#F7F9FC] text-[#64748B]'}`}>{s.role}</span></td>
-                    <td className="px-4 py-3 text-[#64748B]">{s.qualification || '—'}</td>
+                    <td className="px-4 py-3 max-w-[160px]">
+                      <div className="flex flex-wrap gap-1">{s.form_classes?.length ? s.form_classes.map((cls, i) => <span key={i} className="text-[10px] bg-[#E8F0FA] text-[#0D2B55] px-1.5 py-0.5 rounded">{cls.name}</span>) : <span className="text-[#64748B]">—</span>}</div>
+                    </td>
                     <td className="px-4 py-3 max-w-[160px]">
                       <div className="flex flex-wrap gap-1">{s.subjects?.length ? s.subjects.map((sub, i) => <span key={i} className="text-[10px] bg-[#F0F4FA] text-[#64748B] px-1.5 py-0.5 rounded">{sub}</span>) : <span className="text-[#64748B]">—</span>}</div>
                     </td>
