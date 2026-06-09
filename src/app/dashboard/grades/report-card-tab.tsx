@@ -1,13 +1,20 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
+import toast from 'react-hot-toast';
 import { api } from '@/lib/api';
 
+interface GradeEntry {
+  subject: string;
+  scores: Record<string, number>;
+  total: number | null;
+  grade: string | null;
+}
 interface ReportCard {
   id: string;
   student: string; student_name: string; class_name: string;
   term: string; academic_year: string;
-  grades: { subject: string; ca1: number | null; ca2: number | null; assignment: number | null; exam: number | null; total: number | null; grade: string | null; }[];
+  grades: GradeEntry[];
   total_score: number | null; total_possible: number | null;
   average: number | null; class_rank: number | null;
 }
@@ -34,7 +41,7 @@ export default function ReportCardTab({ onRefresh }: { onRefresh: () => void }) 
   const [term, setTerm] = useState('1st Term');
   const [academicYear, setAcademicYear] = useState('2025/2026');
   const [previewCard, setPreviewCard] = useState<ReportCard | null>(null);
-  const [gradingConfig, setGradingConfig] = useState<{ max_ca1: number; max_ca2: number; max_assignment: number; max_exam: number } | null>(null);
+  const [components, setComponents] = useState<{ key: string; label: string; max: number; enabled: boolean }[]>([]);
 
   const printRef = useRef<HTMLDivElement>(null);
 
@@ -87,19 +94,21 @@ export default function ReportCardTab({ onRefresh }: { onRefresh: () => void }) 
         headers: { 'Authorization': `Bearer ${localStorage.getItem('access_token')}` },
       })).json();
       if (me?.school_id) {
-        const gc = await api.gradingConfig.get(me.school_id) as unknown as { max_ca1: number; max_ca2: number; max_assignment: number; max_exam: number };
-        setGradingConfig(gc);
+        const gc = await api.gradingConfig.get(me.school_id) as unknown as { components: typeof components };
+        setComponents(gc.components || []);
       }
     } catch { /* ignore */ }
   }
 
   function handlePrint() {
     if (!cardToPrint) return;
+    const activeComponents = components.filter(c => c.enabled !== false);
+    const maxTotal = activeComponents.reduce((s, c) => s + c.max, 0);
     const iframe = document.createElement('iframe');
     iframe.style.cssText = 'position:fixed;top:0;left:0;width:0;height:0;border:0';
     document.body.appendChild(iframe);
     const doc = iframe.contentWindow?.document;
-    if (!doc) { alert('Print not available.'); return; }
+    if (!doc) { toast.error('Print preview not available. Try a different browser.'); return; }
     doc.open();
     doc.write(`<!DOCTYPE html><html><head>
       <title>Report Card - ${cardToPrint.student_name}</title>
@@ -140,18 +149,15 @@ export default function ReportCardTab({ onRefresh }: { onRefresh: () => void }) 
       </div>
       <table>
         <thead><tr>
-          <th>Subject</th><th class="center">CA1 (${gc.max_ca1})</th><th class="center">CA2 (${gc.max_ca2})</th>
-          <th class="center">Asgn (${gc.max_assignment})</th><th class="center">Exam (${gc.max_exam})</th>
-          <th class="center">Total (${gc.max_ca1 + gc.max_ca2 + gc.max_assignment + gc.max_exam})</th><th class="center">Grade</th>
+          <th>Subject</th>
+          ${activeComponents.map(c => `<th class="center">${c.label} (${c.max})</th>`).join('')}
+          <th class="center">Total (${maxTotal})</th><th class="center">Grade</th>
         </tr></thead>
         <tbody>
           ${(cardToPrint.grades || []).map(g => `
             <tr>
               <td style="font-weight:600">${g.subject}</td>
-              <td class="center">${g.ca1 != null ? g.ca1 : '-'}</td>
-              <td class="center">${g.ca2 != null ? g.ca2 : '-'}</td>
-              <td class="center">${g.assignment != null ? g.assignment : '-'}</td>
-              <td class="center">${g.exam != null ? g.exam : '-'}</td>
+              ${activeComponents.map(c => `<td class="center">${g.scores?.[c.key] != null ? g.scores[c.key] : '-'}</td>`).join('')}
               <td class="center" style="font-weight:600">${g.total != null ? g.total : '-'}</td>
               <td class="center" style="font-weight:600">${g.grade || '-'}</td>
             </tr>
@@ -174,7 +180,8 @@ export default function ReportCardTab({ onRefresh }: { onRefresh: () => void }) 
     }, 500);
   }
 
-  const gc = gradingConfig || { max_ca1: 30, max_ca2: 30, max_assignment: 40, max_exam: 100 };
+  const activeComponents = components.filter(c => c.enabled !== false);
+  const maxTotal = activeComponents.reduce((s, c) => s + c.max, 0);
 
   const cardToPrint = previewCard;
 
@@ -212,7 +219,7 @@ export default function ReportCardTab({ onRefresh }: { onRefresh: () => void }) 
         </div>
       )}
 
-      <div className="bg-white border border-[#DDE5F0] rounded-xl overflow-hidden">
+      <div className="bg-white border border-[#DDE5F0] rounded-xl overflow-x-auto">
         {loading ? <div className="p-8 text-center text-sm text-[#64748B]">Loading…</div>
         : filteredCards.length === 0 ? (
           <div className="p-8 text-center text-sm text-[#64748B]">
@@ -258,14 +265,12 @@ export default function ReportCardTab({ onRefresh }: { onRefresh: () => void }) 
             </div>
 
             <div ref={printRef} className="p-8 overflow-y-auto max-h-[70vh]" style={{ fontFamily: 'Inter, sans-serif' }}>
-              {/* Report Card Header */}
               <div className="text-center mb-6 print:mb-4">
                 <div className="text-2xl font-bold tracking-wider text-[#0D2B55]">CLARIVA</div>
                 <div className="text-[10px] text-[#64748B]">School Management Platform</div>
                 <div className="mt-3 text-lg font-bold text-[#0D2B55] border-b-2 border-[#1A7A4A] pb-2">TERMLY REPORT CARD</div>
               </div>
 
-              {/* Student Info */}
               <div className="grid grid-cols-2 gap-x-8 gap-y-1 mb-4 text-xs">
                 <div><span className="text-[#64748B]">Student:</span> <span className="font-semibold text-[#0D2B55]">{cardToPrint.student_name}</span></div>
                 <div><span className="text-[#64748B]">Class:</span> <span className="font-semibold text-[#0D2B55]">{cardToPrint.class_name}</span></div>
@@ -273,16 +278,14 @@ export default function ReportCardTab({ onRefresh }: { onRefresh: () => void }) 
                 <div><span className="text-[#64748B]">Academic Year:</span> <span className="font-semibold text-[#0D2B55]">{cardToPrint.academic_year}</span></div>
               </div>
 
-              {/* Grades Table */}
               <table className="w-full text-xs border-collapse mb-3">
                 <thead>
                   <tr className="bg-[#0D2B55] text-white">
                     <th className="text-left px-3 py-2">Subject</th>
-                    <th className="text-center px-2 py-2">CA1 ({gc.max_ca1})</th>
-                    <th className="text-center px-2 py-2">CA2 ({gc.max_ca2})</th>
-                    <th className="text-center px-2 py-2">Asgn ({gc.max_assignment})</th>
-                    <th className="text-center px-2 py-2">Exam ({gc.max_exam})</th>
-                    <th className="text-center px-2 py-2">Total ({gc.max_ca1 + gc.max_ca2 + gc.max_assignment + gc.max_exam})</th>
+                    {activeComponents.map(c => (
+                      <th key={c.key} className="text-center px-2 py-2">{c.label} ({c.max})</th>
+                    ))}
+                    <th className="text-center px-2 py-2">Total ({maxTotal})</th>
                     <th className="text-center px-2 py-2">Grade</th>
                   </tr>
                 </thead>
@@ -290,10 +293,9 @@ export default function ReportCardTab({ onRefresh }: { onRefresh: () => void }) 
                   {(cardToPrint.grades || []).map((g, i) => (
                     <tr key={i} className={i % 2 === 0 ? 'bg-[#F7F9FC]' : ''}>
                       <td className="px-3 py-1.5 font-semibold text-[#0D2B55]">{g.subject}</td>
-                      <td className="text-center px-2 py-1.5">{g.ca1 != null ? g.ca1 : '—'}</td>
-                      <td className="text-center px-2 py-1.5">{g.ca2 != null ? g.ca2 : '—'}</td>
-                      <td className="text-center px-2 py-1.5">{g.assignment != null ? g.assignment : '—'}</td>
-                      <td className="text-center px-2 py-1.5">{g.exam != null ? g.exam : '—'}</td>
+                      {activeComponents.map(c => (
+                        <td key={c.key} className="text-center px-2 py-1.5">{g.scores?.[c.key] != null ? g.scores[c.key] : '—'}</td>
+                      ))}
                       <td className="text-center px-2 py-1.5 font-bold">{g.total != null ? g.total : '—'}</td>
                       <td className={`text-center px-2 py-1.5 font-bold ${getGradeColor(g.grade)}`}>{g.grade || '—'}</td>
                     </tr>
@@ -301,7 +303,6 @@ export default function ReportCardTab({ onRefresh }: { onRefresh: () => void }) 
                 </tbody>
               </table>
 
-              {/* Totals */}
               <div className="grid grid-cols-3 gap-4 mb-4 text-xs">
                 <div className="bg-[#F7F9FC] rounded-lg p-2.5 text-center">
                   <div className="text-[#64748B] text-[10px]">Total Score</div>
@@ -317,7 +318,6 @@ export default function ReportCardTab({ onRefresh }: { onRefresh: () => void }) 
                 </div>
               </div>
 
-              {/* WAEC Grade Legend */}
               <div className="text-[10px] text-[#64748B] border-t border-[#DDE5F0] pt-2 mt-2">
                 <span className="font-semibold">WAEC Grading:</span>{' '}
                 A1(75-100%) B2(70-74%) B3(65-69%) C4(60-64%) C5(55-59%) C6(50-54%) D7(45-49%) E8(40-44%) F9(0-39%)

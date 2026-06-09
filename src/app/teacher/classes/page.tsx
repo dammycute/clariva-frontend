@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { api } from '@/lib/api';
 
 interface Class { id: string; name: string; year_group: string | null; arm: string | null; form_teacher: string | null; academic_year: string | null; }
-interface Student { id: string; full_name: string; admission_no: string; status: string; }
+interface Student { id: string; first_name: string; last_name: string; admission_no: string; student_status: string; }
 
 export default function TeacherClassesPage() {
   const [classes, setClasses] = useState<Class[]>([]);
@@ -38,7 +38,7 @@ export default function TeacherClassesPage() {
         <div className="grid gap-4">
           {classes.map(c => {
             const students = studentsMap[c.id] || [];
-            const active = students.filter(s => s.status === 'active');
+            const active = students.filter(s => s.student_status === 'active');
             return (
               <div key={c.id} className="bg-white border border-[#DDE5F0] rounded-xl overflow-hidden">
                 <div className="px-4 py-3 border-b border-[#DDE5F0] bg-[#F8FAFF] flex items-center justify-between">
@@ -48,16 +48,16 @@ export default function TeacherClassesPage() {
                   </div>
                   <span className="text-xs text-[#64748B]">{active.length} active students</span>
                 </div>
-                <div className="divide-y divide-[#DDE5F0] max-h-48 overflow-y-auto">
+                <div className={`divide-y divide-[#DDE5F0] ${classes.length === 1 ? '' : 'max-h-48 overflow-y-auto'}`}>
                   {students.length === 0 ? (
                     <div className="px-4 py-3 text-xs text-[#64748B]">No students.</div>
                   ) : (
                     students.map(s => (
                       <div key={s.id} className="px-4 py-2 flex items-center justify-between text-xs hover:bg-[#F8FAFF]">
-                        <span className="font-semibold text-[#0D2B55]">{s.full_name}</span>
+                        <span className="font-semibold text-[#0D2B55]">{s.first_name} {s.last_name}</span>
                         <div className="flex items-center gap-2">
                           <span className="text-[#64748B]">{s.admission_no}</span>
-                          <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold ${s.status === 'active' ? 'bg-[#DCFCE7] text-[#1A7A4A]' : 'bg-[#FEE2E2] text-[#B91C1C]'}`}>{s.status}</span>
+                          <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold ${s.student_status === 'active' ? 'bg-[#DCFCE7] text-[#1A7A4A]' : 'bg-[#FEE2E2] text-[#B91C1C]'}`}>{s.student_status}</span>
                         </div>
                       </div>
                     ))

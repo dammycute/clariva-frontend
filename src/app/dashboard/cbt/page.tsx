@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import toast from 'react-hot-toast';
 import { api } from '@/lib/api';
 import Link from 'next/link';
 
@@ -76,7 +77,7 @@ export default function CBTExamsPage() {
     try {
       await api.exams.duplicate(exam.id);
       loadAll();
-    } catch { alert('Failed to duplicate exam'); }
+    } catch { toast.error('Failed to duplicate exam'); }
   }
 
   async function handleSave(e: React.FormEvent) {
@@ -95,7 +96,7 @@ export default function CBTExamsPage() {
       else { await api.exams.create(payload); }
       setShowForm(false);
       loadAll();
-    } catch { alert('Failed to save exam'); }
+    } catch { toast.error('Failed to save exam'); }
     finally { setSaving(false); }
   }
 

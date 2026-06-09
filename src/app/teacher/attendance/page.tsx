@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { api, auth } from '@/lib/api';
 
 interface Class { id: string; name: string; }
-interface Student { id: string; full_name: string; admission_no: string; }
+interface Student { id: string; first_name: string; last_name: string; admission_no: string; }
 
 export default function TeacherAttendancePage() {
   const [classes, setClasses] = useState<Class[]>([]);
@@ -83,7 +83,7 @@ export default function TeacherAttendancePage() {
           {students.map(s => (
             <div key={s.id} className="px-4 py-2.5 flex items-center justify-between border-b border-[#DDE5F0] last:border-b-0 hover:bg-[#F8FAFF]">
               <div>
-                <p className="text-xs font-semibold text-[#0D2B55]">{s.full_name}</p>
+                <p className="text-xs font-semibold text-[#0D2B55]">{s.first_name} {s.last_name}</p>
                 <p className="text-[10px] text-[#64748B]">{s.admission_no}</p>
               </div>
               <div className="flex gap-1">

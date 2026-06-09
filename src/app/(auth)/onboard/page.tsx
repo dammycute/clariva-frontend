@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useMemo, useRef } from 'react';
+import toast from 'react-hot-toast';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { auth, api, request } from '@/lib/api';
@@ -201,7 +202,7 @@ export default function OnboardPage() {
               className="w-full py-3 rounded-xl bg-[#1A7A4A] text-white text-sm font-bold hover:bg-[#14663D] cursor-pointer">
               Go to Dashboard →
             </button>
-            <button onClick={() => { navigator.clipboard.writeText(success.portalUrl); alert('URL copied!'); }}
+            <button onClick={() => { navigator.clipboard.writeText(success.portalUrl); toast.success('URL copied!'); }}
               className="w-full py-3 rounded-xl border border-[#DDE5F0] text-sm text-[#0D2B55] hover:bg-[#F0F4FA] cursor-pointer">
               Share your portal URL
             </button>

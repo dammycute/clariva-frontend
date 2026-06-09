@@ -7,7 +7,7 @@ import Link from 'next/link';
 
 export default function StudentDashboard() {
   const router = useRouter();
-  const [profile, setProfile] = useState<{ full_name: string; admission_no: string; class_name?: string; } | null>(null);
+  const [profile, setProfile] = useState<{ first_name: string; last_name: string; admission_no: string; class_name?: string; } | null>(null);
   const [gradeCount, setGradeCount] = useState(0);
   const [attRate, setAttRate] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -24,7 +24,7 @@ export default function StudentDashboard() {
           api.grades.list(),
           api.attendance.list(),
         ]);
-        const students = Array.isArray(stu) ? stu as Array<{ full_name: string; admission_no: string; class_name?: string }> : [];
+        const students = Array.isArray(stu) ? stu as Array<{ first_name: string; last_name: string; admission_no: string; class_name?: string }> : [];
         if (students[0]) setProfile(students[0]);
         setGradeCount(Array.isArray(gr) ? gr.length : 0);
         const attArr = Array.isArray(att) ? att as Array<{ status: string }> : [];
@@ -39,10 +39,10 @@ export default function StudentDashboard() {
     <div>
       <div className="flex items-center gap-3 mb-5">
         <div className="w-10 h-10 rounded-full bg-[#1A7A4A] flex items-center justify-center text-white font-bold text-sm">
-          {profile?.full_name?.split(' ').map(w => w[0]).join('').slice(0, 2) || 'ST'}
+          {`${profile?.first_name || ''} ${profile?.last_name || ''}`.split(' ').map(w => w[0]).join('').slice(0, 2) || 'ST'}
         </div>
         <div>
-          <h1 className="text-lg font-bold text-[#0D2B55]">{profile?.full_name || 'Student'}</h1>
+          <h1 className="text-lg font-bold text-[#0D2B55]">{profile ? `${profile.first_name} ${profile.last_name}` : 'Student'}</h1>
           <p className="text-xs text-[#64748B]">{profile?.admission_no} · {profile?.class_name || '—'}</p>
         </div>
       </div>

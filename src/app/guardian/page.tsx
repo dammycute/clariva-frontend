@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { portal, setTokens } from '@/lib/api';
+import { portal, auth } from '@/lib/api';
 
 export default function GuardianLoginPage() {
   const router = useRouter();
@@ -15,12 +15,12 @@ export default function GuardianLoginPage() {
 
   // Login state
   const [loginPhone, setLoginPhone] = useState('');
-  const [loginPin, setLoginPin] = useState('');
+  const [loginPassword, setLoginPassword] = useState('');
 
   // Setup state
   const [setupPhone, setSetupPhone] = useState('');
-  const [setupPin, setSetupPin] = useState('');
-  const [setupConfirmPin, setSetupConfirmPin] = useState('');
+  const [setupPassword, setSetupPassword] = useState('');
+  const [setupConfirmPassword, setSetupConfirmPassword] = useState('');
   const [setupStudentCode, setSetupStudentCode] = useState('');
 
   const [loading, setLoading] = useState(false);
@@ -32,7 +32,7 @@ export default function GuardianLoginPage() {
     setError('');
     setLookupResult(null);
     try {
-      const result = await portal.lookup(code.toUpperCase().trim());
+      const result = await portal.lookup({ code: code.toUpperCase().trim() });
       setLookupResult(result as unknown as Record<string, unknown>);
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Invalid code');
@@ -46,8 +46,8 @@ export default function GuardianLoginPage() {
     setLoading(true);
     setError('');
     try {
-      const result = await portal.login(loginPhone, loginPin);
-      setTokens(result.access, result.refresh);
+      const email = `parent.${loginPhone}@parent.clariva.ng`;
+      await auth.login(email, loginPassword);
       router.push('/guardian/dashboard');
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Login failed');
@@ -59,20 +59,20 @@ export default function GuardianLoginPage() {
   const handleSetup = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
-    if (setupPin !== setupConfirmPin) {
-      setError('PINs do not match');
+    if (setupPassword !== setupConfirmPassword) {
+      setError('Passwords do not match');
       return;
     }
-    if (!/^\d{4,6}$/.test(setupPin)) {
-      setError('PIN must be 4-6 digits');
+    if (setupPassword.length < 6) {
+      setError('Password must be at least 6 characters');
       return;
     }
     setLoading(true);
     try {
-      await portal.setup(setupPhone, setupPin, setupStudentCode.toUpperCase().trim());
-      setMode('login');
-      setLoginPhone(setupPhone);
-      setError('');
+      await portal.setup(setupPhone, setupPassword, setupStudentCode.toUpperCase().trim());
+      const email = `parent.${setupPhone}@parent.clariva.ng`;
+      await auth.login(email, setupPassword);
+      router.push('/guardian/dashboard');
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Setup failed');
     } finally {
@@ -182,9 +182,8 @@ export default function GuardianLoginPage() {
                   className="w-full px-3.5 py-2.5 rounded-xl bg-white/10 border border-white/20 text-white text-sm outline-none focus:border-[#1A7A4A] placeholder:text-white/30" />
               </div>
               <div className="mb-3.5">
-                <label className="block text-white/70 text-xs font-semibold mb-1.5 uppercase">PIN (4-6 digits)</label>
-                <input type="password" value={loginPin} onChange={e => setLoginPin(e.target.value)} required maxLength={6}
-                  inputMode="numeric" pattern="[0-9]*"
+                <label className="block text-white/70 text-xs font-semibold mb-1.5 uppercase">Password</label>
+                <input type="password" value={loginPassword} onChange={e => setLoginPassword(e.target.value)} required minLength={6}
                   className="w-full px-3.5 py-2.5 rounded-xl bg-white/10 border border-white/20 text-white text-sm outline-none focus:border-[#1A7A4A] placeholder:text-white/30" />
               </div>
               {error && <p className="text-red-300 text-xs mb-3">{error}</p>}
@@ -210,15 +209,13 @@ export default function GuardianLoginPage() {
                   className="w-full px-3.5 py-2.5 rounded-xl bg-white/10 border border-white/20 text-white text-sm outline-none focus:border-[#1A7A4A] placeholder:text-white/30" />
               </div>
               <div className="mb-3.5">
-                <label className="block text-white/70 text-xs font-semibold mb-1.5 uppercase">PIN (4-6 digits)</label>
-                <input type="password" value={setupPin} onChange={e => setSetupPin(e.target.value)} required maxLength={6}
-                  inputMode="numeric" pattern="[0-9]*"
+                <label className="block text-white/70 text-xs font-semibold mb-1.5 uppercase">Password (min 6 characters)</label>
+                <input type="password" value={setupPassword} onChange={e => setSetupPassword(e.target.value)} required minLength={6}
                   className="w-full px-3.5 py-2.5 rounded-xl bg-white/10 border border-white/20 text-white text-sm outline-none focus:border-[#1A7A4A] placeholder:text-white/30" />
               </div>
               <div className="mb-3.5">
-                <label className="block text-white/70 text-xs font-semibold mb-1.5 uppercase">Confirm PIN</label>
-                <input type="password" value={setupConfirmPin} onChange={e => setSetupConfirmPin(e.target.value)} required maxLength={6}
-                  inputMode="numeric" pattern="[0-9]*"
+                <label className="block text-white/70 text-xs font-semibold mb-1.5 uppercase">Confirm Password</label>
+                <input type="password" value={setupConfirmPassword} onChange={e => setSetupConfirmPassword(e.target.value)} required minLength={6}
                   className="w-full px-3.5 py-2.5 rounded-xl bg-white/10 border border-white/20 text-white text-sm outline-none focus:border-[#1A7A4A] placeholder:text-white/30" />
               </div>
               <div className="mb-3.5">

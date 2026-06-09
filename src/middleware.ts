@@ -1,6 +1,6 @@
 import { type NextRequest, NextResponse } from 'next/server';
 
-const protectedPaths = ['/dashboard', '/guardian/dashboard', '/teacher', '/student', '/bursary'];
+const protectedPaths = ['/dashboard', '/guardian/dashboard', '/teacher', '/student', '/bursary', '/principal'];
 const publicPaths = ['/portal'];
 
 export async function middleware(request: NextRequest) {

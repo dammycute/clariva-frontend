@@ -69,7 +69,7 @@ function Card({ title, children, className = '' }: { title?: string; children: R
 
 export default function PortalPage(): JSX.Element {
   const params = useParams();
-  const code = params?.code as string;
+  const code = Array.isArray(params?.code) ? params.code.join('/') : (params?.code as string);
 
   const [data, setData] = useState<LookupResult | null>(null);
   const [loading, setLoading] = useState(true);
@@ -79,7 +79,8 @@ export default function PortalPage(): JSX.Element {
     if (!code) return;
     (async () => {
       try {
-        const res = await portal.lookup(code) as LookupResult;
+        const params = code.startsWith('CLR-') ? { code } : { admission_no: code };
+        const res = await portal.lookup(params) as LookupResult;
         setData(res);
       } catch (err: unknown) {
         setError(err instanceof Error ? err.message : 'Code not found');

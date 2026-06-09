@@ -57,7 +57,7 @@ export default function StudentAttendancePage() {
         </div>
       </div>
 
-      <div className="bg-white border border-[#DDE5F0] rounded-xl overflow-hidden">
+      <div className="bg-white border border-[#DDE5F0] rounded-xl overflow-x-auto">
         <table className="w-full text-xs">
           <thead>
             <tr className="text-[11px] font-bold text-[#64748B] uppercase bg-[#F7F9FC]">

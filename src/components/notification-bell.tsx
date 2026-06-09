@@ -15,7 +15,7 @@ export default function NotificationBell() {
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    api.notifications.list({}).then(data => {
+    api.notifications.list().then(data => {
       const items = data as NotificationItem[];
       setNotifications(items.slice(0, 10));
       setUnreadCount(items.filter(n => !n.read).length);

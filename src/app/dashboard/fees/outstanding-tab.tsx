@@ -21,7 +21,7 @@ export default function OutstandingTab() {
       api.classes.list(),
     ]);
 
-    const students = stuRes as { id: string; full_name: string; class_group: string | null }[];
+    const students = stuRes as { id: string; first_name: string; last_name: string; class_group: string | null }[];
     const classes = clsRes as { id: string; name: string }[];
     const invoices = invRes as { student: string; amount_due: number; amount_paid: number }[];
 
@@ -42,7 +42,7 @@ export default function OutstandingTab() {
       const balance = due - paid;
       if (balance <= 0) continue;
       rows.push({
-        student_id, student_name: student.full_name,
+        student_id, student_name: `${student.first_name} ${student.last_name}`.trim(),
         class_name: classMap.get(student.class_group || '') || '—',
         total_due: due, total_paid: paid, balance,
         status: paid === 0 ? 'unpaid' : 'partial',
@@ -86,7 +86,7 @@ export default function OutstandingTab() {
         <p className="text-xs text-[#64748B] ml-auto">{filtered.length} of {report.length} students</p>
       </div>
 
-      <div className="bg-white border border-[#DDE5F0] rounded-xl overflow-hidden">
+      <div className="bg-white border border-[#DDE5F0] rounded-xl overflow-x-auto">
         {loading ? <div className="p-8 text-center text-sm text-[#64748B]">Loading report…</div>
         : filtered.length === 0 ? (
           <div className="p-8 text-center text-sm text-[#64748B]">{report.length === 0 ? '🎉 All fees fully paid!' : 'No students match your filter.'}</div>

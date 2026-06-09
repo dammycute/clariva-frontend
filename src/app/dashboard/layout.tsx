@@ -10,18 +10,17 @@ const NAV_ITEMS = [
   { section: 'Main', items: [
     { label: 'Dashboard', href: '/dashboard', icon: '📊' },
     { label: 'Students', href: '/dashboard/students', icon: '👥' },
-    { label: 'Timetable', href: '/dashboard/timetable', icon: '📅' },
+    { label: 'Classes', href: '/dashboard/students?tab=classes', icon: '🏫' },
     { label: 'Attendance', href: '/dashboard/attendance', icon: '✅' },
   ]},
   { section: 'Academics', items: [
-    { label: 'Grades & Reports', href: '/dashboard/grades', icon: '📝' },
-    { label: 'CBT Exams', href: '/dashboard/cbt', icon: '💻', badge: 'Live' },
-  ]},
-  { section: 'Finance', items: [
-    { label: 'Fees', href: '/dashboard/fees', icon: '💰' },
+    { label: 'Subjects', href: '/dashboard/grades', icon: '📚' },
+    { label: 'Grade Entry', href: '/dashboard/grades?tab=entry', icon: '📝' },
+    { label: 'Report Cards', href: '/dashboard/grades?tab=reports', icon: '📄' },
+    { label: 'Settings', href: '/dashboard/grades?tab=settings', icon: '⚙️' },
   ]},
   { section: 'Administration', items: [
-    { label: 'Teachers', href: '/dashboard/teachers', icon: '👨‍🏫' },
+    { label: 'Staff', href: '/dashboard/teachers', icon: '👨‍🏫' },
     { label: 'Activity Log', href: '/dashboard/audit', icon: '📋' },
     { label: 'Communications', href: '/dashboard/comms', icon: '📣' },
     { label: 'Backup', href: '/dashboard/backup', icon: '💾' },
@@ -33,8 +32,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const pathname = usePathname();
   const router = useRouter();
   const [userInitials, setUserInitials] = useState('AD');
+  const [userRole, setUserRole] = useState<string | null>(null);
 
-  const ADMIN_ROLES = new Set(['school_admin', 'principal', 'teacher', 'super_admin']);
+  const ADMIN_ROLES = new Set(['school_admin', 'principal', 'teacher', 'super_admin', 'bursary']);
 
   useEffect(() => {
     if (!auth.getToken()) { router.push('/'); return; }
@@ -43,6 +43,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         router.push('/');
         return;
       }
+      setUserRole(user.role);
       if (user.email) setUserInitials(user.email.substring(0, 2).toUpperCase());
     }).catch(() => { router.push('/'); });
   }, [router]);
@@ -72,7 +73,15 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       </header>
       <div className="flex flex-1 overflow-hidden">
         <nav className="w-60 bg-white border-r border-[#DDE5F0] overflow-y-auto shrink-0">
-          {NAV_ITEMS.map((section) => (
+          {NAV_ITEMS.map((section) => ({
+            ...section,
+            items: section.items.filter(item => {
+              if (userRole === 'school_admin' || userRole === 'super_admin') return true;
+              if (userRole === 'principal') return item.href !== '/dashboard/settings';
+              if (userRole === 'teacher' || userRole === 'bursary') return section.section !== 'Administration';
+              return false;
+            }),
+          })).filter(section => section.items.length > 0).map((section) => (
             <div key={section.section}>
               <div className="text-[10px] font-bold tracking-wider text-[#64748B] uppercase px-5 pt-[18px] pb-1.5">{section.section}</div>
               {section.items.map((item) => {
@@ -86,7 +95,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                     }`}>
                     <span className="text-base w-5.5 text-center">{item.icon}</span>
                     {item.label}
-                    {item.badge && <span className="ml-auto bg-[#B91C1C] text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full">{item.badge}</span>}
                   </Link>
                 );
               })}

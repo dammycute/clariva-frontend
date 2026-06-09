@@ -32,7 +32,7 @@ export default function BursaryLayout({ children }: { children: React.ReactNode 
           <Link href="/bursary" className="font-bold text-sm text-[#0D2B55]">Bursary Portal</Link>
           <nav className="hidden md:flex items-center gap-1">
             <Link href="/bursary" className="px-3 py-1.5 text-xs rounded-lg hover:bg-[#F0F4FA] text-[#64748B] hover:text-[#0D2B55] font-medium">Dashboard</Link>
-            <Link href="/dashboard/fees" className="px-3 py-1.5 text-xs rounded-lg hover:bg-[#F0F4FA] text-[#64748B] hover:text-[#0D2B55] font-medium">Invoices</Link>
+            <Link href="/bursary/invoices" className="px-3 py-1.5 text-xs rounded-lg hover:bg-[#F0F4FA] text-[#64748B] hover:text-[#0D2B55] font-medium">Invoices</Link>
           </nav>
         </div>
         <div className="flex items-center gap-3">

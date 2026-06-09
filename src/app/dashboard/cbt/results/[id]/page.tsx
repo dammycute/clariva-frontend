@@ -66,7 +66,7 @@ export default function ExamResultsPage() {
         </div>
       </div>
 
-      <div className="bg-white border border-[#DDE5F0] rounded-xl overflow-hidden">
+      <div className="bg-white border border-[#DDE5F0] rounded-xl overflow-x-auto">
         {sessions.length === 0 ? (
           <div className="p-8 text-center text-sm text-[#64748B]">No submissions yet.</div>
         ) : (

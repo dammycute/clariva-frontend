@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
+import { Toaster } from "react-hot-toast";
 import "./globals.css";
 
 const inter = Inter({
@@ -21,7 +22,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${inter.variable} antialiased`} suppressHydrationWarning>{children}</body>
+      <body className={`${inter.variable} antialiased`} suppressHydrationWarning>
+        {children}
+        <Toaster position="top-right" toastOptions={{ duration: 5000, style: { fontSize: '14px', maxWidth: '420px' } }} />
+      </body>
     </html>
   );
 }

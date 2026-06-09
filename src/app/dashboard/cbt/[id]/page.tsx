@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef, useCallback } from 'react';
+import toast from 'react-hot-toast';
 import { useParams, useRouter } from 'next/navigation';
 import { api } from '@/lib/api';
 
@@ -124,7 +125,7 @@ export default function ExamDetailPage() {
       a.href = url; a.download = 'question_template.docx';
       document.body.appendChild(a); a.click();
       document.body.removeChild(a); URL.revokeObjectURL(url);
-    } catch { alert('Failed to download template'); }
+    } catch { toast.error('Failed to download template'); }
   }
 
   // ---- question form ----
@@ -160,7 +161,7 @@ export default function ExamDetailPage() {
       else { await api.questions.create(payload); }
       setShowForm(false);
       loadQuestions();
-    } catch { alert('Failed to save question'); }
+    } catch { toast.error('Failed to save question'); }
     finally { setSaving(false); }
   }
   async function deleteQ(qId: string) {
@@ -195,7 +196,7 @@ export default function ExamDetailPage() {
       setReorderMode(false);
       loadQuestions();
     } catch {
-      alert('Failed to save order. Make sure the backend Question order migration has been applied.');
+      toast.error('Failed to save order');
     }
   }
 

@@ -99,7 +99,7 @@ export default function FeeItemsTab({ onRefresh }: { onRefresh: () => void }) {
         </div>
       </div>
 
-      <div className="bg-white border border-[#DDE5F0] rounded-xl overflow-hidden">
+      <div className="bg-white border border-[#DDE5F0] rounded-xl overflow-x-auto">
         {loading ? <div className="p-8 text-center text-sm text-[#64748B]">Loading fee items…</div>
         : items.length === 0 ? <div className="p-8 text-center text-sm text-[#64748B]">No fee items yet.</div>
         : (

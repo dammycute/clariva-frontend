@@ -5,7 +5,8 @@ import { api, auth } from '@/lib/api';
 
 interface GradeBoundary { name: string; min_pct: number; }
 interface GradingConfig {
-  id?: string; school: number; max_ca1: number; max_ca2: number; max_assignment: number; max_exam: number;
+  id?: string; school: number;
+  components: { key: string; label: string; max: number; enabled: boolean }[];
   grade_boundaries: GradeBoundary[];
 }
 
@@ -15,9 +16,16 @@ const WAEC_BOUNDARIES: GradeBoundary[] = [
   { name: 'D7', min_pct: 45 }, { name: 'E8', min_pct: 40 }, { name: 'F9', min_pct: 0 },
 ];
 
+const DEFAULT_COMPONENTS = [
+  { key: 'ca1', label: 'CA 1', max: 30, enabled: true },
+  { key: 'ca2', label: 'CA 2', max: 30, enabled: true },
+  { key: 'assignment', label: 'Assignment', max: 40, enabled: true },
+  { key: 'exam', label: 'Exam', max: 100, enabled: true },
+];
+
 export default function GradingSettingsTab() {
   const [config, setConfig] = useState<GradingConfig>({
-    max_ca1: 30, max_ca2: 30, max_assignment: 40, max_exam: 100,
+    components: DEFAULT_COMPONENTS,
     grade_boundaries: WAEC_BOUNDARIES,
     school: 0,
   });
@@ -31,15 +39,26 @@ export default function GradingSettingsTab() {
         const me = await auth.me();
         if (me?.school_id) {
           const gc = await api.gradingConfig.get(me.school_id) as unknown as GradingConfig;
-          setConfig({ ...config, ...gc, school: me.school_id });
+          setConfig(prev => ({ ...prev, ...gc, school: me.school_id! }));
         }
       } catch { /* use defaults */ }
       setLoading(false);
     })();
   }, []);
 
-  function updateField(field: keyof GradingConfig, value: number | GradeBoundary[]) {
-    setConfig(prev => ({ ...prev, [field]: value }));
+  function updateComponentField(idx: number, field: 'label' | 'max' | 'enabled', value: string | number | boolean) {
+    setConfig(prev => {
+      const comps = [...prev.components];
+      comps[idx] = { ...comps[idx], [field]: value };
+      return { ...prev, components: comps };
+    });
+  }
+
+  function toggleComponent(key: string) {
+    setConfig(prev => ({
+      ...prev,
+      components: prev.components.map(c => c.key === key ? { ...c, enabled: !c.enabled } : c),
+    }));
   }
 
   function updateBoundary(idx: number, field: 'name' | 'min_pct', value: string | number) {
@@ -80,7 +99,8 @@ export default function GradingSettingsTab() {
     }
   }
 
-  const maxTotal = config.max_ca1 + config.max_ca2 + config.max_assignment + config.max_exam;
+  const enabledComponents = config.components.filter(c => c.enabled !== false);
+  const maxTotal = enabledComponents.reduce((sum, c) => sum + c.max, 0);
 
   return (
     <div>
@@ -95,30 +115,22 @@ export default function GradingSettingsTab() {
         )}
 
         <div className="bg-white border border-[#DDE5F0] rounded-xl p-5 mb-4">
-          <h4 className="text-sm font-bold text-[#0D2B55] mb-3">Maximum Scores</h4>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div>
-              <label className="block text-[10px] text-[#64748B] uppercase tracking-wider mb-1">CA1 Max</label>
-              <input type="number" min="0" max="200" value={config.max_ca1} onChange={e => updateField('max_ca1', parseInt(e.target.value) || 0)}
-                className="w-full text-sm border border-[#DDE5F0] rounded-lg px-3 py-2 bg-white text-[#0D2B55] outline-none" />
-            </div>
-            <div>
-              <label className="block text-[10px] text-[#64748B] uppercase tracking-wider mb-1">CA2 Max</label>
-              <input type="number" min="0" max="200" value={config.max_ca2} onChange={e => updateField('max_ca2', parseInt(e.target.value) || 0)}
-                className="w-full text-sm border border-[#DDE5F0] rounded-lg px-3 py-2 bg-white text-[#0D2B55] outline-none" />
-            </div>
-            <div>
-              <label className="block text-[10px] text-[#64748B] uppercase tracking-wider mb-1">Assignment Max</label>
-              <input type="number" min="0" max="200" value={config.max_assignment} onChange={e => updateField('max_assignment', parseInt(e.target.value) || 0)}
-                className="w-full text-sm border border-[#DDE5F0] rounded-lg px-3 py-2 bg-white text-[#0D2B55] outline-none" />
-            </div>
-            <div>
-              <label className="block text-[10px] text-[#64748B] uppercase tracking-wider mb-1">Exam Max</label>
-              <input type="number" min="0" max="200" value={config.max_exam} onChange={e => updateField('max_exam', parseInt(e.target.value) || 0)}
-                className="w-full text-sm border border-[#DDE5F0] rounded-lg px-3 py-2 bg-white text-[#0D2B55] outline-none" />
-            </div>
+          <h4 className="text-sm font-bold text-[#0D2B55] mb-3">Assessment Components</h4>
+          <div className="space-y-3">
+            {config.components.map((comp, idx) => (
+              <div key={comp.key} className="flex items-center gap-3">
+                <input type="checkbox" checked={comp.enabled !== false} onChange={() => toggleComponent(comp.key)}
+                  className="w-4 h-4 accent-[#1A7A4A]" />
+                <input value={comp.label} onChange={e => updateComponentField(idx, 'label', e.target.value)}
+                  className="flex-1 text-sm border border-[#DDE5F0] rounded-lg px-3 py-2 bg-white text-[#0D2B55] outline-none" />
+                <span className="text-[10px] text-[#64748B]">Max</span>
+                <input type="number" min="0" max="200" value={comp.max} onChange={e => updateComponentField(idx, 'max', parseInt(e.target.value) || 0)}
+                  disabled={comp.enabled === false}
+                  className="w-20 text-sm border border-[#DDE5F0] rounded-lg px-3 py-2 bg-white text-[#0D2B55] outline-none disabled:opacity-40" />
+              </div>
+            ))}
           </div>
-          <p className="text-[11px] text-[#64748B] mt-2">Total possible score: <strong className="text-[#0D2B55]">{maxTotal}</strong></p>
+          <p className="text-[11px] text-[#64748B] mt-3">Total possible score: <strong className="text-[#0D2B55]">{maxTotal}</strong></p>
         </div>
 
         <div className="bg-white border border-[#DDE5F0] rounded-xl p-5 mb-4">

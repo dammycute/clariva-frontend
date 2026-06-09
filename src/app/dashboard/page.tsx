@@ -13,7 +13,7 @@ export default function DashboardHome() {
     outstanding: 0, totalFees: 0, collected: 0,
     present: 0, totalAttendance: 0,
   });
-  const [recentStudents, setRecentStudents] = useState<{ id: string; full_name: string; admission_no: string; class_name?: string; status: string }[]>([]);
+  const [recentStudents, setRecentStudents] = useState<{ id: string; first_name: string; last_name: string; admission_no: string; class_name?: string; student_status: string }[]>([]);
   const [school, setSchool] = useState<{ name: string; current_term: string; current_academic_year: string } | null>(null);
 
   useEffect(() => {
@@ -43,7 +43,7 @@ export default function DashboardHome() {
 
         const s = await api.students.list({ status: 'active' });
         setRecentStudents(
-          (Array.isArray(s) ? s as Array<{ id: string; full_name: string; admission_no: string; class_name?: string; status: string }> : []).slice(0, 5)
+          (Array.isArray(s) ? s as Array<{ id: string; first_name: string; last_name: string; admission_no: string; class_name?: string; student_status: string }> : []).slice(0, 5)
         );
         setLoaded(true);
       } catch (err) {
@@ -118,12 +118,12 @@ export default function DashboardHome() {
               {recentStudents.map(s => (
                 <div key={s.id} className="px-4 py-2.5 flex items-center justify-between">
                   <div>
-                    <p className="text-xs font-semibold text-[#0D2B55]">{s.full_name}</p>
+                    <p className="text-xs font-semibold text-[#0D2B55]">{s.first_name} {s.last_name}</p>
                     <p className="text-[10px] text-[#64748B]">{s.admission_no} · {s.class_name || '—'}</p>
                   </div>
                   <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                    s.status === 'active' ? 'bg-[#DCFCE7] text-[#1A7A4A]' : 'bg-[#FEE2E2] text-[#B91C1C]'
-                  }`}>{s.status}</span>
+                    s.student_status === 'active' ? 'bg-[#DCFCE7] text-[#1A7A4A]' : 'bg-[#FEE2E2] text-[#B91C1C]'
+                  }`}>{s.student_status}</span>
                 </div>
               ))}
             </div>
@@ -137,10 +137,10 @@ export default function DashboardHome() {
           </div>
           <div className="p-4 grid grid-cols-2 gap-2">
             {[
-              { label: 'Mark Attendance', href: '/dashboard/attendance', icon: '✅' },
+              { label: 'View Attendance', href: '/dashboard/attendance', icon: '✅' },
               { label: 'Enter Grades', href: '/dashboard/grades', icon: '📝' },
               { label: 'Record Payment', href: '/dashboard/fees', icon: '💰' },
-              { label: 'Generate Reports', href: '/dashboard/grades', icon: '📄' },
+              { label: 'Report Cards', href: '/dashboard/grades?tab=reports', icon: '📄' },
               { label: 'Add Student', href: '/dashboard/students', icon: '👤' },
               { label: 'View Timetable', href: '/dashboard/timetable', icon: '📅' },
             ].map(a => (

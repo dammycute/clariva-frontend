@@ -6,8 +6,6 @@ import Link from 'next/link';
 import { auth, portal } from '@/lib/api';
 
 type Role = 'staff' | 'student' | 'parent';
-type StudentMode = 'email' | 'id';
-type ParentTab = 'code' | 'account';
 
 const FEATURES = [
   { icon: '📊', label: 'WAEC-compliant grading' },
@@ -16,9 +14,9 @@ const FEATURES = [
 ];
 
 const ROLE_CARDS: { role: Role; icon: string; title: string; desc: string }[] = [
-  { role: 'staff', icon: '🏫', title: 'School Staff', desc: 'Admin, Teacher, Principal' },
+  { role: 'staff', icon: '🏫', title: 'School Staff', desc: 'Admin, Principal, Teacher, Bursar' },
   { role: 'student', icon: '🎓', title: 'Student', desc: 'Check results & take exams' },
-  { role: 'parent', icon: '👨‍👩‍👧', title: 'Parent', desc: 'View fees & report cards' },
+  { role: 'parent', icon: '👨‍👩‍👧', title: 'Parent / Guardian', desc: 'View fees & report cards' },
 ];
 
 export default function LoginPage() {
@@ -27,8 +25,18 @@ export default function LoginPage() {
   // auto-redirect if already logged in
   useEffect(() => {
     if (!auth.getToken()) return;
+    const storedRole = localStorage.getItem('user_role');
+    if (storedRole === 'teacher') { router.push('/teacher'); return; }
+    if (storedRole === 'principal') { router.push('/principal'); return; }
+    if (storedRole === 'bursary') { router.push('/bursary'); return; }
+    if (storedRole === 'student') { router.push('/student'); return; }
+    if (storedRole === 'parent' || storedRole === 'guardian') { router.push('/guardian/dashboard'); return; }
+    if (storedRole) { router.push('/dashboard'); return; }
+    // fallback: verify via API
     auth.me().then(user => {
       if (user.role === 'teacher') router.push('/teacher');
+      else if (user.role === 'principal') router.push('/principal');
+      else if (user.role === 'bursary') router.push('/bursary');
       else if (user.role === 'student') router.push('/student');
       else if (user.role === 'parent' || user.role === 'guardian') router.push('/guardian/dashboard');
       else router.push('/dashboard');
@@ -48,37 +56,25 @@ export default function LoginPage() {
   const staffPassRef = useRef<HTMLInputElement>(null);
 
   // student fields
-  const [studentMode, setStudentMode] = useState<StudentMode>('email');
-  const [studentEmail, setStudentEmail] = useState('');
   const [studentId, setStudentId] = useState('');
   const [studentPassword, setStudentPassword] = useState('');
-  const studentEmailRef = useRef<HTMLInputElement>(null);
   const studentIdRef = useRef<HTMLInputElement>(null);
   const studentPassRef = useRef<HTMLInputElement>(null);
 
-  // parent fields — code tab
+  // parent fields
+  const [parentAdm, setParentAdm] = useState('');
   const [parentCode, setParentCode] = useState('');
-  const [parentTab, setParentTab] = useState<ParentTab>('code');
-  const [lookupResult, setLookupResult] = useState<{
-    full_name: string; admission_no: string; class_name: string | null;
-    fee_summary: { total_due: number; total_paid: number; balance: number };
-    latest_report_card: { term: string; academic_year: string; average: number } | null;
-  } | null>(null);
-  const codeRef = useRef<HTMLInputElement>(null);
-
-  // parent fields — account tab
-  const [parentPhone, setParentPhone] = useState('');
-  const [parentPin, setParentPin] = useState('');
-  const parentPhoneRef = useRef<HTMLInputElement>(null);
-  const parentPinRef = useRef<HTMLInputElement>(null);
+  const [lookupResult, setLookupResult] = useState<Record<string, unknown> | null>(null);
+  const parentAdmRef = useRef<HTMLInputElement>(null);
+  const parentCodeRef = useRef<HTMLInputElement>(null);
 
   // helpers
   const resetAll = () => {
     setError('');
     setLoading(false);
     setStaffEmail(''); setStaffPassword(''); setShowSubdomain(false); setSubdomain('');
-    setStudentMode('email'); setStudentEmail(''); setStudentId(''); setStudentPassword('');
-    setParentTab('code'); setParentCode(''); setLookupResult(null); setParentPhone(''); setParentPin('');
+    setStudentId(''); setStudentPassword('');
+    setParentAdm(''); setParentCode(''); setLookupResult(null);
   };
 
   const selectRole = (r: Role) => {
@@ -87,10 +83,8 @@ export default function LoginPage() {
     setSelectedRole(r);
     setTimeout(() => {
       if (r === 'staff') staffEmailRef.current?.focus();
-      else if (r === 'student' && studentMode === 'email') studentEmailRef.current?.focus();
       else if (r === 'student') studentIdRef.current?.focus();
-      else if (r === 'parent' && parentTab === 'code') codeRef.current?.focus();
-      else if (r === 'parent') parentPhoneRef.current?.focus();
+      else if (r === 'parent') parentAdmRef.current?.focus();
     }, 400);
   };
 
@@ -101,67 +95,43 @@ export default function LoginPage() {
     if (!email || !pass) return;
     setLoading(true); setError('');
     try {
-      await auth.login(email, pass);
+      const data = await auth.login(email, pass);
+      const role = data.role;
+      if (role === 'teacher') { window.location.href = '/teacher'; return; }
+      if (role === 'principal') { window.location.href = '/principal'; return; }
+      if (role === 'bursary') { window.location.href = '/bursary'; return; }
+      if (role === 'parent' || role === 'guardian') { window.location.href = '/guardian/dashboard'; return; }
+      window.location.href = '/dashboard';
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Invalid credentials');
-      setLoading(false);
-      return;
     }
-    try {
-      const user = await auth.me();
-      if (user.role === 'teacher') { window.location.href = '/teacher'; return; }
-      if (user.role === 'parent' || user.role === 'guardian') { window.location.href = '/guardian/dashboard'; return; }
-      window.location.href = '/dashboard';
-    } catch {
-      setError('Login succeeded but failed to load profile. Try again.');
-      setLoading(false);
-    }
+    finally { setLoading(false); }
   }, []);
 
   const handleStudentLogin = useCallback(async () => {
-    const pass = studentPassRef.current?.value;
-    if (!pass) return;
-    const email = studentEmailRef.current?.value;
     const sid = studentIdRef.current?.value;
-    if (studentMode === 'email' && !email) return;
-    if (studentMode === 'id' && !sid) return;
+    const pass = studentPassRef.current?.value;
+    if (!sid || !pass) return;
     setLoading(true); setError('');
     try {
-      if (studentMode === 'email') {
-        await auth.login(email!, pass);
-      } else {
-        await auth.studentLogin(sid!, pass);
-      }
+      await auth.studentLogin(sid, pass);
       window.location.href = '/student';
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Invalid credentials');
     }
     finally { setLoading(false); }
-  }, [studentMode]);
-
-  const handleParentCode = useCallback(async () => {
-    const code = codeRef.current?.value;
-    if (!code?.trim()) return;
-    setLoading(true); setError(''); setLookupResult(null);
-    try {
-      const res = await portal.lookup(code.trim());
-      setLookupResult(res as typeof lookupResult);
-    } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Code not found');
-    }
-    finally { setLoading(false); }
   }, []);
 
-  const handleParentLogin = useCallback(async () => {
-    const phone = parentPhoneRef.current?.value;
-    const pin = parentPinRef.current?.value;
-    if (!phone || !pin) return;
+  const handleParentLookup = useCallback(async () => {
+    const adm = parentAdmRef.current?.value;
+    const code = parentCodeRef.current?.value;
+    if (!adm?.trim() || !code?.trim()) return;
     setLoading(true); setError('');
     try {
-      await portal.login(phone, pin);
-      window.location.href = '/guardian/dashboard';
+      const res = await portal.lookup({ admission_no: adm.trim(), code: code.trim().toUpperCase() }) as Record<string, unknown>;
+      setLookupResult(res);
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Invalid credentials');
+      setError(err instanceof Error ? err.message : 'Invalid admission number or access code');
     }
     finally { setLoading(false); }
   }, []);
@@ -210,39 +180,21 @@ export default function LoginPage() {
 
   const renderStudentForm = () => (
     <div className="space-y-3.5">
-      <div className="flex bg-[#F0F4FA] rounded-lg p-0.5">
-        <button onClick={() => { setStudentMode('email'); setError(''); }} className={`flex-1 text-xs font-bold py-2 rounded-md transition-colors cursor-pointer ${studentMode === 'email' ? 'bg-white text-[#0D2B55] shadow-sm' : 'text-[#64748B]'}`}>
-          Login with Email
-        </button>
-        <button onClick={() => { setStudentMode('id'); setError(''); }} className={`flex-1 text-xs font-bold py-2 rounded-md transition-colors cursor-pointer ${studentMode === 'id' ? 'bg-white text-[#0D2B55] shadow-sm' : 'text-[#64748B]'}`}>
-          Login with Student ID
-        </button>
+      <div>
+        <label className="block text-[11px] font-bold text-[#64748B] uppercase mb-1">Admission Number</label>
+        <input ref={studentIdRef} type="text" value={studentId} onChange={e => setStudentId(e.target.value)}
+          onKeyDown={handleKeyDown(handleStudentLogin)}
+          placeholder="Enter admission number"
+          className="w-full h-12 px-3.5 rounded-xl border border-[#DDE5F0] text-sm outline-none focus:border-[#1A7A4A] placeholder:text-[#94A3B8]" />
       </div>
-      {studentMode === 'email' ? (
-        <div>
-          <label className="block text-[11px] font-bold text-[#64748B] uppercase mb-1">Email</label>
-          <input ref={studentEmailRef} type="email" value={studentEmail} onChange={e => setStudentEmail(e.target.value)}
-            onKeyDown={handleKeyDown(handleStudentLogin)}
-            placeholder="student@school.com"
-            className="w-full h-12 px-3.5 rounded-xl border border-[#DDE5F0] text-sm outline-none focus:border-[#1A7A4A] placeholder:text-[#94A3B8]" />
-        </div>
-      ) : (
-        <div>
-          <label className="block text-[11px] font-bold text-[#64748B] uppercase mb-1">Student ID</label>
-          <input ref={studentIdRef} type="text" value={studentId} onChange={e => setStudentId(e.target.value)}
-            onKeyDown={handleKeyDown(handleStudentLogin)}
-            placeholder="STU-2024-001"
-            className="w-full h-12 px-3.5 rounded-xl border border-[#DDE5F0] text-sm outline-none focus:border-[#1A7A4A] placeholder:text-[#94A3B8]" />
-        </div>
-      )}
       <div>
         <label className="block text-[11px] font-bold text-[#64748B] uppercase mb-1">Password</label>
         <input ref={studentPassRef} type="password" value={studentPassword} onChange={e => setStudentPassword(e.target.value)}
           onKeyDown={handleKeyDown(handleStudentLogin)}
-          placeholder="••••••••"
+          placeholder="Enter your password"
           className="w-full h-12 px-3.5 rounded-xl border border-[#DDE5F0] text-sm outline-none focus:border-[#1A7A4A] placeholder:text-[#94A3B8]" />
       </div>
-      <button onClick={handleStudentLogin} disabled={loading || !studentPassword || (studentMode === 'email' ? !studentEmail : !studentId)}
+      <button onClick={handleStudentLogin} disabled={loading || !studentId || !studentPassword}
         className="w-full h-12 rounded-xl bg-[#1A7A4A] text-white text-sm font-bold hover:bg-[#14663D] disabled:opacity-40 transition-colors cursor-pointer">
         {loading ? 'Signing in…' : 'Sign In'}
       </button>
@@ -252,70 +204,38 @@ export default function LoginPage() {
 
   const renderParentForm = () => (
     <div className="space-y-3.5">
-      <div className="flex bg-[#F0F4FA] rounded-lg p-0.5">
-        <button onClick={() => { setParentTab('code'); setError(''); setLookupResult(null); }} className={`flex-1 text-xs font-bold py-2 rounded-md transition-colors cursor-pointer ${parentTab === 'code' ? 'bg-white text-[#0D2B55] shadow-sm' : 'text-[#64748B]'}`}>
-          Enter Student Code
-        </button>
-        <button onClick={() => { setParentTab('account'); setError(''); }} className={`flex-1 text-xs font-bold py-2 rounded-md transition-colors cursor-pointer ${parentTab === 'account' ? 'bg-white text-[#0D2B55] shadow-sm' : 'text-[#64748B]'}`}>
-          Parent Account
-        </button>
+      <div>
+        <label className="block text-[11px] font-bold text-[#64748B] uppercase mb-1">Student Admission Number</label>
+        <input ref={parentAdmRef} type="text" value={parentAdm} onChange={e => setParentAdm(e.target.value)}
+          onKeyDown={handleKeyDown(handleParentLookup)}
+          placeholder="e.g. CLR/2026/00201"
+          className="w-full h-12 px-3.5 rounded-xl border border-[#DDE5F0] text-sm outline-none focus:border-[#1A7A4A] placeholder:text-[#94A3B8]" />
       </div>
+      <div>
+        <label className="block text-[11px] font-bold text-[#64748B] uppercase mb-1">Access Code</label>
+        <input ref={parentCodeRef} type="text" value={parentCode} onChange={e => setParentCode(e.target.value)}
+          onKeyDown={handleKeyDown(handleParentLookup)}
+          placeholder="e.g. CLR-XXXXXXXX"
+          className="w-full h-12 px-3.5 rounded-xl border border-[#DDE5F0] text-sm outline-none focus:border-[#1A7A4A] placeholder:text-[#94A3B8] font-mono text-base tracking-widest" />
+        <p className="text-[10px] text-[#94A3B8] mt-1">Find this code on your child&apos;s report card or fee receipt</p>
+      </div>
+      <button onClick={handleParentLookup} disabled={loading || !parentAdm.trim() || !parentCode.trim()}
+        className="w-full h-12 rounded-xl bg-[#1A7A4A] text-white text-sm font-bold hover:bg-[#14663D] disabled:opacity-40 transition-colors cursor-pointer">
+        {loading ? 'Looking up…' : 'View Records'}
+      </button>
 
-      {parentTab === 'code' ? (
-        <>
-          <div>
-            <label className="block text-[11px] font-bold text-[#64748B] uppercase mb-1">Student Code</label>
-            <input ref={codeRef} type="text" value={parentCode} onChange={e => setParentCode(e.target.value)}
-              onKeyDown={handleKeyDown(handleParentCode)}
-              placeholder="CLR-XXXXXXXX"
-              className="w-full h-12 px-3.5 rounded-xl border border-[#DDE5F0] text-sm outline-none focus:border-[#1A7A4A] placeholder:text-[#94A3B8] text-center font-mono text-base tracking-widest" />
-            <p className="text-[10px] text-[#94A3B8] mt-1">Find this code on your child&apos;s report card or fee receipt</p>
+      {lookupResult && (
+        <div className="bg-green-50 border border-green-200 rounded-xl p-3 space-y-1.5 animate-fadeIn">
+          <p className="text-sm font-bold text-[#0D2B55]">{(lookupResult as Record<string, string>).full_name}</p>
+          <p className="text-[11px] text-[#64748B]">{(lookupResult as Record<string, string>).admission_no} · {(lookupResult as Record<string, string>).class_name || 'Class not set'}</p>
+          <div className="flex gap-3 text-[11px]">
+            <span>Fees: ₦{((lookupResult as Record<string, Record<string, unknown>>).fee_summary?.balance as number || 0).toLocaleString()} due</span>
+            {(lookupResult as Record<string, Record<string, unknown>>).latest_report_card && (
+              <span>Latest: {(lookupResult as Record<string, Record<string, unknown>>).latest_report_card?.average as number}%</span>
+            )}
           </div>
-          <button onClick={handleParentCode} disabled={loading || !parentCode.trim()}
-            className="w-full h-12 rounded-xl bg-[#1A7A4A] text-white text-sm font-bold hover:bg-[#14663D] disabled:opacity-40 transition-colors cursor-pointer">
-            {loading ? 'Looking up…' : 'View Records'}
-          </button>
-
-          {lookupResult && (
-            <div className="bg-green-50 border border-green-200 rounded-xl p-3 space-y-1.5 animate-fadeIn">
-              <p className="text-sm font-bold text-[#0D2B55]">{lookupResult.full_name}</p>
-              <p className="text-[11px] text-[#64748B]">{lookupResult.admission_no} · {lookupResult.class_name || 'Class not set'}</p>
-              <div className="flex gap-3 text-[11px]">
-                <span>Fees: ₦{lookupResult.fee_summary?.balance?.toLocaleString() || '0'} due</span>
-                {lookupResult.latest_report_card && (
-                  <span>Latest: {lookupResult.latest_report_card.average}%</span>
-                )}
-              </div>
-              <Link href={`/portal/${parentCode.trim()}`} className="block text-center text-xs font-bold text-[#1A7A4A] hover:underline pt-1">View Full Report →</Link>
-            </div>
-          )}
-        </>
-      ) : (
-        <>
-          <div>
-            <label className="block text-[11px] font-bold text-[#64748B] uppercase mb-1">Phone number</label>
-            <input ref={parentPhoneRef} type="tel" value={parentPhone} onChange={e => setParentPhone(e.target.value)}
-              onKeyDown={handleKeyDown(handleParentLogin)}
-              placeholder="08012345678"
-              className="w-full h-12 px-3.5 rounded-xl border border-[#DDE5F0] text-sm outline-none focus:border-[#1A7A4A] placeholder:text-[#94A3B8]" />
-          </div>
-          <div>
-            <label className="block text-[11px] font-bold text-[#64748B] uppercase mb-1">PIN</label>
-            <input ref={parentPinRef} type="password" inputMode="numeric" value={parentPin} onChange={e => setParentPin(e.target.value)}
-              onKeyDown={handleKeyDown(handleParentLogin)}
-              placeholder="••••"
-              maxLength={4}
-              className="w-full h-12 px-3.5 rounded-xl border border-[#DDE5F0] text-sm outline-none focus:border-[#1A7A4A] placeholder:text-[#94A3B8]" />
-          </div>
-          <button onClick={handleParentLogin} disabled={loading || !parentPhone || !parentPin}
-            className="w-full h-12 rounded-xl bg-[#1A7A4A] text-white text-sm font-bold hover:bg-[#14663D] disabled:opacity-40 transition-colors cursor-pointer">
-            {loading ? 'Signing in…' : 'Sign In'}
-          </button>
-          <p className="text-[11px] text-[#64748B] text-center">
-            First time?{' '}
-            <Link href="/onboard?type=parent" className="text-[#1A7A4A] hover:underline">Set up parent access →</Link>
-          </p>
-        </>
+          <Link href={`/portal/${parentAdm.trim()}`} className="block text-center text-xs font-bold text-[#1A7A4A] hover:underline pt-1">View Full Report →</Link>
+        </div>
       )}
     </div>
   );

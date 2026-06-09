@@ -29,7 +29,7 @@ interface Invoice {
 }
 
 interface FeeItem { id: string; name: string; amount: number; class_group: string | null; year_group: string | null; arm: string | null; pricing_tiers: Record<string, number> | null; is_mandatory: boolean; }
-interface Student { id: string; full_name: string; class_group: string | null; }
+interface Student { id: string; first_name: string; last_name: string; class_group: string | null; }
 interface Cls { id: string; name: string; year_group: string | null; arm: string | null; }
 
 const PAYMENT_METHODS = ['Cash', 'Bank Transfer', 'POS', 'Cheque'];
@@ -291,7 +291,7 @@ export default function InvoicesTab({ onRefresh }: { onRefresh: () => void }) {
         <p className="text-xs text-[#64748B] ml-auto">{filteredInvoices().length} of {invoices.length} invoices</p>
       </div>
 
-      <div className="bg-white border border-[#DDE5F0] rounded-xl overflow-hidden">
+      <div className="bg-white border border-[#DDE5F0] rounded-xl overflow-x-auto">
         {loading ? <div className="p-8 text-center text-sm text-[#64748B]">Loading invoices…</div>
         : filteredInvoices().length === 0 ? (
           <div className="p-8 text-center text-sm text-[#64748B]">{invoices.length === 0 ? 'No invoices yet. Click Generate Invoices to create them.' : 'No invoices match your filters.'}</div>
@@ -447,7 +447,7 @@ export default function InvoicesTab({ onRefresh }: { onRefresh: () => void }) {
                       <label key={s.id} className="flex items-center gap-2.5 px-3 py-2 cursor-pointer hover:bg-[#F8FAFF]">
                         <input type="checkbox" checked={genForm.student_ids.includes(s.id)} onChange={() => toggleStudent(s.id)}
                           className="w-4 h-4 rounded border-[#DDE5F0] text-[#1A7A4A] focus:ring-[#1A7A4A]" />
-                        <span className="text-sm text-[#0D2B55]">{s.full_name}</span>
+                        <span className="text-sm text-[#0D2B55]">{s.first_name} {s.last_name}</span>
                       </label>
                     ))}
                   </div>

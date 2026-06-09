@@ -10,6 +10,7 @@ const NAV = [
   { label: 'My Classes', href: '/teacher/classes', icon: '🏫' },
   { label: 'Attendance', href: '/teacher/attendance', icon: '✅' },
   { label: 'Grades', href: '/teacher/grades', icon: '📝' },
+  { label: 'CBT Exams', href: '/teacher/cbt', icon: '💻' },
   { label: 'Timetable', href: '/teacher/timetable', icon: '📅' },
 ];
 

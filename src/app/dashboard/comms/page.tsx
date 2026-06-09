@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import toast from 'react-hot-toast';
 import { api } from '@/lib/api';
 
 interface Announcement {
@@ -50,7 +51,7 @@ export default function CommunicationsPage() {
       }
       setShowModal(false);
       load();
-    } catch { alert('Failed to save'); }
+    } catch { toast.error('Failed to save announcement'); }
     finally { setSaving(false); }
   }
 

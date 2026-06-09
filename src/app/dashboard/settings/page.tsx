@@ -1,19 +1,25 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { api, auth } from '@/lib/api';
 
 const TERMS = ['1st Term', '2nd Term', '3rd Term'];
 
 export default function SettingsPage() {
+  const router = useRouter();
   const [school, setSchool] = useState<Record<string, unknown> | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState('');
 
   async function loadSchool() {
-    setLoading(true);
     const me = await auth.me();
+    if (!me || (me.role !== 'school_admin' && me.role !== 'super_admin')) {
+      router.push('/');
+      return;
+    }
+    setLoading(true);
     if (me?.school_id) {
       const data = await api.schools.get(me.school_id);
       setSchool(data as Record<string, unknown>);

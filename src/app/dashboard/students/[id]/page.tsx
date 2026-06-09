@@ -6,11 +6,11 @@ import { api } from '@/lib/api';
 import Link from 'next/link';
 
 interface Student {
-  id: string; admission_no: string; full_name: string; gender: string | null;
-  dob: string | null; state_of_origin: string | null; lga_of_origin: string | null;
+  id: string; admission_no: string; first_name: string; last_name: string; gender: string | null;
+  date_of_birth: string | null; state_of_origin: string | null; lga_of_origin: string | null;
   class_group: string | null; class_name: string | null;
   guardian_name: string | null; guardian_phone: string | null; guardian_email: string | null;
-  status: string; academic_year: string | null;
+  student_status: string; academic_year: string | null;
   has_account: boolean; user_email: string | null;
 }
 
@@ -60,22 +60,22 @@ export default function StudentDetailPage() {
       <div className="flex items-center gap-3 mb-5">
         <button onClick={() => router.push('/dashboard/students')} className="text-sm text-[#64748B] hover:text-[#0D2B55]">← Back</button>
         <div className="h-4 w-px bg-[#DDE5F0]" />
-        <h1 className="text-xl font-bold text-[#0D2B55]">{student.full_name}</h1>
-        <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${student.status === 'active' ? 'bg-[#DCFCE7] text-[#1A7A4A]' : 'bg-[#FEE2E2] text-[#B91C1C]'}`}>{student.status}</span>
+        <h1 className="text-xl font-bold text-[#0D2B55]">{student.first_name} {student.last_name}</h1>
+        <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${student.student_status === 'active' ? 'bg-[#DCFCE7] text-[#1A7A4A]' : 'bg-[#FEE2E2] text-[#B91C1C]'}`}>{student.student_status}</span>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         {/* Profile Card */}
         <div className="bg-white border border-[#DDE5F0] rounded-xl p-5">
           <div className="w-14 h-14 rounded-full bg-[#0D2B55] flex items-center justify-center text-white font-bold text-lg mb-3">
-            {student.full_name.split(' ').map(w => w[0]).join('').slice(0, 2)}
+            {`${student.first_name} ${student.last_name}`.split(' ').map(w => w[0]).join('').slice(0, 2)}
           </div>
-          <h2 className="text-base font-bold text-[#0D2B55]">{student.full_name}</h2>
+          <h2 className="text-base font-bold text-[#0D2B55]">{student.first_name} {student.last_name}</h2>
           <p className="text-xs text-[#64748B]">{student.admission_no}</p>
           <div className="mt-4 space-y-2 text-xs">
             <div className="flex justify-between"><span className="text-[#64748B]">Class</span><span className="font-semibold">{student.class_name || '—'}</span></div>
             <div className="flex justify-between"><span className="text-[#64748B]">Gender</span><span className="font-semibold">{student.gender || '—'}</span></div>
-            <div className="flex justify-between"><span className="text-[#64748B]">DOB</span><span className="font-semibold">{student.dob || '—'}</span></div>
+            <div className="flex justify-between"><span className="text-[#64748B]">DOB</span><span className="font-semibold">{student.date_of_birth || '—'}</span></div>
             {student.has_account && (
               <div className="flex items-center justify-between gap-2">
                 <span className="text-[#64748B]">Login Email</span>

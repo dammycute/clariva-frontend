@@ -102,7 +102,7 @@ export default function SubjectsTab({ onRefresh }: { onRefresh: () => void }) {
         <button onClick={openAdd} className="text-sm px-4 py-2 rounded-lg bg-[#1A7A4A] text-white hover:bg-[#14663D]">+ Add Subject</button>
       </div>
 
-      <div className="bg-white border border-[#DDE5F0] rounded-xl overflow-hidden">
+      <div className="bg-white border border-[#DDE5F0] rounded-xl overflow-x-auto">
         {loading ? <div className="p-8 text-center text-sm text-[#64748B]">Loading subjects…</div>
         : filtered.length === 0 ? (
           <div className="p-8 text-center text-sm text-[#64748B]">{filterYg ? 'No subjects for this year group.' : 'No subjects yet. Run "seed_subjects" or add manually.'}</div>

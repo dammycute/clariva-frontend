@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef, useCallback } from 'react';
+import toast from 'react-hot-toast';
 import { useParams, useRouter } from 'next/navigation';
 import { api } from '@/lib/api';
 
@@ -56,7 +57,7 @@ export default function TakeExamPage() {
       try {
         const ex = await api.exams.get(id) as Exam;
         if (ex.status !== 'published' && ex.status !== 'ongoing') {
-          alert('This exam is not available.');
+          toast.error('This exam is not available.');
           router.push('/dashboard/cbt');
           return;
         }
@@ -141,7 +142,7 @@ export default function TakeExamPage() {
       setResult(res);
       setScreen('result');
     } catch {
-      alert('Failed to submit exam. Please try again.');
+      toast.error('Failed to submit exam. Please try again.');
     }
     finally { setSubmitting(false); }
   }, [submitting, sessionId, answers]);

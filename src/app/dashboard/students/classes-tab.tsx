@@ -5,7 +5,7 @@ import { api, auth } from '@/lib/api';
 import ConfirmDialog from '@/components/confirm-dialog';
 
 interface Class { id: string; name: string; year_group: string | null; arm: string | null; form_teacher: string | null; form_teacher_name: string | null; academic_year: string | null; }
-interface StaffMember { id: string; full_name: string; role: string; }
+interface StaffMember { id: string; user_id: string; full_name: string; role: string; }
 
 const YEAR_GROUPS = ['JSS1', 'JSS2', 'JSS3', 'SS1', 'SS2', 'SS3'];
 const ARMS = ['A', 'B', 'C', 'D'];
@@ -93,7 +93,7 @@ export default function ClassesTab() {
         <button onClick={openAdd} className="text-sm px-3.5 py-2 rounded-lg bg-[#1A7A4A] text-white hover:bg-[#14663D]">+ Add Class</button>
       </div>
 
-      <div className="bg-white border border-[#DDE5F0] rounded-xl overflow-hidden">
+      <div className="bg-white border border-[#DDE5F0] rounded-xl overflow-x-auto">
         {loading ? (
           <div className="p-8 text-center text-sm text-[#64748B]">Loading classes…</div>
         ) : classes.length === 0 ? (
@@ -211,7 +211,7 @@ export default function ClassesTab() {
                 <select value={form.form_teacher || ''} onChange={e => setForm({ ...form, form_teacher: e.target.value || '' })}
                   className="w-full px-3 py-2 rounded-lg border border-[#DDE5F0] text-sm outline-none focus:border-[#1A7A4A] bg-white">
                   <option value="">Not assigned</option>
-                  {staffList.map(s => <option key={s.id} value={s.id}>{s.full_name}</option>)}
+                  {staffList.map(s => <option key={s.id} value={s.user_id || s.id}>{s.full_name}</option>)}
                 </select>
               </div>
               <div>

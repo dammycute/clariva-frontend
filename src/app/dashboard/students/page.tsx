@@ -1,11 +1,16 @@
 'use client';
 
-import { useState } from 'react';
+import { Suspense, useState, useEffect } from 'react';
+import { useSearchParams } from 'next/navigation';
 import StudentsTab from './students-tab';
 import ClassesTab from './classes-tab';
 
-export default function StudentsPage() {
+function StudentsPageInner() {
+  const searchParams = useSearchParams();
   const [tab, setTab] = useState<'students' | 'classes'>('students');
+  useEffect(() => {
+    if (searchParams.get('tab') === 'classes') setTab('classes');
+  }, [searchParams]);
 
   return (
     <div>
@@ -39,4 +44,8 @@ export default function StudentsPage() {
       {tab === 'students' ? <StudentsTab /> : <ClassesTab />}
     </div>
   );
+}
+
+export default function StudentsPage() {
+  return <Suspense><StudentsPageInner /></Suspense>;
 }

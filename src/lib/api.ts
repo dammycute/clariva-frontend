@@ -1,3 +1,5 @@
+import toast from 'react-hot-toast';
+
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
 
 function getToken(): string | null {
@@ -11,14 +13,16 @@ function setCookie(name: string, value: string) {
 function deleteCookie(name: string) {
   document.cookie = `${name}=; path=/; max-age=0`;
 }
-function setTokens(access: string, refresh: string) {
+function setTokens(access: string, refresh: string, role?: string) {
   localStorage.setItem('access_token', access);
   localStorage.setItem('refresh_token', refresh);
+  if (role) localStorage.setItem('user_role', role);
   setCookie('access_token', access);
 }
 function clearTokens() {
   localStorage.removeItem('access_token');
   localStorage.removeItem('refresh_token');
+  localStorage.removeItem('user_role');
   deleteCookie('access_token');
 }
 
@@ -76,14 +80,20 @@ async function request<T = unknown>(
   if (!res.ok) {
     const err = await res.json().catch(() => ({ detail: res.statusText }));
     const firstKey = Object.keys(err)[0];
-    if (!firstKey) throw new Error(err.detail || 'Request failed');
-    const val = err[firstKey];
-    let firstMsg = Array.isArray(val) ? val[0] : val;
-    if (firstMsg && typeof firstMsg === 'object') {
-      const subKey = Object.keys(firstMsg)[0];
-      firstMsg = subKey ? `${subKey}: ${firstMsg[subKey]?.[0] || JSON.stringify(firstMsg[subKey])}` : JSON.stringify(firstMsg);
+    let msg: string;
+    if (!firstKey) {
+      msg = err.detail || 'Request failed';
+    } else {
+      const val = err[firstKey];
+      let firstMsg = Array.isArray(val) ? val[0] : val;
+      if (firstMsg && typeof firstMsg === 'object') {
+        const subKey = Object.keys(firstMsg)[0];
+        firstMsg = subKey ? `${subKey}: ${firstMsg[subKey]?.[0] || JSON.stringify(firstMsg[subKey])}` : JSON.stringify(firstMsg);
+      }
+      msg = typeof firstMsg === 'string' ? firstMsg : JSON.stringify(firstMsg);
     }
-    throw new Error(typeof firstMsg === 'string' ? firstMsg : JSON.stringify(firstMsg));
+    toast.error(msg);
+    throw new Error(msg);
   }
 
   if (res.status === 204) return undefined as T;
@@ -94,13 +104,13 @@ export { request, setTokens };
 
 export const auth = {
   async login(email: string, password: string) {
-    const data = await request<{ access: string; refresh: string }>('POST', '/auth/login/', { email, password });
-    setTokens(data.access, data.refresh);
+    const data = await request<{ access: string; refresh: string; role?: string }>('POST', '/auth/login/', { email, password });
+    setTokens(data.access, data.refresh, data.role);
     return data;
   },
   async studentLogin(studentId: string, password: string) {
-    const data = await request<{ access: string; refresh: string }>('POST', '/auth/student-login/', { student_id: studentId, password });
-    setTokens(data.access, data.refresh);
+    const data = await request<{ access: string; refresh: string; role?: string }>('POST', '/auth/student-login/', { student_id: studentId, password });
+    setTokens(data.access, data.refresh, data.role);
     return data;
   },
   async register(payload: Record<string, unknown>) {
@@ -112,6 +122,7 @@ export const auth = {
   },
   logout() { clearTokens(); },
   getToken,
+  getRole: () => typeof window !== 'undefined' ? localStorage.getItem('user_role') : null,
 };
 
 function unwrap<T>(data: unknown): T[] {
@@ -139,7 +150,7 @@ function createApi<T = unknown>(basePath: string) {
 }
 
 export const portal = {
-  lookup: (code: string) => request<{
+  lookup: (params: { code?: string } | { admission_no?: string }) => request<{
     student_id: string; full_name: string; admission_no: string; class_name: string | null;
     status: string; school_name: string | null;
     fee_summary: {
@@ -154,14 +165,11 @@ export const portal = {
     attendance: {
       rate: number | null; present: number; absent: number; late: number; total: number;
     };
-  }>('POST', '/portal/lookup/', { code }),
+    recent_notifications: { id: string; type: string; title: string; message: string; read: boolean; created_at: string }[];
+  }>('POST', '/portal/lookup/', params as Record<string, unknown>),
 
-  setup: (phone: string, pin: string, student_code: string) =>
-    request<{ message: string }>('POST', '/portal/setup/', { phone, pin, student_code }),
-
-  login: (phone: string, pin: string) => request<{
-    access: string; refresh: string; guardian_id: number; phone: string;
-  }>('POST', '/portal/login/', { phone, pin }),
+  setup: (phone: string, password: string, student_code: string) =>
+    request<{ message: string }>('POST', '/portal/setup/', { phone, password, student_code }),
 
   children: () => request<Array<{
     id: string; full_name: string; admission_no: string; class_name: string | null;
