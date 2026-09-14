@@ -69,12 +69,19 @@ export default function StaffPage() {
     e.preventDefault();
     setSaving(true);
     try {
-      const { first_name, last_name, phone, email, ...rest } = form;
-      const payload = { ...rest, first_name, last_name, user_email: email, user_phone: phone || '', date_joined: form.date_joined || null, subjects: form.subjects ? form.subjects.split(',').map(s => s.trim()) : [] };
+      const payload: Record<string, unknown> = {
+        first_name: form.first_name,
+        last_name: form.last_name,
+        user_email: form.email,
+        user_phone: form.phone || '',
+        staff_role: form.role,
+        qualification: form.qualification || undefined,
+        date_joined: form.date_joined || undefined,
+      };
       if (editingId) {
         await api.staff.update(editingId, payload);
       } else {
-        await api.staff.create({ ...payload, status: 'active' });
+        await api.staff.create(payload);
       }
       setShowModal(false);
       loadStaff();

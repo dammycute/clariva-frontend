@@ -4,34 +4,30 @@ import { usePathname, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { auth } from '@/lib/api';
 import { useEffect, useState } from 'react';
-import NotificationBell from '@/components/notification-bell';
 
 const NAV_ITEMS = [
-  { section: 'Main', items: [
-    { label: 'Dashboard', href: '/dashboard', icon: '📊' },
-    { label: 'Students', href: '/dashboard/students', icon: '👥' },
-    { label: 'Classes', href: '/dashboard/students?tab=classes', icon: '🏫' },
-    { label: 'Attendance', href: '/dashboard/attendance', icon: '✅' },
+  { section: 'System', items: [
+    { label: 'Overview', href: '/super_admin', icon: '📊' },
+    { label: 'Schools', href: '/super_admin/schools', icon: '🏫' },
+    { label: 'Users', href: '/super_admin/users', icon: '👥' },
   ]},
-  { section: 'Administration', items: [
-    { label: 'Staff', href: '/dashboard/teachers', icon: '👨‍🏫' },
-    { label: 'Communications', href: '/dashboard/comms', icon: '📣' },
-    { label: 'Activity Log', href: '/dashboard/audit', icon: '📋' },
-    { label: 'Settings', href: '/dashboard/settings', icon: '⚙️' },
-    { label: 'Backup', href: '/dashboard/backup', icon: '💾' },
+  { section: 'Operations', items: [
+    { label: 'System Health', href: '/super_admin/system', icon: '⚙️' },
+    { label: 'Audit Logs', href: '/super_admin/audit', icon: '📋' },
   ]},
 ];
 
-export default function DashboardLayout({ children }: { children: React.ReactNode }) {
+export default function SuperAdminLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
-  const [userInitials, setUserInitials] = useState('AD');
+  const [userInitials, setUserInitials] = useState('SA');
   const [checking, setChecking] = useState(true);
 
   useEffect(() => {
     if (!auth.getToken()) { router.push('/'); return; }
     auth.me().then(user => {
-      setUserInitials(user.email ? user.email.substring(0, 2).toUpperCase() : 'AD');
+      if (user.role !== 'super_admin') { router.push('/dashboard'); return; }
+      setUserInitials(user.email ? user.email.substring(0, 2).toUpperCase() : 'SA');
       setChecking(false);
     }).catch(() => { router.push('/'); });
   }, [router]);
@@ -45,19 +41,18 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   return (
     <div className="h-screen flex flex-col overflow-hidden bg-[#F7F9FC]">
-      <header className="h-14 bg-white border-b border-[#DDE5F0] flex items-center justify-between px-6 shrink-0 z-10">
+      <header className="h-14 bg-[#0D2B55] border-b border-[#1a3a6a] flex items-center justify-between px-6 shrink-0 z-10">
         <div className="flex items-center gap-3.5">
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 bg-[#1A7A4A] rounded-lg flex items-center justify-center text-white font-bold text-sm">C</div>
-            <span className="font-semibold text-base text-[#0D2B55]">Clariva</span>
+            <span className="font-semibold text-base text-white">Clariva</span>
           </div>
-          <div className="h-4 w-px bg-[#DDE5F0]" />
-          <span className="text-xs text-[#64748B]">Dashboard</span>
+          <div className="h-4 w-px bg-[#3a5a8a]" />
+          <span className="text-xs text-[#8aa4c8] font-medium">Super Admin</span>
         </div>
         <div className="flex items-center gap-3.5">
-          <NotificationBell />
           <button onClick={handleLogout}
-            className="w-8 h-8 rounded-full bg-[#0D2B55] text-white text-xs font-bold flex items-center justify-center cursor-pointer hover:opacity-90"
+            className="w-8 h-8 rounded-full bg-[#1A7A4A] text-white text-xs font-bold flex items-center justify-center cursor-pointer hover:opacity-90"
             title="Log out">{userInitials}</button>
         </div>
       </header>

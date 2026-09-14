@@ -31,6 +31,7 @@ export default function LoginPage() {
     if (storedRole === 'bursary') { router.push('/bursary'); return; }
     if (storedRole === 'student') { router.push('/student'); return; }
     if (storedRole === 'parent' || storedRole === 'guardian') { router.push('/guardian/dashboard'); return; }
+    if (storedRole === 'super_admin') { router.push('/super_admin'); return; }
     if (storedRole) { router.push('/dashboard'); return; }
     // fallback: verify via API
     auth.me().then(user => {
@@ -39,6 +40,7 @@ export default function LoginPage() {
       else if (user.role === 'bursary') router.push('/bursary');
       else if (user.role === 'student') router.push('/student');
       else if (user.role === 'parent' || user.role === 'guardian') router.push('/guardian/dashboard');
+      else if (user.role === 'super_admin') router.push('/super_admin');
       else router.push('/dashboard');
     }).catch(() => {});
   }, [router]);
@@ -101,6 +103,7 @@ export default function LoginPage() {
       if (role === 'principal') { window.location.href = '/principal'; return; }
       if (role === 'bursary') { window.location.href = '/bursary'; return; }
       if (role === 'parent' || role === 'guardian') { window.location.href = '/guardian/dashboard'; return; }
+      if (role === 'super_admin') { window.location.href = '/super_admin'; return; }
       window.location.href = '/dashboard';
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Invalid credentials');

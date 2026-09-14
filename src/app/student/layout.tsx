@@ -17,14 +17,17 @@ export default function StudentLayout({ children }: { children: React.ReactNode 
   const pathname = usePathname();
   const router = useRouter();
   const [name, setName] = useState('Student');
+  const [checking, setChecking] = useState(true);
 
   useEffect(() => {
     if (!auth.getToken()) { router.push('/'); return; }
     auth.me().then(user => {
-      if (user.role !== 'student') { router.push('/'); return; }
       setName(user.first_name || user.email);
+      setChecking(false);
     }).catch(() => {});
   }, [router]);
+
+  if (checking) return null;
 
   return (
     <div className="h-screen flex flex-col overflow-hidden bg-[#F7F9FC]">

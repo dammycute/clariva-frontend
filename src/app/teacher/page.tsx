@@ -17,14 +17,16 @@ export default function TeacherDashboard() {
 
     (async () => {
       try {
-        const [cls, stu, sub] = await Promise.all([
-          api.classes.list({ teacher_id: 'me' }),
-          api.students.list(),
-          api.subjects.list({ teacher_id: 'me' }),
-        ]);
+        const cls = await api.classes.list({ teacher_id: 'me' });
+        const classIds = (Array.isArray(cls) ? cls : []).map(c => c.id).filter(Boolean);
+        const stuPerClass = await Promise.all(
+          classIds.map(id => api.students.list({ class_id: String(id) }))
+        );
+        const uniqueStudentIds = new Set(stuPerClass.flat().map(s => (s as Record<string, unknown>).id));
+        const sub = await api.subjects.list({ teacher_id: 'me' });
         setStats({
-          classes: Array.isArray(cls) ? cls.length : 0,
-          students: Array.isArray(stu) ? stu.length : 0,
+          classes: classIds.length,
+          students: uniqueStudentIds.size,
           subjects: Array.isArray(sub) ? sub.length : 0,
           examSessions: 0,
           avgScore: 0,

@@ -2,7 +2,7 @@
 import { usePathname, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { auth } from '@/lib/api';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 
 const NAV_ITEMS = [
   { section: 'Main', items: [
@@ -27,15 +27,14 @@ const NAV_ITEMS = [
 export default function PrincipalLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
+  const [checking, setChecking] = useState(true);
+
   useEffect(() => {
     if (!auth.getToken()) { router.push('/'); return; }
-    auth.me().then(user => {
-      if (user.role !== 'principal' && user.role !== 'school_admin' && user.role !== 'super_admin') {
-        router.push('/');
-        return;
-      }
-    }).catch(() => { router.push('/'); });
+    auth.me().then(() => setChecking(false)).catch(() => { router.push('/'); });
   }, [router]);
+
+  if (checking) return null;
 
   return (
     <div className="h-screen flex flex-col overflow-hidden bg-[#F7F9FC]">

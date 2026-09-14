@@ -19,13 +19,13 @@ export default function StudentDashboard() {
 
     (async () => {
       try {
-        const [stu, gr, att] = await Promise.all([
-          api.students.list(),
+        const me = await auth.me();
+        const [profile, gr, att] = await Promise.all([
+          api.students.get(me.id) as Promise<{ first_name: string; last_name: string; admission_no: string; class_name?: string }>,
           api.grades.list(),
           api.attendance.list(),
         ]);
-        const students = Array.isArray(stu) ? stu as Array<{ first_name: string; last_name: string; admission_no: string; class_name?: string }> : [];
-        if (students[0]) setProfile(students[0]);
+        setProfile(profile);
         setGradeCount(Array.isArray(gr) ? gr.length : 0);
         const attArr = Array.isArray(att) ? att as Array<{ status: string }> : [];
         const p = attArr.filter(a => a.status === 'present').length;

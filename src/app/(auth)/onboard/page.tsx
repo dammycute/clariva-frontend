@@ -138,17 +138,13 @@ export default function OnboardPage() {
       const email = form.proprietorEmail || `admin@${form.subdomain}.clariva.ng`;
       const slug = form.subdomain;
 
-      await auth.register({
-        username: slug,
+      const { user } = await auth.onboard({
         email,
         password,
         first_name: form.proprietorName.split(' ')[0] || 'Admin',
         last_name: form.proprietorName.split(' ').slice(1).join(' ') || '',
         phone: form.proprietorPhone,
-        role: 'school_admin',
       });
-
-      await auth.login(email, password);
 
       const school = await api.schools.create({
         name: form.schoolName,

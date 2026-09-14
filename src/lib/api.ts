@@ -4,25 +4,29 @@ const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
 
 function getToken(): string | null {
   if (typeof window === 'undefined') return null;
-  return localStorage.getItem('access_token');
+  // Read from cookie only — no localStorage for access tokens
+  const match = document.cookie.match(/(?:^|;\s*)access_token=([^;]*)/);
+  return match ? decodeURIComponent(match[1]) : null;
 }
 
 function setCookie(name: string, value: string) {
-  document.cookie = `${name}=${value}; path=/; max-age=${30 * 24 * 60 * 60}; SameSite=Lax`;
+  // Secure flags: HttpOnly cannot be set from JS, but server should set it.
+  // SameSite=Strict prevents CSRF. Secure requires HTTPS in production.
+  const isSecure = window.location.protocol === 'https:';
+  document.cookie = `${name}=${value}; path=/; max-age=${7 * 24 * 60 * 60}; SameSite=Strict${isSecure ? '; Secure' : ''}`;
 }
 function deleteCookie(name: string) {
   document.cookie = `${name}=; path=/; max-age=0`;
 }
-function setTokens(access: string, refresh: string, role?: string) {
-  localStorage.setItem('access_token', access);
-  localStorage.setItem('refresh_token', refresh);
-  if (role) localStorage.setItem('user_role', role);
+function setTokens(access: string, _refresh: string, role?: string) {
   setCookie('access_token', access);
+  // Store refresh token in sessionStorage (not localStorage) for tab isolation
+  sessionStorage.setItem('refresh_token', _refresh);
+  if (role) sessionStorage.setItem('user_role', role);
 }
 function clearTokens() {
-  localStorage.removeItem('access_token');
-  localStorage.removeItem('refresh_token');
-  localStorage.removeItem('user_role');
+  sessionStorage.removeItem('refresh_token');
+  sessionStorage.removeItem('user_role');
   deleteCookie('access_token');
 }
 
@@ -35,7 +39,7 @@ async function refreshToken(): Promise<string | null> {
 }
 
 async function _refreshToken(): Promise<string | null> {
-  const refresh = localStorage.getItem('refresh_token');
+  const refresh = sessionStorage.getItem('refresh_token');
   if (!refresh) return null;
   try {
     const res = await fetch(`${API_BASE}/auth/refresh/`, {
@@ -45,8 +49,8 @@ async function _refreshToken(): Promise<string | null> {
     });
     if (!res.ok) { clearTokens(); return null; }
     const data = await res.json();
-    localStorage.setItem('access_token', data.access);
     setCookie('access_token', data.access);
+    sessionStorage.setItem('refresh_token', data.refresh);
     return data.access;
   } catch { clearTokens(); return null; }
 }
@@ -113,16 +117,20 @@ export const auth = {
     setTokens(data.access, data.refresh, data.role);
     return data;
   },
-  async register(payload: Record<string, unknown>) {
-    const data = await request<{ id: number }>('POST', '/auth/register/', payload);
+  async onboard(payload: Record<string, unknown>) {
+    const data = await request<{ user: Record<string, unknown>; access: string; refresh: string }>('POST', '/auth/onboard/', payload);
+    setTokens(data.access, data.refresh, 'school_admin');
     return data;
+  },
+  async adminCreateUser(payload: Record<string, unknown>) {
+    return request<Record<string, unknown>>('POST', '/auth/admin/create-user/', payload);
   },
   async me() {
     return request<{ id: number; email: string; first_name: string; last_name: string; phone: string | null; role: string; school_id: number | null }>('GET', '/auth/me/');
   },
   logout() { clearTokens(); },
   getToken,
-  getRole: () => typeof window !== 'undefined' ? localStorage.getItem('user_role') : null,
+  getRole: () => typeof window !== 'undefined' ? sessionStorage.getItem('user_role') : null,
 };
 
 function unwrap<T>(data: unknown): T[] {
