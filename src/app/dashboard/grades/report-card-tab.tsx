@@ -66,7 +66,7 @@ export default function ReportCardTab({ onRefresh }: { onRefresh: () => void }) 
     setGenerating(true);
     setMessage('');
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api'}/exams/report-cards/generate/`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api'}/results/report-cards/generate/`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

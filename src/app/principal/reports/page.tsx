@@ -35,7 +35,7 @@ export default function PrincipalReportsPage() {
     try {
       const token = auth.getToken();
       const base = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
-      const res = await fetch(`${base}/exams/report-cards/generate/`, {
+      const res = await fetch(`${base}/results/report-cards/generate/`, {
         method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token ?? ''}` },
         body: JSON.stringify({ class_id: selectedClass, term, academic_year: academicYear }),
       });
@@ -53,7 +53,7 @@ export default function PrincipalReportsPage() {
       const token = auth.getToken();
       const base = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
       const action = card.is_released ? 'unrelease' : 'release';
-      const res = await fetch(`${base}/exams/report-cards/${card.id}/${action}/`, {
+      const res = await fetch(`${base}/results/report-cards/${card.id}/${action}/`, {
         method: 'POST', headers: { 'Authorization': `Bearer ${token ?? ''}` },
       });
       if (!res.ok) throw new Error('Failed');
@@ -70,7 +70,7 @@ export default function PrincipalReportsPage() {
       try {
         const token = auth.getToken();
         const base = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
-        await fetch(`${base}/exams/report-cards/${c.id}/release/`, { method: 'POST', headers: { 'Authorization': `Bearer ${token ?? ''}` } });
+        await fetch(`${base}/results/report-cards/${c.id}/release/`, { method: 'POST', headers: { 'Authorization': `Bearer ${token ?? ''}` } });
       } catch { /* */ }
     }
     setMessage(`Released ${unreleased.length} report card(s).`);

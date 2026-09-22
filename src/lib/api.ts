@@ -207,8 +207,8 @@ export const api = {
   grades: createApi('/grades/'),
   subjects: createApi('/exams/subjects/'),
   studentSubjects: createApi('/exams/student-subjects/'),
-  timetables: createApi('/exams/timetables/'),
-  reportCards: createApi('/exams/report-cards/'),
+  timetables: createApi('/timetable/timetables/'),
+  reportCards: createApi('/results/report-cards/'),
   exams: {
     ...examsBase,
     uploadQuestions: (examId: string | number, file: File, replace: boolean): Promise<{ created: number; warnings: string[]; errors: string[]; replaced: boolean }> => {
