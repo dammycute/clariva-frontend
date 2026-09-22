@@ -4,7 +4,7 @@ import { useState, useEffect, useMemo, useRef } from 'react';
 import toast from 'react-hot-toast';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { auth, api, request } from '@/lib/api';
+import { auth, api } from '@/lib/api';
 
 const SCHOOL_TYPES = ['Secondary (JSS & SSS)', 'Primary', 'Nursery', 'Mixed (Primary & Secondary)'] as const;
 
@@ -136,31 +136,20 @@ export default function OnboardPage() {
 
     try {
       const email = form.proprietorEmail || `admin@${form.subdomain}.clariva.ng`;
-      const slug = form.subdomain;
 
-      const { user } = await auth.onboard({
+      await auth.onboard({
         email,
         password,
         first_name: form.proprietorName.split(' ')[0] || 'Admin',
         last_name: form.proprietorName.split(' ').slice(1).join(' ') || '',
         phone: form.proprietorPhone,
+        school_name: form.schoolName,
+        school_subdomain: form.subdomain,
+        school_type: form.schoolType || '',
+        school_address: form.address || '',
+        school_state: form.state || '',
+        school_lga: form.lga || '',
       });
-
-      const school = await api.schools.create({
-        name: form.schoolName,
-        subdomain: form.subdomain,
-        address: form.address || null,
-        lga: form.lga || null,
-        state: form.state || null,
-        school_type: form.schoolType || null,
-        proprietor_name: form.proprietorName || null,
-        proprietor_phone: form.proprietorPhone || null,
-        status: 'active',
-        plan: 'trial',
-        trial_ends_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
-      });
-
-      await request('PATCH', '/auth/me/', { school: (school as { id: number }).id });
 
       setSuccess({ portalUrl: `https://${form.subdomain}.clariva.ng` });
     } catch (err: unknown) {

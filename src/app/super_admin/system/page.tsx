@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { request } from '@/lib/api';
 
 interface School { id: string; name: string; }
 
@@ -13,16 +14,8 @@ export default function SuperAdminSystem() {
   const [message, setMessage] = useState('');
 
   useEffect(() => {
-    const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
-    const token = document.cookie.match(/(?:^|;\s*)access_token=([^;]*)/);
-    const headers: Record<string, string> = {};
-    if (token) headers['Authorization'] = `Bearer ${decodeURIComponent(token[1])}`;
-    fetch(`${API_BASE}/schools/`, { headers })
-      .then(r => r.json())
-      .then(data => {
-        const list = Array.isArray(data) ? data : data.results || [];
-        setSchools(list);
-      })
+    request<{ results: School[] }>('GET', '/schools/')
+      .then(data => setSchools(data.results || []))
       .catch(() => {});
   }, []);
 
@@ -31,20 +24,13 @@ export default function SuperAdminSystem() {
     setMessage('');
     setBackupData(null);
     try {
-      const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
-      const token = document.cookie.match(/(?:^|;\s*)access_token=([^;]*)/);
-      const headers: Record<string, string> = {};
-      if (token) headers['Authorization'] = `Bearer ${decodeURIComponent(token[1])}`;
-      const url = selectedSchoolId
-        ? `${API_BASE}/schools/backup/?school_id=${selectedSchoolId}`
-        : `${API_BASE}/schools/backup/`;
-      const res = await fetch(url, { headers });
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({}));
-        throw new Error(err.error || 'Backup failed');
-      }
-      const text = await res.text();
-      const data = JSON.parse(text);
+      const qs = selectedSchoolId ? `?school_id=${selectedSchoolId}` : '';
+      const data = await request<{
+        school_id: string;
+        data: Record<string, string>;
+        counts: Record<string, number>;
+      }>('GET', `/schools/backup/${qs}`);
+      const text = JSON.stringify(data);
       setBackupData(text);
       const blob = new Blob([text], { type: 'application/json' });
       const blobUrl = URL.createObjectURL(blob);
@@ -66,22 +52,9 @@ export default function SuperAdminSystem() {
     setRestoreLoading(true);
     setMessage('');
     try {
-      const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
-      const token = document.cookie.match(/(?:^|;\s*)access_token=([^;]*)/);
-      const headers: Record<string, string> = { 'Content-Type': 'application/json' };
-      if (token) headers['Authorization'] = `Bearer ${decodeURIComponent(token[1])}`;
       const parsed = JSON.parse(backupData);
       const payload = { ...parsed, confirm: true };
-      const res = await fetch(`${API_BASE}/schools/restore/`, {
-        method: 'POST',
-        headers,
-        body: JSON.stringify(payload),
-      });
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({}));
-        throw new Error(err.error || 'Restore failed');
-      }
-      const result = await res.json();
+      const result = await request<{ restored: boolean; message?: string }>('POST', '/schools/restore/', payload);
       setMessage(`Restore complete. ${result.message || ''}`);
     } catch (err: unknown) {
       setMessage(err instanceof Error ? err.message : 'Failed to restore backup.');

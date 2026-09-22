@@ -1,30 +1,29 @@
 'use client';
 
 import { useState } from 'react';
-import { auth } from '@/lib/api';
+import { request } from '@/lib/api';
 
 export default function BackupPage() {
   const [busy, setBusy] = useState(false);
   const [result, setResult] = useState<string | null>(null);
 
-  const base = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
-
   async function doBackup() {
     setBusy(true);
     setResult(null);
     try {
-      const token = auth.getToken();
-      const res = await fetch(`${base}/schools/backup/`, {
-        headers: { 'Authorization': `Bearer ${token ?? ''}` },
-      });
-      const data = await res.json();
+      const data = await request<{
+        school_id: string;
+        data: Record<string, string>;
+        counts: Record<string, number>;
+      }>('GET', '/schools/backup/');
       const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
       const a = document.createElement('a');
       a.href = URL.createObjectURL(blob);
       a.download = `backup-${new Date().toISOString().slice(0, 10)}.json`;
       a.click();
       URL.revokeObjectURL(a.href);
-      setResult(`Backup downloaded — ${data.count || 0} records`);
+      const totalRecords = Object.values(data.counts || {}).reduce((a, b) => a + b, 0);
+      setResult(`Backup downloaded — ${totalRecords} records`);
     } catch { setResult('Backup failed'); }
     finally { setBusy(false); }
   }
@@ -40,13 +39,11 @@ export default function BackupPage() {
       setResult(null);
       try {
         const text = await file.text();
-        const token = auth.getToken();
-        const res = await fetch(`${base}/schools/restore/`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token ?? ''}` },
-          body: text,
+        const parsed = JSON.parse(text);
+        const data = await request<{ restored: boolean; error?: string }>('POST', '/schools/restore/', {
+          ...parsed,
+          confirm: true,
         });
-        const data = await res.json();
         setResult(data.restored ? 'Restore completed successfully' : data.error || 'Restore failed');
       } catch { setResult('Restore failed'); }
       finally { setBusy(false); }
