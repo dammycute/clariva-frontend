@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { api } from '@/lib/api';
+import { ChevronLeft } from 'lucide-react';
 
 interface ExamSession {
   id: string; exam: string; student: string; student_name: string | null;
@@ -46,7 +47,7 @@ export default function ExamResultsPage() {
   return (
     <div>
       <div className="flex items-center gap-3 mb-5">
-        <button onClick={() => router.push('/dashboard/cbt')} className="text-sm text-[#64748B] hover:text-[#0D2B55]">← Exams</button>
+        <button onClick={() => router.push('/dashboard/cbt')} className="text-sm text-[#64748B] hover:text-[#0D2B55] inline-flex items-center gap-1"><ChevronLeft size={16} aria-hidden="true" /> Exams</button>
         <div className="h-4 w-px bg-[#DDE5F0]" />
         <h1 className="text-xl font-bold text-[#0D2B55]">{exam.title} — Results</h1>
       </div>
@@ -54,15 +55,15 @@ export default function ExamResultsPage() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-5">
         <div className="bg-white border border-[#DDE5F0] rounded-xl p-4 text-center">
           <p className="text-2xl font-bold text-[#0D2B55]">{sessions.length}</p>
-          <p className="text-[10px] text-[#64748B]">Submissions</p>
+          <p className="text-xs text-[#64748B]">Submissions</p>
         </div>
         <div className="bg-white border border-[#DDE5F0] rounded-xl p-4 text-center">
           <p className="text-2xl font-bold text-[#1A7A4A]">{passed.length}</p>
-          <p className="text-[10px] text-[#64748B]">Passed</p>
+          <p className="text-xs text-[#64748B]">Passed</p>
         </div>
         <div className="bg-white border border-[#DDE5F0] rounded-xl p-4 text-center">
           <p className={`text-2xl font-bold ${avgScore >= exam.pass_mark ? 'text-[#1A7A4A]' : 'text-[#B91C1C]'}`}>{avgScore}%</p>
-          <p className="text-[10px] text-[#64748B]">Avg Score</p>
+          <p className="text-xs text-[#64748B]">Avg Score</p>
         </div>
       </div>
 
@@ -93,12 +94,12 @@ export default function ExamResultsPage() {
                       <span className={`font-bold ${pct >= exam.pass_mark ? 'text-[#1A7A4A]' : 'text-[#B91C1C]'}`}>{pct}%</span>
                     </td>
                     <td className="px-4 py-3">
-                      <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${s.passed ? 'bg-[#DCFCE7] text-[#1A7A4A]' : 'bg-[#FEE2E2] text-[#B91C1C]'}`}>{s.passed ? 'Pass' : 'Fail'}</span>
+                      <span className={`px-2 py-0.5 rounded text-xs font-bold ${s.passed ? 'bg-[#DCFCE7] text-[#1A7A4A]' : 'bg-[#FEE2E2] text-[#B91C1C]'}`}>{s.passed ? 'Pass' : 'Fail'}</span>
                     </td>
                     <td className="px-4 py-3">{s.tab_switches || 0}</td>
                     <td className="px-4 py-3">
                       {s.late_submission
-                        ? <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-700">Late</span>
+                        ? <span className="px-2 py-0.5 rounded text-xs font-bold bg-amber-100 text-amber-700">Late</span>
                         : <span className="text-[#64748B]">—</span>}
                     </td>
                     <td className="px-4 py-3 text-[#64748B]">{s.submitted_at ? new Date(s.submitted_at).toLocaleString('en-NG') : '—'}</td>

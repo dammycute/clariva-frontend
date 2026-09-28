@@ -1,13 +1,23 @@
 'use client';
 
 import { useState } from 'react';
+import { BookOpen, FilePenLine, FileText, Settings } from 'lucide-react';
 import SubjectsTab from './subjects-tab';
 import GradeEntryTab from './grade-entry-tab';
 import ReportCardTab from './report-card-tab';
 import GradingSettingsTab from './grading-settings-tab';
 
+type Tab = 'subjects' | 'entry' | 'reports' | 'settings';
+
+const TABS: { id: Tab; label: string; icon: React.ReactNode }[] = [
+  { id: 'subjects', label: 'Subjects', icon: <BookOpen size={16} /> },
+  { id: 'entry', label: 'Grade Entry', icon: <FilePenLine size={16} /> },
+  { id: 'reports', label: 'Report Cards', icon: <FileText size={16} /> },
+  { id: 'settings', label: 'Settings', icon: <Settings size={16} /> },
+];
+
 export default function GradesPage() {
-  const [tab, setTab] = useState<'subjects' | 'entry' | 'reports' | 'settings'>('subjects');
+  const [tab, setTab] = useState<Tab>('subjects');
   const [refreshKey, setRefreshKey] = useState(0);
   const refresh = () => setRefreshKey(k => k + 1);
 
@@ -20,29 +30,28 @@ export default function GradesPage() {
         </div>
       </div>
 
-      <div className="flex gap-1 mb-5 bg-white border border-[#DDE5F0] rounded-xl p-1 w-fit">
-        <button onClick={() => setTab('subjects')}
-          className={`px-4 py-2 text-sm font-semibold rounded-lg transition-colors ${
-            tab === 'subjects' ? 'bg-[#0D2B55] text-white' : 'text-[#64748B] hover:text-[#0D2B55]'
-          }`}>📚 Subjects</button>
-        <button onClick={() => setTab('entry')}
-          className={`px-4 py-2 text-sm font-semibold rounded-lg transition-colors ${
-            tab === 'entry' ? 'bg-[#0D2B55] text-white' : 'text-[#64748B] hover:text-[#0D2B55]'
-          }`}>📝 Grade Entry</button>
-        <button onClick={() => setTab('reports')}
-          className={`px-4 py-2 text-sm font-semibold rounded-lg transition-colors ${
-            tab === 'reports' ? 'bg-[#0D2B55] text-white' : 'text-[#64748B] hover:text-[#0D2B55]'
-          }`}>📄 Report Cards</button>
-        <button onClick={() => setTab('settings')}
-          className={`px-4 py-2 text-sm font-semibold rounded-lg transition-colors ${
-            tab === 'settings' ? 'bg-[#0D2B55] text-white' : 'text-[#64748B] hover:text-[#0D2B55]'
-          }`}>⚙️ Settings</button>
+      <div role="tablist" aria-label="Grade management sections" className="flex gap-1 mb-5 bg-white border border-[#DDE5F0] rounded-xl p-1 w-fit overflow-x-auto max-w-full">
+        {TABS.map(t => (
+          <button
+            key={t.id}
+            role="tab"
+            aria-selected={tab === t.id}
+            onClick={() => setTab(t.id)}
+            className={`flex items-center gap-2 px-4 py-2.5 text-sm font-semibold rounded-lg transition-colors whitespace-nowrap cursor-pointer min-h-[40px] ${
+              tab === t.id ? 'bg-[#0D2B55] text-white' : 'text-[#64748B] hover:text-[#0D2B55]'
+            }`}
+          >
+            <span aria-hidden="true">{t.icon}</span> {t.label}
+          </button>
+        ))}
       </div>
 
-      {tab === 'subjects' && <SubjectsTab key={`sub-${refreshKey}`} onRefresh={refresh} />}
-      {tab === 'entry' && <GradeEntryTab key={`entry-${refreshKey}`} onRefresh={refresh} />}
-      {tab === 'reports' && <ReportCardTab key={`rep-${refreshKey}`} onRefresh={refresh} />}
-      {tab === 'settings' && <GradingSettingsTab key={`gs-${refreshKey}`} />}
+      <div role="tabpanel">
+        {tab === 'subjects' && <SubjectsTab key={`sub-${refreshKey}`} onRefresh={refresh} />}
+        {tab === 'entry' && <GradeEntryTab key={`entry-${refreshKey}`} onRefresh={refresh} />}
+        {tab === 'reports' && <ReportCardTab key={`rep-${refreshKey}`} onRefresh={refresh} />}
+        {tab === 'settings' && <GradingSettingsTab key={`gs-${refreshKey}`} />}
+      </div>
     </div>
   );
 }

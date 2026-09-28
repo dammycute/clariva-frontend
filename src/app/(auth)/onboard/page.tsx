@@ -5,6 +5,7 @@ import toast from 'react-hot-toast';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { auth, api } from '@/lib/api';
+import { Check, Pencil, ChevronLeft, Loader2 } from 'lucide-react';
 
 const SCHOOL_TYPES = ['Secondary (JSS & SSS)', 'Primary', 'Nursery', 'Mixed (Primary & Secondary)'] as const;
 
@@ -249,9 +250,9 @@ export default function OnboardPage() {
         </div>
 
         <div className="space-y-2">
-          <p className="text-white/50 text-xs flex items-center gap-1.5">✓ 30-day free trial, no card needed</p>
-          <p className="text-white/50 text-xs flex items-center gap-1.5">✓ Set up in under 3 minutes</p>
-          <p className="text-white/50 text-xs flex items-center gap-1.5">✓ WAEC-compliant from day one</p>
+          <p className="text-white/50 text-xs flex items-center gap-1.5"><Check size={14} aria-hidden="true" /> 30-day free trial, no card needed</p>
+          <p className="text-white/50 text-xs flex items-center gap-1.5"><Check size={14} aria-hidden="true" /> Set up in under 3 minutes</p>
+          <p className="text-white/50 text-xs flex items-center gap-1.5"><Check size={14} aria-hidden="true" /> WAEC-compliant from day one</p>
         </div>
       </div>
 
@@ -287,7 +288,7 @@ export default function OnboardPage() {
                 <input value={form.schoolName} onChange={e => update('schoolName', e.target.value)}
                   placeholder="e.g. Queens College"
                   className={`${inputCls} ${fieldErrors.schoolName ? inputErr : inputNorm}`} />
-                {fieldErrors.schoolName && <p className="text-red-500 text-[10px] mt-1">{fieldErrors.schoolName}</p>}
+                {fieldErrors.schoolName && <p className="text-red-500 text-xs mt-1">{fieldErrors.schoolName}</p>}
               </div>
 
               <div>
@@ -301,9 +302,9 @@ export default function OnboardPage() {
                     <span className="flex-1 font-mono text-sm">{form.subdomain || 'your-school'}</span>
                   )}
                   <span className="text-[#94A3B8] text-xs shrink-0">.clariva.ng</span>
-                  <button onClick={() => { setSubdomainEdit(true); setSubdomainManual(form.subdomain); }} className="ml-2 text-[#94A3B8] hover:text-[#0D2B55] cursor-pointer text-xs">✎</button>
+                  <button onClick={() => { setSubdomainEdit(true); setSubdomainManual(form.subdomain); }} className="ml-2 text-[#94A3B8] hover:text-[#0D2B55] cursor-pointer" aria-label="Edit subdomain"><Pencil size={14} aria-hidden="true" /></button>
                 </div>
-                {fieldErrors.subdomain && <p className="text-red-500 text-[10px] mt-1">{fieldErrors.subdomain}</p>}
+                {fieldErrors.subdomain && <p className="text-red-500 text-xs mt-1">{fieldErrors.subdomain}</p>}
               </div>
 
               <div>
@@ -319,7 +320,7 @@ export default function OnboardPage() {
                     );
                   })}
                 </div>
-                {fieldErrors.schoolType && <p className="text-red-500 text-[10px] mt-1">{fieldErrors.schoolType}</p>}
+                {fieldErrors.schoolType && <p className="text-red-500 text-xs mt-1">{fieldErrors.schoolType}</p>}
               </div>
 
               <div className="grid grid-cols-2 gap-3">
@@ -340,7 +341,7 @@ export default function OnboardPage() {
                       ))}
                     </div>
                   )}
-                  {fieldErrors.state && <p className="text-red-500 text-[10px] mt-1">{fieldErrors.state}</p>}
+                  {fieldErrors.state && <p className="text-red-500 text-xs mt-1">{fieldErrors.state}</p>}
                 </div>
                 <div ref={lgaRef} className="relative">
                   <label className="block text-[11px] font-bold text-[#64748B] uppercase mb-1">LGA</label>
@@ -359,7 +360,7 @@ export default function OnboardPage() {
                       ))}
                     </div>
                   )}
-                  {fieldErrors.lga && <p className="text-red-500 text-[10px] mt-1">{fieldErrors.lga}</p>}
+                  {fieldErrors.lga && <p className="text-red-500 text-xs mt-1">{fieldErrors.lga}</p>}
                 </div>
               </div>
 
@@ -380,20 +381,20 @@ export default function OnboardPage() {
           {/* ---- Step 2 ---- */}
           {step === 2 && (
             <div className="space-y-4">
-              <button onClick={() => setStep(1)} className="text-xs text-[#64748B] hover:text-[#0D2B55] mb-1 cursor-pointer">← Back</button>
+              <button onClick={() => setStep(1)} className="text-xs text-[#64748B] hover:text-[#0D2B55] mb-1 cursor-pointer inline-flex items-center gap-1"><ChevronLeft size={16} aria-hidden="true" /> Back</button>
               <div>
                 <label className="block text-[11px] font-bold text-[#64748B] uppercase mb-1">Full name</label>
                 <input value={form.proprietorName} onChange={e => setField('proprietorName', e.target.value)}
                   placeholder="e.g. Dr. Adebayo Ola"
                   className={`${inputCls} ${fieldErrors.proprietorName ? inputErr : inputNorm}`} />
-                {fieldErrors.proprietorName && <p className="text-red-500 text-[10px] mt-1">{fieldErrors.proprietorName}</p>}
+                {fieldErrors.proprietorName && <p className="text-red-500 text-xs mt-1">{fieldErrors.proprietorName}</p>}
               </div>
               <div>
                 <label className="block text-[11px] font-bold text-[#64748B] uppercase mb-1">Phone number</label>
                 <input value={form.proprietorPhone} onChange={e => setField('proprietorPhone', e.target.value)}
                   placeholder="08012345678"
                   className={`${inputCls} ${fieldErrors.proprietorPhone ? inputErr : inputNorm}`} />
-                {fieldErrors.proprietorPhone && <p className="text-red-500 text-[10px] mt-1">{fieldErrors.proprietorPhone}</p>}
+                {fieldErrors.proprietorPhone && <p className="text-red-500 text-xs mt-1">{fieldErrors.proprietorPhone}</p>}
               </div>
               <div>
                 <label className="block text-[11px] font-bold text-[#64748B] uppercase mb-1">Email <span className="font-normal normal-case text-[#94A3B8]">Optional, for password recovery</span></label>
@@ -401,14 +402,14 @@ export default function OnboardPage() {
                   placeholder="admin@school.com"
                   className={`${inputCls} ${fieldErrors.proprietorEmail ? inputErr : inputNorm}`} />
                 {fieldErrors.proprietorEmail && (
-                  <p className="text-red-500 text-[10px] mt-1">
+                  <p className="text-red-500 text-xs mt-1">
                     {fieldErrors.proprietorEmail.includes('→') ? (
                       <>{fieldErrors.proprietorEmail.replace('→', '')}<Link href="/" className="underline">Sign in instead →</Link></>
                     ) : fieldErrors.proprietorEmail}
                   </p>
                 )}
               </div>
-              <p className="text-[10px] text-[#94A3B8] -mt-1">This person will be the school administrator</p>
+              <p className="text-xs text-[#94A3B8] -mt-1">This person will be the school administrator</p>
               <div className="flex justify-end pt-2">
                 <button onClick={handleContinue2}
                   className="px-6 py-2.5 rounded-xl bg-[#1A7A4A] text-white text-sm font-bold hover:bg-[#14663D] transition-colors cursor-pointer">Continue →</button>
@@ -419,7 +420,7 @@ export default function OnboardPage() {
           {/* ---- Step 3 ---- */}
           {step === 3 && (
             <div className="space-y-4">
-              <button onClick={() => setStep(2)} className="text-xs text-[#64748B] hover:text-[#0D2B55] mb-1 cursor-pointer">← Back</button>
+              <button onClick={() => setStep(2)} className="text-xs text-[#64748B] hover:text-[#0D2B55] mb-1 cursor-pointer inline-flex items-center gap-1"><ChevronLeft size={16} aria-hidden="true" /> Back</button>
 
               {/* summary card */}
               <div className="bg-[#F8FAFF] border border-[#DDE5F0] rounded-xl p-4 grid grid-cols-2 gap-x-4 gap-y-2.5 text-xs">
@@ -438,13 +439,13 @@ export default function OnboardPage() {
                     className="flex-1 outline-none text-sm" />
                   <button onClick={() => setShowPw(!showPw)} className="text-[#94A3B8] hover:text-[#0D2B55] text-xs cursor-pointer shrink-0">{showPw ? 'Hide' : 'Show'}</button>
                 </div>
-                {fieldErrors.password && <p className="text-red-500 text-[10px] mt-1">{fieldErrors.password}</p>}
+                {fieldErrors.password && <p className="text-red-500 text-xs mt-1">{fieldErrors.password}</p>}
                 {password && (
                   <div className="mt-1.5">
                     <div className="h-1 bg-[#F0F4FA] rounded-full overflow-hidden">
                       <div className={`h-full rounded-full transition-all ${calcStrength(password).color}`} style={{ width: `${calcStrength(password).pct}%` }} />
                     </div>
-                    <p className="text-[10px] text-[#64748B] mt-0.5">{calcStrength(password).label}</p>
+                    <p className="text-xs text-[#64748B] mt-0.5">{calcStrength(password).label}</p>
                   </div>
                 )}
               </div>
@@ -454,7 +455,7 @@ export default function OnboardPage() {
                 <input type="password" value={confirmPw} onChange={e => setConfirmPw(e.target.value)}
                   placeholder="Re-enter password"
                   className={`${inputCls} ${fieldErrors.confirmPw ? inputErr : inputNorm}`} />
-                {fieldErrors.confirmPw && <p className="text-red-500 text-[10px] mt-1">{fieldErrors.confirmPw}</p>}
+                {fieldErrors.confirmPw && <p className="text-red-500 text-xs mt-1">{fieldErrors.confirmPw}</p>}
               </div>
 
               <div>
@@ -463,7 +464,7 @@ export default function OnboardPage() {
                     className="mt-0.5 w-4 h-4 rounded border-[#DDE5F0] text-[#1A7A4A] focus:ring-[#1A7A4A]" />
                   <span className="text-xs text-[#64748B]">I agree to Clariva&apos;s <Link href="/terms" className="text-[#1A7A4A] hover:underline">terms of service</Link></span>
                 </label>
-                {fieldErrors.terms && <p className="text-red-500 text-[10px] mt-1">{fieldErrors.terms}</p>}
+                {fieldErrors.terms && <p className="text-red-500 text-xs mt-1">{fieldErrors.terms}</p>}
               </div>
 
               {fieldErrors._general && <p className="text-red-500 text-xs bg-red-50 border border-red-200 rounded-lg px-3 py-2">{fieldErrors._general}</p>}
@@ -471,7 +472,7 @@ export default function OnboardPage() {
               <div className="flex justify-end pt-2">
                 <button onClick={handleSubmit} disabled={loading}
                   className="px-6 py-2.5 rounded-xl bg-[#1A7A4A] text-white text-sm font-bold hover:bg-[#14663D] disabled:opacity-50 transition-colors cursor-pointer flex items-center gap-2">
-                  {loading ? <>⏳ Setting up your portal...</> : 'Create My School Portal →'}
+                  {loading ? <span className="inline-flex items-center gap-1.5"><Loader2 size={16} className="animate-spin" aria-hidden="true" /> Setting up your portal...</span> : 'Create My School Portal →'}
                 </button>
               </div>
             </div>

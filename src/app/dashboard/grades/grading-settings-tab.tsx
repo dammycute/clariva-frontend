@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { api, auth } from '@/lib/api';
+import { X } from 'lucide-react';
 
 interface GradeBoundary { name: string; min_pct: number; }
 interface GradingConfig {
@@ -123,7 +124,7 @@ export default function GradingSettingsTab() {
                   className="w-4 h-4 accent-[#1A7A4A]" />
                 <input value={comp.label} onChange={e => updateComponentField(idx, 'label', e.target.value)}
                   className="flex-1 text-sm border border-[#DDE5F0] rounded-lg px-3 py-2 bg-white text-[#0D2B55] outline-none" />
-                <span className="text-[10px] text-[#64748B]">Max</span>
+                <span className="text-xs text-[#64748B]">Max</span>
                 <input type="number" min="0" max="200" value={comp.max} onChange={e => updateComponentField(idx, 'max', parseInt(e.target.value) || 0)}
                   disabled={comp.enabled === false}
                   className="w-20 text-sm border border-[#DDE5F0] rounded-lg px-3 py-2 bg-white text-[#0D2B55] outline-none disabled:opacity-40" />
@@ -141,10 +142,10 @@ export default function GradingSettingsTab() {
               Add Grade
             </button>
           </div>
-          <p className="text-[10px] text-[#64748B] mb-3">Boundaries are checked top-down (highest % first).</p>
+          <p className="text-xs text-[#64748B] mb-3">Boundaries are checked top-down (highest % first).</p>
           <table className="w-full text-xs">
             <thead>
-              <tr className="text-[10px] font-bold text-[#64748B] uppercase">
+              <tr className="text-xs font-bold text-[#64748B] uppercase">
                 <th className="text-left px-2 py-1">Grade</th>
                 <th className="text-left px-2 py-1">Minimum %</th>
                 <th className="w-8"></th>
@@ -162,8 +163,8 @@ export default function GradingSettingsTab() {
                       className="w-full text-sm px-2 py-1 rounded border border-[#DDE5F0] outline-none" />
                   </td>
                   <td className="px-2 py-1.5">
-                    <button onClick={() => removeBoundary(idx)}
-                      className="text-[#B91C1C] hover:text-[#991B1B] text-xs">✕</button>
+                    <button onClick={() => removeBoundary(idx)} aria-label="Remove grade"
+                      className="text-[#B91C1C] hover:text-[#991B1B] text-xs"><X size={16} aria-hidden="true" /></button>
                   </td>
                 </tr>
               ))}

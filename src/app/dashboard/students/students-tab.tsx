@@ -5,6 +5,7 @@ import toast from 'react-hot-toast';
 import { api, auth } from '@/lib/api';
 import { downloadCsv } from '@/lib/csv';
 import Link from 'next/link';
+import { Search, Download, Upload, ChevronUp, Eye, Pencil, X, Check } from 'lucide-react';
 
 interface Student { id: string; admission_no: string; first_name: string; last_name: string; gender: string | null; class_group: string | null; guardian_name: string | null; guardian_phone: string | null; student_status: string; class_name?: string; }
 interface Class { id: string; name: string; }
@@ -120,7 +121,7 @@ export default function StudentsTab() {
     <div>
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2.5 bg-white border border-[#DDE5F0] rounded-xl px-3.5 py-2.5 flex-1 max-w-lg">
-          <span className="text-sm">🔍</span>
+          <span className="text-sm" aria-hidden="true"><Search size={16} /></span>
           <input type="text" placeholder="Search by name, admission number…" value={search}
             onChange={e => setSearch(e.target.value)}
             className="flex-1 border-none bg-transparent text-sm text-[#0D2B55] outline-none placeholder:text-[#64748B]" />
@@ -135,9 +136,9 @@ export default function StudentsTab() {
             const h = ['full_name', 'admission_no', 'gender', 'class', 'guardian_name', 'guardian_phone', 'status'];
             const r = filtered.map(s => [fullName(s), s.admission_no, s.gender || '', s.class_name || '', s.guardian_name || '', s.guardian_phone || '', s.student_status]);
             downloadCsv('students.csv', h, r);
-          }} className="text-sm px-3.5 py-2 rounded-lg border border-[#DDE5F0] text-[#64748B] hover:bg-[#F0F4FA]">⬇ Export CSV</button>
-          <button onClick={() => { setImportCsv(''); setImportResult(null); setShowImport(true); }} className="text-sm px-3.5 py-2 rounded-lg border border-[#DDE5F0] text-[#64748B] hover:bg-[#F0F4FA]">📄 Import CSV</button>
-          <button onClick={() => setShowPromote(true)} className="text-sm px-3.5 py-2 rounded-lg border border-[#0D2B55] text-[#0D2B55] hover:bg-[#F0F4FA]">⬆ Promote</button>
+          }} className="text-sm px-3.5 py-2 rounded-lg border border-[#DDE5F0] text-[#64748B] hover:bg-[#F0F4FA] inline-flex items-center gap-1.5"><Download size={16} aria-hidden="true" /> Export CSV</button>
+          <button onClick={() => { setImportCsv(''); setImportResult(null); setShowImport(true); }} className="text-sm px-3.5 py-2 rounded-lg border border-[#DDE5F0] text-[#64748B] hover:bg-[#F0F4FA] inline-flex items-center gap-1.5"><Upload size={16} aria-hidden="true" /> Import CSV</button>
+          <button onClick={() => setShowPromote(true)} className="text-sm px-3.5 py-2 rounded-lg border border-[#0D2B55] text-[#0D2B55] hover:bg-[#F0F4FA] inline-flex items-center gap-1.5"><ChevronUp size={16} aria-hidden="true" /> Promote</button>
           <button onClick={openAdd} className="text-sm px-3.5 py-2 rounded-lg bg-[#1A7A4A] text-white hover:bg-[#14663D]">+ Add Student</button>
         </div>
       </div>
@@ -175,7 +176,7 @@ export default function StudentsTab() {
                   <tr key={s.id} className="hover:bg-[#F8FAFF] border-t border-[#DDE5F0]">
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-2.5">
-                        <div className="w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-bold shrink-0" style={{ background: c.bg, color: c.text }}>{getInitials(name)}</div>
+                        <div className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold shrink-0" style={{ background: c.bg, color: c.text }}>{getInitials(name)}</div>
                         {name}
                       </div>
                     </td>
@@ -184,14 +185,14 @@ export default function StudentsTab() {
                     <td className="px-4 py-3">{s.guardian_name || '—'}</td>
                     <td className="px-4 py-3">{s.guardian_phone || '—'}</td>
                     <td className="px-4 py-3">
-                      <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold ${
+                      <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold ${
                         s.student_status === 'active' ? 'bg-[#DCFCE7] text-[#1A7A4A]' : 'bg-[#FEE2E2] text-[#B91C1C]'
                       }`}>{s.student_status}</span>
                     </td>
                     <td className="px-4 py-3 text-right">
                       <div className="flex gap-1 justify-end">
-                        <Link href={`/dashboard/students/${s.id}`} className="text-xs px-2.5 py-1 rounded-lg border border-[#DDE5F0] bg-white hover:bg-[#F0F4FA]">👁 View</Link>
-                        <button onClick={() => openEdit(s)} className="text-xs px-2.5 py-1 rounded-lg border border-[#DDE5F0] bg-white hover:bg-[#F0F4FA]">✏️</button>
+                        <Link href={`/dashboard/students/${s.id}`} className="text-xs px-2.5 py-1 rounded-lg border border-[#DDE5F0] bg-white hover:bg-[#F0F4FA] inline-flex items-center gap-1"><Eye size={16} aria-hidden="true" /> View</Link>
+                        <button onClick={() => openEdit(s)} aria-label="Edit" className="text-xs px-2.5 py-1 rounded-lg border border-[#DDE5F0] bg-white hover:bg-[#F0F4FA]"><Pencil size={16} aria-hidden="true" /></button>
                       </div>
                     </td>
                   </tr>
@@ -207,12 +208,12 @@ export default function StudentsTab() {
           <div className="bg-white rounded-2xl w-[560px] max-w-[95vw]" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between p-5 pb-0">
               <h2 className="text-base font-bold text-[#0D2B55]">Import Students from CSV</h2>
-              <button onClick={() => setShowImport(false)} className="text-[#64748B] hover:text-[#0D2B55] text-lg">✕</button>
+              <button onClick={() => setShowImport(false)} className="text-[#64748B] hover:text-[#0D2B55] text-lg" aria-label="Close"><X size={16} aria-hidden="true" /></button>
             </div>
             <div className="p-5 space-y-3.5">
               {importResult ? (
                 <div>
-                  <p className="text-sm font-bold text-[#1A7A4A]">✓ {importResult.created} students imported.</p>
+                  <p className="text-sm font-bold text-[#1A7A4A] inline-flex items-center gap-1"><Check size={16} aria-hidden="true" /> {importResult.created} students imported.</p>
                   {importResult.errors.length > 0 && (
                     <div className="mt-2 bg-[#FEE2E2] rounded-lg p-3 max-h-[200px] overflow-y-auto">
                       {importResult.errors.map((e, i) => <p key={i} className="text-xs text-[#B91C1C]">{e}</p>)}
@@ -234,7 +235,7 @@ export default function StudentsTab() {
                     <label className="block text-[11px] font-bold text-[#64748B] uppercase mb-1">CSV data</label>
                     <textarea value={importCsv} onChange={e => setImportCsv(e.target.value)} rows={8} placeholder={'first_name,last_name,admission_no,gender,guardian_name,guardian_phone\nJohn,Doe,JH123,Male,Jane Doe,08012345678'}
                       className="w-full px-3 py-2 rounded-lg border border-[#DDE5F0] text-sm outline-none focus:border-[#1A7A4A] font-mono" />
-                    <p className="text-[10px] text-[#64748B] mt-1">Required: <strong>first_name</strong>. Optional: last_name, admission_no, gender, guardian_name, guardian_phone, guardian_email</p>
+                    <p className="text-xs text-[#64748B] mt-1">Required: <strong>first_name</strong>. Optional: last_name, admission_no, gender, guardian_name, guardian_phone, guardian_email</p>
                   </div>
                   <div className="flex justify-end gap-2 pt-2">
                     <button onClick={() => setShowImport(false)} className="text-sm px-4 py-2 rounded-lg border border-[#DDE5F0] bg-white hover:bg-[#F0F4FA]">Cancel</button>
@@ -270,7 +271,7 @@ export default function StudentsTab() {
           <div className="bg-white rounded-2xl w-[460px] max-w-[95vw]" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between p-5 pb-0">
               <h2 className="text-base font-bold text-[#0D2B55]">Promote Students</h2>
-              <button onClick={() => setShowPromote(false)} className="text-[#64748B] hover:text-[#0D2B55] text-lg">✕</button>
+              <button onClick={() => setShowPromote(false)} className="text-[#64748B] hover:text-[#0D2B55] text-lg" aria-label="Close"><X size={16} aria-hidden="true" /></button>
             </div>
             <div className="p-5 space-y-3.5">
               <div>
@@ -327,7 +328,7 @@ export default function StudentsTab() {
           <div className="bg-white rounded-2xl w-[520px] max-w-[95vw] max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between p-5 pb-0">
               <h2 className="text-base font-bold text-[#0D2B55]">{editingId ? 'Edit Student' : 'Add New Student'}</h2>
-              <button onClick={() => setShowModal(false)} className="text-[#64748B] hover:text-[#0D2B55] text-lg">✕</button>
+              <button onClick={() => setShowModal(false)} className="text-[#64748B] hover:text-[#0D2B55] text-lg" aria-label="Close"><X size={16} aria-hidden="true" /></button>
             </div>
             <form onSubmit={handleSubmit} className="p-5 space-y-3.5">
               <div className="grid grid-cols-2 gap-3">

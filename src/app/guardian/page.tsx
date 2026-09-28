@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { portal, auth } from '@/lib/api';
+import { ClipboardList } from 'lucide-react';
 
 export default function GuardianLoginPage() {
   const router = useRouter();
@@ -125,13 +126,13 @@ export default function GuardianLoginPage() {
           {mode === 'code' && lookupResult && (
             <div>
               <div className="text-center mb-5">
-                <div className="text-3xl mb-2">📋</div>
+                <div className="text-3xl mb-2" aria-hidden="true"><ClipboardList size={24} /></div>
                 <h2 className="text-lg font-bold text-white">{lookupResult.full_name as string}</h2>
                 <p className="text-xs text-white/50">{lookupResult.admission_no as string} · {lookupResult.class_name as string || '—'}</p>
               </div>
 
               <div className="bg-white/10 rounded-xl p-4 mb-4">
-                <p className="text-[10px] text-white/50 font-bold uppercase mb-2">Fee Summary</p>
+                <p className="text-xs text-white/50 font-bold uppercase mb-2">Fee Summary</p>
                 <div className="grid grid-cols-3 gap-2 text-center">
                   <div>
                     <p className="text-xs text-white/50">Due</p>
@@ -152,7 +153,7 @@ export default function GuardianLoginPage() {
 
               {!!lookupResult.latest_report_card && (
                 <div className="bg-white/10 rounded-xl p-4 mb-5">
-                  <p className="text-[10px] text-white/50 font-bold uppercase mb-2">Latest Report Card</p>
+                  <p className="text-xs text-white/50 font-bold uppercase mb-2">Latest Report Card</p>
                   <p className="text-xs text-white/70">{(lookupResult.latest_report_card as Record<string, unknown>).term as string} {(lookupResult.latest_report_card as Record<string, unknown>).academic_year as string}</p>
                   <p className="text-lg font-bold text-white">{(lookupResult.latest_report_card as Record<string, number>).average}%</p>
                 </div>

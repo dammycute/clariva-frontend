@@ -59,9 +59,9 @@ export default function SuperAdminSchools() {
                 <div className="flex items-center gap-3 ml-4">
                   <div className="text-right">
                     <p className="text-[11px] text-[#64748B]">{s.state || '—'}</p>
-                    <p className="text-[10px] text-[#64748B]">{s.school_type || '—'}</p>
+                    <p className="text-xs text-[#64748B]">{s.school_type || '—'}</p>
                   </div>
-                  <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold whitespace-nowrap ${
+                  <span className={`px-2 py-0.5 rounded-full text-xs font-bold whitespace-nowrap ${
                     s.status === 'active' ? 'bg-[#DCFCE7] text-[#1A7A4A]' : 'bg-[#FEE2E2] text-[#B91C1C]'
                   }`}>{s.status}</span>
                 </div>

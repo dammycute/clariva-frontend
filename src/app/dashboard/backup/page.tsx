@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { request } from '@/lib/api';
+import { HardDrive, Download, Upload, FolderOpen } from 'lucide-react';
 
 export default function BackupPage() {
   const [busy, setBusy] = useState(false);
@@ -62,22 +63,22 @@ export default function BackupPage() {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
         <div className="bg-white border border-[#DDE5F0] rounded-xl p-5">
-          <div className="text-3xl mb-3">💾</div>
+          <div className="text-3xl mb-3" aria-hidden="true"><HardDrive size={24} /></div>
           <h3 className="text-base font-bold text-[#0D2B55] mb-1">Download Backup</h3>
           <p className="text-xs text-[#64748B] mb-4">Export all school data as a JSON file. Includes students, staff, fees, grades, attendance, timetables, and more.</p>
           <button onClick={doBackup} disabled={busy}
             className="text-sm px-4 py-2.5 rounded-lg bg-[#0D2B55] text-white hover:bg-[#0A1F3D] disabled:opacity-50">
-            {busy ? 'Processing…' : '⬇ Download Backup'}
+            {busy ? 'Processing…' : <><Download size={16} className="inline align-[-3px] mr-1" aria-hidden="true" />Download Backup</>}
           </button>
         </div>
 
         <div className="bg-white border border-[#DDE5F0] rounded-xl p-5">
-          <div className="text-3xl mb-3">📥</div>
+          <div className="text-3xl mb-3" aria-hidden="true"><Upload size={24} /></div>
           <h3 className="text-base font-bold text-[#0D2B55] mb-1">Restore Backup</h3>
           <p className="text-xs text-[#64748B] mb-4">Upload a previously downloaded backup JSON file to restore your data. This will add records to your existing data.</p>
           <button onClick={doRestore} disabled={busy}
             className="text-sm px-4 py-2.5 rounded-lg border border-[#B91C1C] text-[#B91C1C] hover:bg-[#FEE2E2] disabled:opacity-50">
-            {busy ? 'Processing…' : '📂 Upload & Restore'}
+            {busy ? 'Processing…' : <><FolderOpen size={16} className="inline align-[-3px] mr-1" aria-hidden="true" />Upload & Restore</>}
           </button>
         </div>
       </div>

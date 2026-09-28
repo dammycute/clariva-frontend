@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import { api } from '@/lib/api';
 import ConfirmDialog from '@/components/confirm-dialog';
+import { Check, X } from 'lucide-react';
 
 interface Subject { id: string; name: string; code: string; year_group: string | null; teacher: string | null; teacher_name: string | null; is_core: boolean; grading_mode: string; grading_mode_label: string; }
 interface Staff { id: string; full_name: string; }
@@ -79,8 +80,8 @@ export default function PrincipalSubjectsPage() {
               <tr key={s.id} className="hover:bg-[#F8FAFF] border-t border-[#DDE5F0]">
                 <td className="px-4 py-3 font-semibold">{s.name}</td><td className="px-4 py-3 text-[#64748B]">{s.code || '—'}</td>
                 <td className="px-4 py-3">{s.year_group || 'All'}</td><td className="px-4 py-3">{s.teacher_name || '—'}</td>
-                <td className="px-4 py-3"><span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${s.grading_mode === 'cbt' ? 'bg-[#DCFCE7] text-[#1A7A4A]' : s.grading_mode === 'hybrid' ? 'bg-[#FEF3C7] text-[#D4930A]' : 'bg-[#E8F0FA] text-[#0D2B55]'}`}>{s.grading_mode_label || s.grading_mode}</span></td>
-                <td className="px-4 py-3">{s.is_core ? <span className="text-[#1A7A4A]">✓</span> : '—'}</td>
+                <td className="px-4 py-3"><span className={`px-2 py-0.5 rounded-full text-xs font-bold ${s.grading_mode === 'cbt' ? 'bg-[#DCFCE7] text-[#1A7A4A]' : s.grading_mode === 'hybrid' ? 'bg-[#FEF3C7] text-[#D4930A]' : 'bg-[#E8F0FA] text-[#0D2B55]'}`}>{s.grading_mode_label || s.grading_mode}</span></td>
+                <td className="px-4 py-3">{s.is_core ? <span className="text-[#1A7A4A]"><Check size={16} aria-hidden="true" /></span> : '—'}</td>
                 <td className="px-4 py-3"><button onClick={() => openEdit(s)} className="text-[11px] text-[#4C1D95] hover:underline mr-2">Edit</button><button onClick={() => setConfirmDelete(s.id)} className="text-[11px] text-[#B91C1C] hover:underline">Delete</button></td>
               </tr>
             ))}</tbody>
@@ -93,7 +94,7 @@ export default function PrincipalSubjectsPage() {
         <div className="bg-white rounded-2xl w-[520px] max-w-[95vw]" onClick={e => e.stopPropagation()}>
           <div className="flex items-center justify-between p-5 pb-0">
             <h2 className="text-base font-bold text-[#1E1B4B]">{editId ? 'Edit Subject' : 'Add Subject'}</h2>
-            <button onClick={() => setShowForm(false)} className="text-[#64748B] hover:text-[#1E1B4B] text-lg">✕</button>
+            <button onClick={() => setShowForm(false)} className="text-[#64748B] hover:text-[#1E1B4B] text-lg" aria-label="Close"><X size={16} aria-hidden="true" /></button>
           </div>
           <form onSubmit={handleSave} className="p-5 space-y-3.5">
             <div className="grid grid-cols-2 gap-3">

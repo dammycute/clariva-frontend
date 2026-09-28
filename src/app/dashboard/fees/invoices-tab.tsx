@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { api, auth } from '@/lib/api';
 import { generateReceiptPDF } from '@/lib/receipt';
+import { Search, FileText, X, ChevronDown, ChevronRight } from 'lucide-react';
 
 interface InvoiceItem {
   id: string;
@@ -277,7 +278,7 @@ export default function InvoicesTab({ onRefresh }: { onRefresh: () => void }) {
 
       <div className="flex items-center gap-2.5 mb-3">
         <div className="relative flex-1 max-w-xs">
-          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[#64748B] text-xs">🔍</span>
+          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[#64748B] text-xs" aria-hidden="true"><Search size={16} /></span>
           <input type="text" value={searchQuery} onChange={e => setSearchQuery(e.target.value)} placeholder="Search student…"
             className="w-full pl-8 pr-3 py-2 rounded-lg border border-[#DDE5F0] text-sm outline-none focus:border-[#1A7A4A]" />
         </div>
@@ -318,8 +319,8 @@ export default function InvoicesTab({ onRefresh }: { onRefresh: () => void }) {
                   <>
                     <tr key={inv.id} className="hover:bg-[#F8FAFF] border-t border-[#DDE5F0]">
                       <td className="px-4 py-3">
-                        <button onClick={() => toggleExpand(inv.id)} className="text-[#64748B] hover:text-[#0D2B55]">
-                          {isExpanded ? '▼' : '▶'}
+                        <button onClick={() => toggleExpand(inv.id)} className="text-[#64748B] hover:text-[#0D2B55]" aria-label={isExpanded ? 'Collapse' : 'Expand'}>
+                          {isExpanded ? <ChevronDown size={16} aria-hidden="true" /> : <ChevronRight size={16} aria-hidden="true" />}
                         </button>
                       </td>
                       <td className="px-4 py-3 font-semibold">{inv.student_name}</td>
@@ -328,14 +329,14 @@ export default function InvoicesTab({ onRefresh }: { onRefresh: () => void }) {
                       <td className="px-4 py-3 text-[#1A7A4A]">₦{Number(inv.amount_paid).toLocaleString()}</td>
                       <td className={`px-4 py-3 font-bold ${balance > 0 ? 'text-[#B91C1C]' : 'text-[#1A7A4A]'}`}>₦{balance.toLocaleString()}</td>
                       <td className="px-4 py-3">
-                        <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold ${statusBadge(inv.status)}`}>{inv.status}</span>
+                        <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold ${statusBadge(inv.status)}`}>{inv.status}</span>
                       </td>
                       <td className="px-4 py-3">
                         {Number(inv.amount_paid) < Number(inv.amount_due) && (
                           <button onClick={() => openPayment(inv)} className="text-[11px] px-2.5 py-1 rounded-lg bg-[#1A7A4A] text-white hover:bg-[#14663D]">Pay</button>
                         )}
                         {Number(inv.amount_paid) > 0 && (
-                          <button onClick={() => handleDownloadReceipt(inv)} className="text-xs px-2 py-1 rounded-lg border border-[#DDE5F0] bg-white hover:bg-[#F0F4FA] ml-1.5">🧾</button>
+                          <button onClick={() => handleDownloadReceipt(inv)} aria-label="Download receipt" className="text-xs px-2 py-1 rounded-lg border border-[#DDE5F0] bg-white hover:bg-[#F0F4FA] ml-1.5"><FileText size={16} aria-hidden="true" /></button>
                         )}
                       </td>
                     </tr>
@@ -378,7 +379,7 @@ export default function InvoicesTab({ onRefresh }: { onRefresh: () => void }) {
           <div className="bg-white rounded-2xl w-[560px] max-w-[95vw] max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between p-5 pb-0">
               <h2 className="text-base font-bold text-[#0D2B55]">Generate Invoices</h2>
-              <button onClick={() => setShowGenerate(false)} className="text-[#64748B] hover:text-[#0D2B55] text-lg">✕</button>
+              <button onClick={() => setShowGenerate(false)} className="text-[#64748B] hover:text-[#0D2B55] text-lg" aria-label="Close"><X size={16} aria-hidden="true" /></button>
             </div>
             <form onSubmit={handleGenerate} className="p-5 space-y-3.5">
               <div className="grid grid-cols-2 gap-3">
@@ -387,7 +388,7 @@ export default function InvoicesTab({ onRefresh }: { onRefresh: () => void }) {
                   <select value={genForm.fee_item_id} onChange={e => setGenForm({ ...genForm, fee_item_id: e.target.value })}
                     className="w-full px-3 py-2 rounded-lg border border-[#DDE5F0] text-sm outline-none focus:border-[#1A7A4A] bg-white">
                     <option value="">Select fee item</option>
-                    <option value="__all__">📋 All Fee Items</option>
+                    <option value="__all__">All Fee Items</option>
                     {feeItems.map(f => <option key={f.id} value={f.id}>{f.name} — ₦{Number(f.amount).toLocaleString()}</option>)}
                   </select>
                 </div>
@@ -426,7 +427,7 @@ export default function InvoicesTab({ onRefresh }: { onRefresh: () => void }) {
                               onChange={() => setSelectedFeeItemIds(prev => { const n = new Set(prev); n.has(f.id) ? n.delete(f.id) : n.add(f.id); return n; })}
                               className="w-4 h-4 rounded border-[#DDE5F0] text-[#1A7A4A] focus:ring-[#1A7A4A]" />
                             <span className="text-sm text-[#0D2B55] flex-1">{f.name}</span>
-                            <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${f.is_mandatory ? 'bg-[#D1FAE5] text-[#065F46]' : 'bg-[#FEF3C7] text-[#D4930A]'}`}>{f.is_mandatory ? 'Mandatory' : 'Optional'}</span>
+                            <span className={`text-xs font-bold px-1.5 py-0.5 rounded ${f.is_mandatory ? 'bg-[#D1FAE5] text-[#065F46]' : 'bg-[#FEF3C7] text-[#D4930A]'}`}>{f.is_mandatory ? 'Mandatory' : 'Optional'}</span>
                           </label>
                         );
                       })}
@@ -471,7 +472,7 @@ export default function InvoicesTab({ onRefresh }: { onRefresh: () => void }) {
           <div className="bg-white rounded-2xl w-[440px] max-w-[95vw]" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between p-5 pb-0">
               <h2 className="text-base font-bold text-[#0D2B55]">Record Payment</h2>
-              <button onClick={() => setShowPayment(false)} className="text-[#64748B] hover:text-[#0D2B55] text-lg">✕</button>
+              <button onClick={() => setShowPayment(false)} className="text-[#64748B] hover:text-[#0D2B55] text-lg" aria-label="Close"><X size={16} aria-hidden="true" /></button>
             </div>
             <div className="px-5 py-3 bg-[#F7F9FC] mx-5 rounded-lg mb-3">
               <p className="text-xs text-[#64748B]">{payInvoice.student_name}</p>

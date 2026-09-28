@@ -4,6 +4,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import toast from 'react-hot-toast';
 import { useParams, useRouter } from 'next/navigation';
 import { api } from '@/lib/api';
+import { ChevronLeft, FileText, CheckCircle2, X, AlertTriangle, Download, Pencil, Trash2, Check } from 'lucide-react';
 
 interface Exam {
   id: string; title: string; subject: string; subject_name?: string;
@@ -220,17 +221,17 @@ export default function ExamDetailPage() {
 
   // ---- render helpers ----
   function renderBadge(label: string, colorClass: string) {
-    return <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-bold ${colorClass}`}>{label}</span>;
+    return <span className={`text-xs px-1.5 py-0.5 rounded-full font-bold ${colorClass}`}>{label}</span>;
   }
 
   return (
     <div>
       {/* header */}
       <div className="flex items-center gap-3 mb-5">
-        <button onClick={() => router.push('/dashboard/cbt')} className="text-sm text-[#64748B] hover:text-[#0D2B55]">← Exams</button>
+        <button onClick={() => router.push('/dashboard/cbt')} className="text-sm text-[#64748B] hover:text-[#0D2B55] inline-flex items-center gap-1"><ChevronLeft size={16} aria-hidden="true" /> Exams</button>
         <div className="h-4 w-px bg-[#DDE5F0]" />
         <h1 className="text-xl font-bold text-[#0D2B55]">{exam.title}</h1>
-        <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold ${exam.status === 'published' ? 'bg-blue-100 text-blue-700' : exam.status === 'draft' ? 'bg-gray-100 text-gray-600' : exam.status === 'ongoing' ? 'bg-green-100 text-green-700' : exam.status === 'completed' ? 'bg-amber-100 text-amber-700' : 'bg-red-100 text-red-700'}`}>{exam.status}</span>
+        <span className={`text-xs px-2 py-0.5 rounded-full font-bold ${exam.status === 'published' ? 'bg-blue-100 text-blue-700' : exam.status === 'draft' ? 'bg-gray-100 text-gray-600' : exam.status === 'ongoing' ? 'bg-green-100 text-green-700' : exam.status === 'completed' ? 'bg-amber-100 text-amber-700' : 'bg-red-100 text-red-700'}`}>{exam.status}</span>
       </div>
 
       {/* summary cards */}
@@ -244,7 +245,7 @@ export default function ExamDetailPage() {
         ].map(s => (
           <div key={s.label} className="bg-white border border-[#DDE5F0] rounded-xl p-3 text-center">
             <p className="text-lg font-bold text-[#0D2B55]">{s.value}</p>
-            <p className="text-[10px] text-[#64748B]">{s.label}</p>
+            <p className="text-xs text-[#64748B]">{s.label}</p>
           </div>
         ))}
       </div>
@@ -256,7 +257,7 @@ export default function ExamDetailPage() {
 
       {/* upload panel */}
       <div className="bg-white border border-[#DDE5F0] rounded-xl p-5 mb-5" ref={dropRef}>
-        <h2 className="text-sm font-bold text-[#0D2B55] mb-3">📄 Upload Questions from DOCX</h2>
+        <h2 className="text-sm font-bold text-[#0D2B55] mb-3 flex items-center gap-1.5"><FileText size={16} aria-hidden="true" /> Upload Questions from DOCX</h2>
         <div
           onDragOver={handleDragOver} onDragLeave={handleDragLeave} onDrop={handleDrop}
           onClick={() => fileInputRef.current?.click()}
@@ -269,7 +270,7 @@ export default function ExamDetailPage() {
           ) : (
             <div>
               <p className="text-sm text-[#64748B]">Drag & drop a <strong>.docx</strong> file here, or click to browse</p>
-              <p className="text-[10px] text-[#94A3B8] mt-1">Only .docx format is supported</p>
+              <p className="text-xs text-[#94A3B8] mt-1">Only .docx format is supported</p>
             </div>
           )}
         </div>
@@ -291,17 +292,21 @@ export default function ExamDetailPage() {
 
         {uploadResult && (
           <div className={`mt-3 text-xs px-3 py-2 rounded-lg ${uploadResult.ok ? 'bg-green-50 text-green-700 border border-green-200' : 'bg-red-50 text-red-700 border border-red-200'}`}>
-            {uploadResult.ok ? '✅ ' : '❌ '}{uploadResult.msg}
+            {uploadResult.ok
+              ? <CheckCircle2 size={16} className="inline align-[-3px] mr-1" aria-hidden="true" />
+              : <X size={16} className="inline align-[-3px] mr-1" aria-hidden="true" />}{uploadResult.msg}
             {uploadResult.warnings && uploadResult.warnings.length > 0 && (
               <div className="mt-1 text-amber-700">
-                {uploadResult.warnings.map((w, i) => <div key={i}>⚠️ {w}</div>)}
+                {uploadResult.warnings.map((w, i) => (
+                  <div key={i}><AlertTriangle size={16} className="inline align-[-3px] mr-1" aria-hidden="true" />{w}</div>
+                ))}
               </div>
             )}
           </div>
         )}
 
-        <button onClick={handleDownloadTemplate} className="mt-3 text-xs px-3 py-1.5 rounded-lg border border-[#DDE5F0] hover:bg-[#F0F4FA]">
-          📥 Download Template
+        <button onClick={handleDownloadTemplate} className="mt-3 text-xs px-3 py-1.5 rounded-lg border border-[#DDE5F0] hover:bg-[#F0F4FA] inline-flex items-center gap-1.5">
+          <Download size={16} aria-hidden="true" /> Download Template
         </button>
       </div>
 
@@ -359,23 +364,23 @@ export default function ExamDetailPage() {
                       <div className="flex items-center gap-2 mt-1.5 flex-wrap">
                         {renderBadge(typeLabel[q.question_type] || q.question_type, typeColors[q.question_type] || 'bg-gray-100 text-gray-600')}
                         {renderBadge(q.difficulty, diffColors[q.difficulty] || 'bg-gray-100 text-gray-600')}
-                        <span className="text-[10px] text-[#64748B]">{q.mark} mark{q.mark > 1 ? 's' : ''}</span>
-                        <span className="text-[10px] flex items-center gap-0.5 text-green-700 font-medium">
-                          ✓ {q.correct_answer}
+                        <span className="text-xs text-[#64748B]">{q.mark} mark{q.mark > 1 ? 's' : ''}</span>
+                        <span className="text-xs flex items-center gap-0.5 text-green-700 font-medium">
+                          <Check size={16} aria-hidden="true" /> {q.correct_answer}
                         </span>
-                        {q.topic && <span className="text-[10px] text-[#64748B]">Topic: {q.topic}</span>}
+                        {q.topic && <span className="text-xs text-[#64748B]">Topic: {q.topic}</span>}
                       </div>
                       {q.question_type === 'mcq' && q.options && (
                         <div className="flex flex-wrap gap-1.5 mt-1">
                           {q.options.map((o, oi) => (
-                            <span key={oi} className={`text-[10px] px-1.5 py-0.5 rounded ${o === q.correct_answer ? 'bg-green-100 text-green-700 font-bold' : 'bg-[#F0F4FA] text-[#64748B]'}`}>{String.fromCharCode(65 + oi)}. {o}</span>
+                            <span key={oi} className={`text-xs px-1.5 py-0.5 rounded ${o === q.correct_answer ? 'bg-green-100 text-green-700 font-bold' : 'bg-[#F0F4FA] text-[#64748B]'}`}>{String.fromCharCode(65 + oi)}. {o}</span>
                           ))}
                         </div>
                       )}
                     </div>
                     <div className="flex gap-1 shrink-0">
-                      <button onClick={() => openEdit(q)} className="text-[11px] px-2 py-1 rounded border border-[#DDE5F0] hover:bg-[#F0F4FA]">✏️</button>
-                      <button onClick={() => deleteQ(q.id)} className="text-[11px] px-2 py-1 rounded border border-[#FEE2E2] text-[#B91C1C] hover:bg-[#FEE2E2]">🗑</button>
+                      <button onClick={() => openEdit(q)} className="text-[11px] px-2 py-1 rounded border border-[#DDE5F0] hover:bg-[#F0F4FA]" aria-label="Edit"><Pencil size={16} aria-hidden="true" /></button>
+                      <button onClick={() => deleteQ(q.id)} className="text-[11px] px-2 py-1 rounded border border-[#FEE2E2] text-[#B91C1C] hover:bg-[#FEE2E2]" aria-label="Delete"><Trash2 size={16} aria-hidden="true" /></button>
                     </div>
                   </div>
                 </div>
@@ -391,7 +396,7 @@ export default function ExamDetailPage() {
           <div className="bg-white rounded-2xl w-[560px] max-w-[95vw] max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between p-5 pb-0">
               <h2 className="text-base font-bold text-[#0D2B55]">Reorder Questions</h2>
-              <button onClick={() => setReorderMode(false)} className="text-[#64748B] hover:text-[#0D2B55] text-lg">✕</button>
+              <button onClick={() => setReorderMode(false)} className="text-[#64748B] hover:text-[#0D2B55] text-lg" aria-label="Close"><X size={16} aria-hidden="true" /></button>
             </div>
             <p className="px-5 text-xs text-[#64748B]">Drag rows to reorder. This sets the default question order for students.</p>
             <div className="p-5 space-y-1 max-h-[50vh] overflow-y-auto">
@@ -404,7 +409,7 @@ export default function ExamDetailPage() {
                   <span className="text-[#64748B]">⠿</span>
                   <span className="font-bold text-[#0D2B55] shrink-0">Q{i + 1}.</span>
                   <span className="text-[#64748B] truncate">{q.body}</span>
-                  <span className="ml-auto text-[10px] text-[#64748B] shrink-0">{q.mark}m</span>
+                  <span className="ml-auto text-xs text-[#64748B] shrink-0">{q.mark}m</span>
                 </div>
               ))}
             </div>
@@ -422,7 +427,7 @@ export default function ExamDetailPage() {
           <div className="bg-white rounded-2xl w-[600px] max-w-[95vw] max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between p-5 pb-0">
               <h2 className="text-base font-bold text-[#0D2B55]">{editQId ? 'Edit Question' : 'Add Question'}</h2>
-              <button onClick={() => setShowForm(false)} className="text-[#64748B] hover:text-[#0D2B55] text-lg">✕</button>
+              <button onClick={() => setShowForm(false)} className="text-[#64748B] hover:text-[#0D2B55] text-lg" aria-label="Close"><X size={16} aria-hidden="true" /></button>
             </div>
             <form onSubmit={handleSaveQ} className="p-5 space-y-3.5">
               <div>
@@ -465,7 +470,7 @@ export default function ExamDetailPage() {
                   <label className="block text-[11px] font-bold text-[#64748B] uppercase mb-1">Options</label>
                   {qForm.options.map((opt, oi) => (
                     <div key={oi} className="flex items-center gap-2 mb-1.5">
-                      <span className="text-[10px] font-bold text-[#64748B] w-5">{String.fromCharCode(65 + oi)}.</span>
+                      <span className="text-xs font-bold text-[#64748B] w-5">{String.fromCharCode(65 + oi)}.</span>
                       <input value={opt} onChange={e => {
                         const opts = [...qForm.options];
                         opts[oi] = e.target.value;

@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import { api } from '@/lib/api';
 import Link from 'next/link';
+import { Pencil, BarChart3 } from 'lucide-react';
 
 interface Exam { id: string; title: string; subject_name?: string; subject: string; class_name?: string; class_group: string | null; duration_mins: number; pass_mark: number; question_count: number; status: string; }
 interface Subject { id: string; name: string; year_group: string | null; }
@@ -46,9 +47,9 @@ export default function TeacherCBTExamsPage() {
                 <div className="flex-1 min-w-0 mr-4">
                   <div className="flex items-center gap-2">
                     <span className="text-sm font-bold text-[#0D2B55]">{exam.title}</span>
-                    <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-bold ${statusColors[exam.status] || statusColors.draft}`}>{exam.status}</span>
+                    <span className={`text-xs px-1.5 py-0.5 rounded-full font-bold ${statusColors[exam.status] || statusColors.draft}`}>{exam.status}</span>
                   </div>
-                  <div className="flex items-center gap-3 mt-1 text-[10px] text-[#64748B]">
+                  <div className="flex items-center gap-3 mt-1 text-xs text-[#64748B]">
                     <span>{exam.subject_name || '—'}</span>
                     <span>{exam.class_name || 'All classes'}</span>
                     <span>{exam.duration_mins} min</span>
@@ -56,8 +57,8 @@ export default function TeacherCBTExamsPage() {
                   </div>
                 </div>
                 <div className="flex items-center gap-1 shrink-0">
-                  <Link href={`/dashboard/cbt/${exam.id}`} className="text-[11px] px-2 py-1 rounded border border-[#DDE5F0] hover:bg-[#F0F4FA]" title="Questions">📝</Link>
-                  <Link href={`/dashboard/cbt/results/${exam.id}`} className="text-[11px] px-2 py-1 rounded border border-[#DDE5F0] hover:bg-[#F0F4FA]" title="Results">📊</Link>
+                  <Link href={`/dashboard/cbt/${exam.id}`} className="px-2 py-1 rounded border border-[#DDE5F0] hover:bg-[#F0F4FA]" title="Questions" aria-label="Questions"><Pencil size={16} aria-hidden="true" /></Link>
+                  <Link href={`/dashboard/cbt/results/${exam.id}`} className="px-2 py-1 rounded border border-[#DDE5F0] hover:bg-[#F0F4FA]" title="Results" aria-label="Results"><BarChart3 size={16} aria-hidden="true" /></Link>
                 </div>
               </div>
             </div>

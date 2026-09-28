@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { portal } from '@/lib/api';
 import { useRouter } from 'next/navigation';
+import { CheckCircle2, FileText, Banknote, BarChart3, Megaphone, ChevronUp, ChevronDown } from 'lucide-react';
 
 interface NotificationItem {
   id: string; type: string; title: string; message: string; read: boolean; created_at: string;
@@ -120,7 +121,7 @@ export default function GuardianDashboard() {
                     <h2 className="text-base font-bold text-[#0D2B55]">{child.full_name}</h2>
                     <p className="text-xs text-[#64748B] mt-0.5">{child.admission_no} · {child.class_name || '—'}</p>
                   </div>
-                  <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold ${
+                  <span className={`text-xs px-2 py-0.5 rounded-full font-bold ${
                     child.fee_summary.balance > 0 ? 'bg-[#FEE2E2] text-[#B91C1C]' : 'bg-[#DCFCE7] text-[#1A7A4A]'
                   }`}>
                     {child.fee_summary.balance > 0 ? `₦${child.fee_summary.balance.toLocaleString()}` : 'Paid'}
@@ -144,8 +145,8 @@ export default function GuardianDashboard() {
             <p className="text-xs text-[#64748B] mt-0.5">{child.admission_no} · {child.class_name || '—'} · {child.gender || '—'}</p>
           </div>
           <div className="flex items-center gap-3">
-            <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold ${child.status === 'active' ? 'bg-[#DCFCE7] text-[#1A7A4A]' : 'bg-[#FEE2E2] text-[#B91C1C]'}`}>{child.status}</span>
-            <span className="text-[#64748B] text-sm">{isExpanded ? '▲' : '▼'}</span>
+            <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold ${child.status === 'active' ? 'bg-[#DCFCE7] text-[#1A7A4A]' : 'bg-[#FEE2E2] text-[#B91C1C]'}`}>{child.status}</span>
+            <span className="text-[#64748B] text-sm">{isExpanded ? <ChevronUp size={16} aria-hidden="true" /> : <ChevronDown size={16} aria-hidden="true" />}</span>
           </div>
         </div>
 
@@ -156,15 +157,15 @@ export default function GuardianDashboard() {
               <p className="text-[11px] font-bold text-[#64748B] uppercase mb-2">Fees</p>
               <div className="grid grid-cols-3 gap-3 mb-3">
                 <div className="bg-[#F7F9FC] rounded-lg px-3 py-2">
-                  <p className="text-[10px] text-[#64748B]">Total Due</p>
+                  <p className="text-xs text-[#64748B]">Total Due</p>
                   <p className="text-sm font-bold text-[#0D2B55]">₦{fees.total_due.toLocaleString()}</p>
                 </div>
                 <div className="bg-[#F7F9FC] rounded-lg px-3 py-2">
-                  <p className="text-[10px] text-[#64748B]">Paid</p>
+                  <p className="text-xs text-[#64748B]">Paid</p>
                   <p className="text-sm font-bold text-[#1A7A4A]">₦{fees.total_paid.toLocaleString()}</p>
                 </div>
                 <div className="bg-[#F7F9FC] rounded-lg px-3 py-2">
-                  <p className="text-[10px] text-[#64748B]">Outstanding</p>
+                  <p className="text-xs text-[#64748B]">Outstanding</p>
                   <p className={`text-sm font-bold ${fees.balance > 0 ? 'text-[#B91C1C]' : 'text-[#1A7A4A]'}`}>₦{fees.balance.toLocaleString()}</p>
                 </div>
               </div>
@@ -204,12 +205,12 @@ export default function GuardianDashboard() {
                 <div className="space-y-1.5">
                   {child.recent_notifications.slice(0, 3).map(n => (
                     <div key={n.id} className="bg-[#F7F9FC] rounded-lg px-3 py-2 flex items-start gap-2">
-                      <span className="text-xs mt-0.5">
-                        {n.type === 'attendance' ? '✅' : n.type === 'exam' ? '📝' : n.type === 'fee' ? '💰' : n.type === 'grade' ? '📊' : '📢'}
+                      <span className="text-xs mt-0.5" aria-hidden="true">
+                        {n.type === 'attendance' ? <CheckCircle2 size={16} /> : n.type === 'exam' ? <FileText size={16} /> : n.type === 'fee' ? <Banknote size={16} /> : n.type === 'grade' ? <BarChart3 size={16} /> : <Megaphone size={16} />}
                       </span>
                       <div className="min-w-0">
                         <p className="text-[11px] font-semibold text-[#0D2B55]">{n.title}</p>
-                        <p className="text-[10px] text-[#64748B]">{n.message}</p>
+                        <p className="text-xs text-[#64748B]">{n.message}</p>
                       </div>
                     </div>
                   ))}

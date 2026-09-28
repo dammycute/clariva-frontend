@@ -1,22 +1,23 @@
-'use client';
+﻿'use client';
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { auth, portal } from '@/lib/api';
+import { BarChart3, Monitor, IndianRupee, School, GraduationCap, Users } from 'lucide-react';
 
 type Role = 'staff' | 'student' | 'parent';
 
 const FEATURES = [
-  { icon: '📊', label: 'WAEC-compliant grading' },
-  { icon: '💻', label: 'CBT examinations' },
-  { icon: '💰', label: 'Fees & attendance tracking' },
+  { icon: <BarChart3 size={18} />, label: 'WAEC-compliant grading' },
+  { icon: <Monitor size={18} />, label: 'CBT examinations' },
+  { icon: <IndianRupee size={18} />, label: 'Fees & attendance tracking' },
 ];
 
-const ROLE_CARDS: { role: Role; icon: string; title: string; desc: string }[] = [
-  { role: 'staff', icon: '🏫', title: 'School Staff', desc: 'Admin, Principal, Teacher, Bursar' },
-  { role: 'student', icon: '🎓', title: 'Student', desc: 'Check results & take exams' },
-  { role: 'parent', icon: '👨‍👩‍👧', title: 'Parent / Guardian', desc: 'View fees & report cards' },
+const ROLE_CARDS: { role: Role; icon: React.ReactNode; title: string; desc: string }[] = [
+  { role: 'staff', icon: <School size={24} />, title: 'School Staff', desc: 'Admin, Principal, Teacher, Bursar' },
+  { role: 'student', icon: <GraduationCap size={24} />, title: 'Student', desc: 'Check results & take exams' },
+  { role: 'parent', icon: <Users size={24} />, title: 'Parent / Guardian', desc: 'View fees & report cards' },
 ];
 
 export default function LoginPage() {
@@ -147,36 +148,36 @@ export default function LoginPage() {
   const renderStaffForm = () => (
     <div className="space-y-3.5">
       <div>
-        <label className="block text-[11px] font-bold text-[#64748B] uppercase mb-1">Email</label>
-        <input ref={staffEmailRef} type="email" value={staffEmail} onChange={e => setStaffEmail(e.target.value)}
+        <label htmlFor="staff-email" className="block text-xs font-bold text-[#64748B] uppercase mb-1">Email</label>
+        <input ref={staffEmailRef} id="staff-email" type="email" value={staffEmail} onChange={e => setStaffEmail(e.target.value)}
           onKeyDown={handleKeyDown(handleStaffLogin)}
           placeholder="admin@school.com"
           className="w-full h-12 px-3.5 rounded-xl border border-[#DDE5F0] text-sm outline-none focus:border-[#1A7A4A] placeholder:text-[#94A3B8]" />
       </div>
       <div>
-        <label className="block text-[11px] font-bold text-[#64748B] uppercase mb-1">Password</label>
-        <input ref={staffPassRef} type="password" value={staffPassword} onChange={e => setStaffPassword(e.target.value)}
+        <label htmlFor="staff-password" className="block text-xs font-bold text-[#64748B] uppercase mb-1">Password</label>
+        <input ref={staffPassRef} id="staff-password" type="password" value={staffPassword} onChange={e => setStaffPassword(e.target.value)}
           onKeyDown={handleKeyDown(handleStaffLogin)}
-          placeholder="••••••••"
+          placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢"
           className="w-full h-12 px-3.5 rounded-xl border border-[#DDE5F0] text-sm outline-none focus:border-[#1A7A4A] placeholder:text-[#94A3B8]" />
       </div>
       <div className="flex items-center justify-between">
-        <button onClick={() => setShowSubdomain(!showSubdomain)} className="text-[11px] text-[#64748B] hover:text-[#0D2B55] cursor-pointer">
-          {showSubdomain ? '−' : '+'} Different school?
+        <button onClick={() => setShowSubdomain(!showSubdomain)} className="text-xs text-[#64748B] hover:text-[#0D2B55] cursor-pointer">
+          {showSubdomain ? 'âˆ’' : '+'} Different school?
         </button>
-        <button className="text-[11px] text-[#1A7A4A] hover:underline cursor-pointer">Forgot password?</button>
+        <button className="text-xs text-[#1A7A4A] hover:underline cursor-pointer">Forgot password?</button>
       </div>
       {showSubdomain && (
         <div className="animate-fadeIn">
-          <label className="block text-[11px] font-bold text-[#64748B] uppercase mb-1">School subdomain</label>
-          <input type="text" value={subdomain} onChange={e => setSubdomain(e.target.value)}
+          <label htmlFor="staff-subdomain" className="block text-xs font-bold text-[#64748B] uppercase mb-1">School subdomain</label>
+          <input id="staff-subdomain" type="text" value={subdomain} onChange={e => setSubdomain(e.target.value)}
             placeholder="yourschool"
             className="w-full h-12 px-3.5 rounded-xl border border-[#DDE5F0] text-sm outline-none focus:border-[#1A7A4A] placeholder:text-[#94A3B8]" />
         </div>
       )}
       <button onClick={handleStaffLogin} disabled={loading || !staffEmail || !staffPassword}
         className="w-full h-12 rounded-xl bg-[#1A7A4A] text-white text-sm font-bold hover:bg-[#14663D] disabled:opacity-40 transition-colors cursor-pointer">
-        {loading ? 'Signing in…' : 'Sign In'}
+        {loading ? 'Signing inâ€¦' : 'Sign In'}
       </button>
     </div>
   );
@@ -184,60 +185,60 @@ export default function LoginPage() {
   const renderStudentForm = () => (
     <div className="space-y-3.5">
       <div>
-        <label className="block text-[11px] font-bold text-[#64748B] uppercase mb-1">Admission Number</label>
-        <input ref={studentIdRef} type="text" value={studentId} onChange={e => setStudentId(e.target.value)}
+        <label htmlFor="student-id" className="block text-xs font-bold text-[#64748B] uppercase mb-1">Admission Number</label>
+        <input ref={studentIdRef} id="student-id" type="text" value={studentId} onChange={e => setStudentId(e.target.value)}
           onKeyDown={handleKeyDown(handleStudentLogin)}
           placeholder="Enter admission number"
           className="w-full h-12 px-3.5 rounded-xl border border-[#DDE5F0] text-sm outline-none focus:border-[#1A7A4A] placeholder:text-[#94A3B8]" />
       </div>
       <div>
-        <label className="block text-[11px] font-bold text-[#64748B] uppercase mb-1">Password</label>
-        <input ref={studentPassRef} type="password" value={studentPassword} onChange={e => setStudentPassword(e.target.value)}
+        <label htmlFor="student-password" className="block text-xs font-bold text-[#64748B] uppercase mb-1">Password</label>
+        <input ref={studentPassRef} id="student-password" type="password" value={studentPassword} onChange={e => setStudentPassword(e.target.value)}
           onKeyDown={handleKeyDown(handleStudentLogin)}
           placeholder="Enter your password"
           className="w-full h-12 px-3.5 rounded-xl border border-[#DDE5F0] text-sm outline-none focus:border-[#1A7A4A] placeholder:text-[#94A3B8]" />
       </div>
       <button onClick={handleStudentLogin} disabled={loading || !studentId || !studentPassword}
         className="w-full h-12 rounded-xl bg-[#1A7A4A] text-white text-sm font-bold hover:bg-[#14663D] disabled:opacity-40 transition-colors cursor-pointer">
-        {loading ? 'Signing in…' : 'Sign In'}
+        {loading ? 'Signing inâ€¦' : 'Sign In'}
       </button>
-      <p className="text-[11px] text-[#64748B] text-center">Don&apos;t have login details? Ask your school admin</p>
+      <p className="text-xs text-[#64748B] text-center">Don&apos;t have login details? Ask your school admin</p>
     </div>
   );
 
   const renderParentForm = () => (
     <div className="space-y-3.5">
       <div>
-        <label className="block text-[11px] font-bold text-[#64748B] uppercase mb-1">Student Admission Number</label>
-        <input ref={parentAdmRef} type="text" value={parentAdm} onChange={e => setParentAdm(e.target.value)}
+        <label htmlFor="parent-adm" className="block text-xs font-bold text-[#64748B] uppercase mb-1">Student Admission Number</label>
+        <input ref={parentAdmRef} id="parent-adm" type="text" value={parentAdm} onChange={e => setParentAdm(e.target.value)}
           onKeyDown={handleKeyDown(handleParentLookup)}
           placeholder="e.g. CLR/2026/00201"
           className="w-full h-12 px-3.5 rounded-xl border border-[#DDE5F0] text-sm outline-none focus:border-[#1A7A4A] placeholder:text-[#94A3B8]" />
       </div>
       <div>
-        <label className="block text-[11px] font-bold text-[#64748B] uppercase mb-1">Access Code</label>
-        <input ref={parentCodeRef} type="text" value={parentCode} onChange={e => setParentCode(e.target.value)}
+        <label htmlFor="parent-code" className="block text-xs font-bold text-[#64748B] uppercase mb-1">Access Code</label>
+        <input ref={parentCodeRef} id="parent-code" type="text" value={parentCode} onChange={e => setParentCode(e.target.value)}
           onKeyDown={handleKeyDown(handleParentLookup)}
           placeholder="e.g. CLR-XXXXXXXX"
           className="w-full h-12 px-3.5 rounded-xl border border-[#DDE5F0] text-sm outline-none focus:border-[#1A7A4A] placeholder:text-[#94A3B8] font-mono text-base tracking-widest" />
-        <p className="text-[10px] text-[#94A3B8] mt-1">Find this code on your child&apos;s report card or fee receipt</p>
+        <p className="text-xs text-[#94A3B8] mt-1">Find this code on your child&apos;s report card or fee receipt</p>
       </div>
       <button onClick={handleParentLookup} disabled={loading || !parentAdm.trim() || !parentCode.trim()}
         className="w-full h-12 rounded-xl bg-[#1A7A4A] text-white text-sm font-bold hover:bg-[#14663D] disabled:opacity-40 transition-colors cursor-pointer">
-        {loading ? 'Looking up…' : 'View Records'}
+        {loading ? 'Looking upâ€¦' : 'View Records'}
       </button>
 
       {lookupResult && (
         <div className="bg-green-50 border border-green-200 rounded-xl p-3 space-y-1.5 animate-fadeIn">
           <p className="text-sm font-bold text-[#0D2B55]">{(lookupResult as Record<string, string>).full_name}</p>
-          <p className="text-[11px] text-[#64748B]">{(lookupResult as Record<string, string>).admission_no} · {(lookupResult as Record<string, string>).class_name || 'Class not set'}</p>
-          <div className="flex gap-3 text-[11px]">
-            <span>Fees: ₦{((lookupResult as Record<string, Record<string, unknown>>).fee_summary?.balance as number || 0).toLocaleString()} due</span>
+          <p className="text-xs text-[#64748B]">{(lookupResult as Record<string, string>).admission_no} Â· {(lookupResult as Record<string, string>).class_name || 'Class not set'}</p>
+          <div className="flex gap-3 text-xs">
+            <span>Fees: â‚¦{((lookupResult as Record<string, Record<string, unknown>>).fee_summary?.balance as number || 0).toLocaleString()} due</span>
             {(lookupResult as Record<string, Record<string, unknown>>).latest_report_card && (
               <span>Latest: {(lookupResult as Record<string, Record<string, unknown>>).latest_report_card?.average as number}%</span>
             )}
           </div>
-          <Link href={`/portal/${parentAdm.trim()}`} className="block text-center text-xs font-bold text-[#1A7A4A] hover:underline pt-1">View Full Report →</Link>
+          <Link href={`/portal/${parentAdm.trim()}`} className="block text-center text-xs font-bold text-[#1A7A4A] hover:underline pt-1">View Full Report â†’</Link>
         </div>
       )}
     </div>
@@ -245,7 +246,7 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen flex">
-      {/* left panel — branding, hidden on mobile */}
+      {/* left panel â€” branding, hidden on mobile */}
       <div className="hidden lg:flex lg:w-[440px] xl:w-[480px] flex-col justify-between p-10 relative overflow-hidden"
         style={{
           background: '#0D2B55',
@@ -268,11 +269,11 @@ export default function LoginPage() {
           </div>
         </div>
         <Link href="/onboard" className="text-sm text-white/50 hover:text-white/80 transition-colors">
-          Set up your school →
+          Set up your school â†’
         </Link>
       </div>
 
-      {/* right panel — login */}
+      {/* right panel â€” login */}
       <div className="flex-1 flex items-center justify-center p-6 lg:p-10">
         <div className="w-full max-w-[420px]">
           {/* mobile logo */}
@@ -297,7 +298,7 @@ export default function LoginPage() {
                   >
                     <span className="text-2xl mb-1">{icon}</span>
                     <span className="text-xs font-bold text-[#0D2B55]">{title}</span>
-                    <span className="text-[9px] text-[#64748B] mt-0.5 leading-tight">{desc}</span>
+                    <span className="text-xs text-[#64748B] mt-0.5 leading-tight">{desc}</span>
                   </button>
                 );
               })}
@@ -318,13 +319,13 @@ export default function LoginPage() {
             {selectedRole === 'parent' && renderParentForm()}
 
             {error && (
-              <div className="mt-3 text-xs text-red-700 bg-red-50 border border-red-200 rounded-lg px-3 py-2">{error}</div>
+              <div role="alert" className="mt-3 text-xs text-red-700 bg-red-50 border border-red-200 rounded-lg px-3 py-2">{error}</div>
             )}
 
             {/* bottom link */}
             <div className="mt-6 pt-4 border-t border-[#DDE5F0]">
               <Link href="/onboard" className="block text-center text-xs text-[#64748B] hover:text-[#0D2B55]">
-                School not on Clariva yet? Set up in 2 minutes →
+                School not on Clariva yet? Set up in 2 minutes â†’
               </Link>
             </div>
           </div>

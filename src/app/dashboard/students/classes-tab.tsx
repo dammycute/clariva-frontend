@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { api, auth } from '@/lib/api';
 import ConfirmDialog from '@/components/confirm-dialog';
+import { UserPlus, Pencil, Trash2, X, AlertTriangle } from 'lucide-react';
 
 interface Class { id: string; name: string; year_group: string | null; arm: string | null; form_teacher: string | null; form_teacher_name: string | null; academic_year: string | null; }
 interface StaffMember { id: string; user_id: string; full_name: string; role: string; }
@@ -133,11 +134,11 @@ export default function ClassesTab() {
                         setCreatingAccounts(null);
                         if (data.created) setAccountsResult(data.created);
                       }} disabled={creatingAccounts === c.id}
-                        className="text-[10px] px-2 py-1 rounded-lg bg-[#0D2B55] text-white hover:bg-[#0A1F3D] disabled:opacity-50">
-                        {creatingAccounts === c.id ? '…' : '👤 Accounts'}
+                        className="text-xs px-2 py-1 rounded-lg bg-[#0D2B55] text-white hover:bg-[#0A1F3D] disabled:opacity-50 inline-flex items-center gap-1">
+                        {creatingAccounts === c.id ? '…' : <><UserPlus size={16} aria-hidden="true" /> Accounts</>}
                       </button>
-                      <button onClick={() => openEdit(c)} className="text-xs px-2 py-1 rounded-lg border border-[#DDE5F0] bg-white hover:bg-[#F0F4FA]">✏️</button>
-                      <button onClick={() => setConfirm({ id: c.id, name: c.name })} className="text-xs px-2 py-1 rounded-lg border border-[#FEE2E2] bg-white text-[#B91C1C] hover:bg-[#FEE2E2]">🗑</button>
+                      <button onClick={() => openEdit(c)} aria-label="Edit" className="text-xs px-2 py-1 rounded-lg border border-[#DDE5F0] bg-white hover:bg-[#F0F4FA]"><Pencil size={16} aria-hidden="true" /></button>
+                      <button onClick={() => setConfirm({ id: c.id, name: c.name })} aria-label="Delete" className="text-xs px-2 py-1 rounded-lg border border-[#FEE2E2] bg-white text-[#B91C1C] hover:bg-[#FEE2E2]"><Trash2 size={16} aria-hidden="true" /></button>
                     </div>
                   </td>
                 </tr>
@@ -154,7 +155,7 @@ export default function ClassesTab() {
           <div className="bg-white rounded-2xl w-[500px] max-w-[95vw] max-h-[80vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between p-5 pb-0">
               <h2 className="text-base font-bold text-[#0D2B55]">Student Accounts Created</h2>
-              <button onClick={() => setAccountsResult(null)} className="text-[#64748B] hover:text-[#0D2B55] text-lg">✕</button>
+              <button onClick={() => setAccountsResult(null)} className="text-[#64748B] hover:text-[#0D2B55] text-lg" aria-label="Close"><X size={16} aria-hidden="true" /></button>
             </div>
             <div className="p-5">
               <p className="text-xs text-[#64748B] mb-4">{accountsResult.length} accounts created. Share credentials with students.</p>
@@ -178,7 +179,7 @@ export default function ClassesTab() {
           <div className="bg-white rounded-2xl w-[460px] max-w-[95vw]" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between p-5 pb-0">
               <h2 className="text-base font-bold text-[#0D2B55]">{editingId ? 'Edit Class' : 'Add New Class'}</h2>
-              <button onClick={() => setShowModal(false)} className="text-[#64748B] hover:text-[#0D2B55] text-lg">✕</button>
+              <button onClick={() => setShowModal(false)} className="text-[#64748B] hover:text-[#0D2B55] text-lg" aria-label="Close"><X size={16} aria-hidden="true" /></button>
             </div>
             <form onSubmit={handleSubmit} className="p-5 space-y-3.5">
               <div className="grid grid-cols-2 gap-3">
@@ -203,7 +204,7 @@ export default function ClassesTab() {
                 <label className="block text-[11px] font-bold text-[#64748B] uppercase mb-1">Class name (auto-generated)</label>
                 <input value={form.name} readOnly className="w-full px-3 py-2 rounded-lg border border-[#DDE5F0] text-sm bg-[#F7F9FC] text-[#64748B]" />
                 {duplicateName && (
-                  <p className="text-[11px] text-[#B91C1C] mt-1.5">⚠ The name &quot;{form.name}&quot; is already taken.</p>
+                  <p className="text-[11px] text-[#B91C1C] mt-1.5 inline-flex items-center gap-1"><AlertTriangle size={16} aria-hidden="true" /> The name &quot;{form.name}&quot; is already taken.</p>
                 )}
               </div>
               <div>

@@ -88,11 +88,11 @@ export default function SuperAdminUsers() {
                   </div>
                   <div className="min-w-0">
                     <p className="text-xs font-semibold text-[#0D2B55] truncate">{u.first_name} {u.last_name}</p>
-                    <p className="text-[10px] text-[#64748B] truncate">{u.email}</p>
+                    <p className="text-xs text-[#64748B] truncate">{u.email}</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-2 ml-4 shrink-0">
-                  <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${ROLE_COLORS[u.role] || 'bg-[#F0F4FA] text-[#64748B]'}`}>
+                  <span className={`px-2 py-0.5 rounded-full text-xs font-bold ${ROLE_COLORS[u.role] || 'bg-[#F0F4FA] text-[#64748B]'}`}>
                     {u.role.replace('_', ' ')}
                   </span>
                   <span className={`w-2 h-2 rounded-full ${u.is_active ? 'bg-[#1A7A4A]' : 'bg-[#B91C1C]'}`} />

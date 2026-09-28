@@ -269,22 +269,22 @@ export default function TimetablePage() {
           <h3 className="text-sm font-bold text-[#0D2B55] mb-3">Period Settings</h3>
           <div className="flex items-center gap-4 flex-wrap">
             <div>
-              <label className="block text-[10px] text-[#64748B] uppercase tracking-wider mb-1">Start Time</label>
+              <label className="block text-xs text-[#64748B] uppercase tracking-wider mb-1">Start Time</label>
               <input type="time" value={startTime} onChange={e => setStartTime(e.target.value)}
                 className="text-sm border border-[#DDE5F0] rounded-lg px-3 py-2 bg-white text-[#0D2B55] outline-none" />
             </div>
             <div>
-              <label className="block text-[10px] text-[#64748B] uppercase tracking-wider mb-1">Period Duration</label>
+              <label className="block text-xs text-[#64748B] uppercase tracking-wider mb-1">Period Duration</label>
               <input type="number" min="10" max="120" value={periodDuration} onChange={e => setPeriodDuration(parseInt(e.target.value) || 40)}
                 className="text-sm border border-[#DDE5F0] rounded-lg px-3 py-2 bg-white text-[#0D2B55] outline-none w-[100px]" />
             </div>
             <div>
-              <label className="block text-[10px] text-[#64748B] uppercase tracking-wider mb-1">Periods per Day</label>
+              <label className="block text-xs text-[#64748B] uppercase tracking-wider mb-1">Periods per Day</label>
               <input type="number" min="4" max="12" value={periodCount} onChange={e => setPeriodCount(parseInt(e.target.value) || 8)}
                 className="text-sm border border-[#DDE5F0] rounded-lg px-3 py-2 bg-white text-[#0D2B55] outline-none w-[80px]" />
             </div>
             <div>
-              <label className="block text-[10px] text-[#64748B] uppercase tracking-wider mb-1">Short Break After Period</label>
+              <label className="block text-xs text-[#64748B] uppercase tracking-wider mb-1">Short Break After Period</label>
               <select value={shortAfter} onChange={e => setShortAfter(parseInt(e.target.value))}
                 className="text-sm border border-[#DDE5F0] rounded-lg px-3 py-2 bg-white text-[#0D2B55] outline-none">
                 <option value={0}>No short break</option>
@@ -293,13 +293,13 @@ export default function TimetablePage() {
             </div>
             {shortAfter > 0 && (
               <div>
-                <label className="block text-[10px] text-[#64748B] uppercase tracking-wider mb-1">Short Break Duration</label>
+                <label className="block text-xs text-[#64748B] uppercase tracking-wider mb-1">Short Break Duration</label>
                 <input type="number" min="1" max="60" value={shortDur} onChange={e => setShortDur(parseInt(e.target.value) || 10)}
                   className="text-sm border border-[#DDE5F0] rounded-lg px-3 py-2 bg-white text-[#0D2B55] outline-none w-[80px]" />
               </div>
             )}
             <div>
-              <label className="block text-[10px] text-[#64748B] uppercase tracking-wider mb-1">Long Break After Period</label>
+              <label className="block text-xs text-[#64748B] uppercase tracking-wider mb-1">Long Break After Period</label>
               <select value={longAfter} onChange={e => setLongAfter(parseInt(e.target.value))}
                 className="text-sm border border-[#DDE5F0] rounded-lg px-3 py-2 bg-white text-[#0D2B55] outline-none">
                 <option value={0}>No long break</option>
@@ -308,13 +308,13 @@ export default function TimetablePage() {
             </div>
             {longAfter > 0 && (
               <div>
-                <label className="block text-[10px] text-[#64748B] uppercase tracking-wider mb-1">Long Break Duration</label>
+                <label className="block text-xs text-[#64748B] uppercase tracking-wider mb-1">Long Break Duration</label>
                 <input type="number" min="1" max="120" value={longDur} onChange={e => setLongDur(parseInt(e.target.value) || 0)}
                   className="text-sm border border-[#DDE5F0] rounded-lg px-3 py-2 bg-white text-[#0D2B55] outline-none w-[80px]" />
               </div>
             )}
           </div>
-          <div className="flex gap-6 mt-3 text-[10px] text-[#64748B]">
+          <div className="flex gap-6 mt-3 text-xs text-[#64748B]">
             {shortAfter > 0 && shortDur > 0 && (
               <span>Short break: <strong className="text-[#0D2B55]">{shortDur} min</strong> (after P{shortAfter})</span>
             )}
@@ -378,7 +378,7 @@ export default function TimetablePage() {
                     <tr key={period}>
                       <td className="sticky left-0 bg-white border-r border-b border-[#DDE5F0] px-2 py-1 text-center font-bold text-[#64748B]">
                         <div>{period}</div>
-                        <div className="text-[9px] text-[#94A3B8]">{pt ? `${pt.start}\u2013${pt.end}` : '-'}</div>
+                        <div className="text-xs text-[#94A3B8]">{pt ? `${pt.start}\u2013${pt.end}` : '-'}</div>
                       </td>
                       {DAYS.map((_, day) => {
                         const key = slotKey(day, period);
@@ -411,13 +411,13 @@ export default function TimetablePage() {
                                 <div className="flex items-start justify-between gap-1">
                                   <span className="font-semibold text-[#0D2B55] leading-tight">{slot.subject_name}</span>
                                   <button onClick={e => { e.stopPropagation(); const newSlots = { ...slots }; delete newSlots[key]; setSlots(newSlots); setEditCell(null); }}
-                                    className="text-[#B91C1C] hover:text-[#991B1B] text-[10px] leading-none" aria-label="Remove">&times;</button>
+                                    className="text-[#B91C1C] hover:text-[#991B1B] text-xs leading-none" aria-label="Remove">&times;</button>
                                 </div>
                                 {isEditCell ? (
                                   <div className="space-y-1">
                                     <select value={slot.teacher || ''} onChange={e => setSlot(day, period, { teacher: e.target.value || null })}
                                       onClick={e => e.stopPropagation()}
-                                      className="w-full text-[10px] px-1 py-0.5 rounded border border-[#DDE5F0] bg-white outline-none">
+                                      className="w-full text-xs px-1 py-0.5 rounded border border-[#DDE5F0] bg-white outline-none">
                                       <option value="">No teacher</option>
                                       {staffList.map(st => (
                                         <option key={st.id} value={st.id}>{st.full_name}</option>
@@ -425,17 +425,17 @@ export default function TimetablePage() {
                                     </select>
                                     <input value={slot.room || ''} onChange={e => setSlot(day, period, { room: e.target.value })}
                                       placeholder="Room" onClick={e => e.stopPropagation()}
-                                      className="w-full text-[10px] px-1 py-0.5 rounded border border-[#DDE5F0] outline-none" />
+                                      className="w-full text-xs px-1 py-0.5 rounded border border-[#DDE5F0] outline-none" />
                                     <button onClick={e => { e.stopPropagation(); setEditCell(null); }}
-                                      className="text-[10px] text-[#1A7A4A] font-semibold">Done</button>
+                                      className="text-xs text-[#1A7A4A] font-semibold">Done</button>
                                   </div>
                                 ) : null}
                                 {clashes.length > 0 && (
-                                  <p className="text-[9px] text-[#B91C1C]">Clash: {clashes.join(', ')}</p>
+                                  <p className="text-xs text-[#B91C1C]">Clash: {clashes.join(', ')}</p>
                                 )}
                               </div>
                             ) : (
-                              <div className="text-[10px] text-[#CBD5E1] text-center py-2">
+                              <div className="text-xs text-[#CBD5E1] text-center py-2">
                                 {selectedSubject ? `+ ${selectedSubject.name}` : 'Drop subject here'}
                               </div>
                             )}

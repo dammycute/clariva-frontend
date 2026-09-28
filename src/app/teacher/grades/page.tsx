@@ -150,7 +150,7 @@ export default function TeacherGradesPage() {
       </div>
 
       {components.length > 0 && (
-        <div className="flex flex-wrap gap-3 mb-3 text-[10px] text-[#64748B]">
+        <div className="flex flex-wrap gap-3 mb-3 text-xs text-[#64748B]">
           {components.map(comp => (
             <span key={comp.key}>{comp.label}: <strong className="text-[#0D2B55]">/{comp.max}</strong></span>
           ))}
@@ -171,7 +171,7 @@ export default function TeacherGradesPage() {
             <thead><tr className="text-[11px] font-bold text-[#64748B] uppercase bg-[#F7F9FC]">
               <th className="text-left px-4 py-3">Student</th>
               {components.map(comp => (
-                <th key={comp.key} className="text-center px-2 py-3">{comp.label}<br/><span className="text-[10px] font-normal">({comp.max})</span></th>
+                <th key={comp.key} className="text-center px-2 py-3">{comp.label}<br/><span className="text-xs font-normal">({comp.max})</span></th>
               ))}
               <th className="text-center px-2 py-3">Total</th><th className="text-center px-2 py-3">Status</th>
             </tr></thead>
@@ -185,7 +185,7 @@ export default function TeacherGradesPage() {
                 <td className="px-2 py-2 text-center font-bold">{g?.total ?? 0}</td>
                 <td className="px-2 py-2 text-center">
                   {g?.results_status && g.results_status !== 'draft' ? (
-                    <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${g.results_status === 'approved' ? 'bg-[#D1FAE5] text-[#065F46]' : g.results_status === 'submitted' ? 'bg-[#FEF3C7] text-[#D4930A]' : 'bg-[#FEE2E2] text-[#B91C1C]'}`}>{g.results_status}</span>
+                    <span className={`px-2 py-0.5 rounded-full text-xs font-bold ${g.results_status === 'approved' ? 'bg-[#D1FAE5] text-[#065F46]' : g.results_status === 'submitted' ? 'bg-[#FEF3C7] text-[#D4930A]' : 'bg-[#FEE2E2] text-[#B91C1C]'}`}>{g.results_status}</span>
                   ) : <span className="text-[#94A3B8]">—</span>}
                 </td>
               </tr>);

@@ -1,6 +1,7 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { api, auth } from '@/lib/api';
+import { Check, X } from 'lucide-react';
 
 interface GradeEntry { subject: string; scores: Record<string, number>; total: number | null; grade: string | null; }
 interface ReportCard { id: string; student: string; student_name: string; class_name: string; term: string; academic_year: string; grades: GradeEntry[]; total_score: number | null; total_possible: number | null; average: number | null; class_rank: number | null; is_released: boolean; }
@@ -123,7 +124,7 @@ export default function PrincipalReportsPage() {
                 <td className="px-4 py-3 text-[#64748B]">{c.class_name}</td>
                 <td className="px-4 py-3 text-right font-bold">{c.average != null ? `${c.average}%` : '—'}</td>
                 <td className="px-4 py-3 text-right">{c.class_rank || '—'}</td>
-                <td className="px-4 py-3 text-center">{c.is_released ? <span className="text-[#1A7A4A] font-bold">✓</span> : <span className="text-[#B91C1C]">✗</span>}</td>
+                <td className="px-4 py-3 text-center">{c.is_released ? <span className="text-[#1A7A4A] font-bold inline-flex" aria-hidden="true"><Check size={16} /></span> : <span className="text-[#B91C1C] inline-flex" aria-hidden="true"><X size={16} /></span>}</td>
                 <td className="px-4 py-3">
                   <button onClick={() => toggleRelease(c)} className={`text-[11px] hover:underline mr-2 ${c.is_released ? 'text-[#B91C1C]' : 'text-[#1A7A4A]'}`}>
                     {c.is_released ? 'Unrelease' : 'Release'}

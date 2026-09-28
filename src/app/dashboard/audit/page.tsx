@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { api } from '@/lib/api';
+import { Search, ClipboardList } from 'lucide-react';
 
 interface LogEntry {
   id: number; action: string; model_name: string;
@@ -48,7 +49,7 @@ export default function AuditPage() {
       </div>
 
       <div className="flex items-center gap-2.5 mb-4 bg-white border border-[#DDE5F0] rounded-xl px-3.5 py-2.5 max-w-2xl">
-        <span className="text-sm">🔍</span>
+        <span className="text-sm" aria-hidden="true"><Search size={16} /></span>
         <input type="text" placeholder="Search model or record…" value={search} onChange={e => setSearch(e.target.value)}
           className="flex-1 border-none bg-transparent text-sm text-[#0D2B55] outline-none placeholder:text-[#64748B]" />
         <select value={filterAction} onChange={e => setFilterAction(e.target.value)}
@@ -70,7 +71,7 @@ export default function AuditPage() {
           <div className="p-8 text-center text-sm text-[#64748B]">Loading activity log…</div>
         ) : logs.length === 0 ? (
           <div className="p-12 flex flex-col items-center text-center">
-            <div className="text-4xl mb-3">📋</div>
+            <div className="text-4xl mb-3" aria-hidden="true"><ClipboardList size={24} /></div>
             <h3 className="text-base font-bold text-[#0D2B55] mb-1">No activity yet</h3>
             <p className="text-xs text-[#64748B]">Actions will appear here as you use the system.</p>
           </div>
@@ -78,7 +79,7 @@ export default function AuditPage() {
           <div className="divide-y divide-[#DDE5F0]">
             {logs.map(log => (
               <div key={log.id} className="px-4 py-3 hover:bg-[#F8FAFF] flex items-start gap-3">
-                <span className={`mt-0.5 px-2 py-0.5 rounded text-[10px] font-bold shrink-0 ${ACTION_COLORS[log.action] || 'bg-[#F0F4FA] text-[#64748B]'}`}>
+                <span className={`mt-0.5 px-2 py-0.5 rounded text-xs font-bold shrink-0 ${ACTION_COLORS[log.action] || 'bg-[#F0F4FA] text-[#64748B]'}`}>
                   {log.action}
                 </span>
                 <div className="flex-1 min-w-0">
@@ -88,7 +89,7 @@ export default function AuditPage() {
                     <strong>{log.model_name}</strong>
                     {log.object_repr && <span className="text-[#64748B]">: {log.object_repr}</span>}
                   </p>
-                  <p className="text-[10px] text-[#64748B] mt-0.5">
+                  <p className="text-xs text-[#64748B] mt-0.5">
                     {new Date(log.created_at).toLocaleString('en-NG')}
                     {log.ip_address && ` · IP: ${log.ip_address}`}
                     {log.object_id && ` · ID: ${log.object_id}`}

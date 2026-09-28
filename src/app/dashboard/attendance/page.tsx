@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { api } from '@/lib/api';
+import { ClipboardList, Calendar, ChevronLeft, ChevronRight } from 'lucide-react';
 
 interface Cls { id: string; name: string; year_group: string | null; }
 interface Student { id: string; first_name: string; last_name: string; class_group: string | null; }
@@ -107,7 +108,9 @@ export default function AttendancePage() {
             className={`px-4 py-2 text-sm font-semibold rounded-lg transition-colors capitalize ${
               mode === m ? 'bg-[#0D2B55] text-white' : 'text-[#64748B] hover:text-[#0D2B55]'
             }`}>
-            {m === 'view' ? '📋 Class View' : '📅 Calendar'}
+            {m === 'view'
+              ? <><ClipboardList size={16} className="inline align-[-2px]" aria-hidden="true" /> Class View</>
+              : <><Calendar size={16} className="inline align-[-2px]" aria-hidden="true" /> Calendar</>}
           </button>
         ))}
       </div>
@@ -192,14 +195,14 @@ export default function AttendancePage() {
                 <option key={s.id} value={s.id}>{s.first_name} {s.last_name}</option>
               ))}
             </select>
-            <button onClick={() => { if (calMonth === 0) { setCalMonth(11); setCalYear(y => y - 1); } else setCalMonth(m => m - 1); }} className="text-sm px-2 py-1 rounded border border-[#DDE5F0]">◀</button>
+            <button onClick={() => { if (calMonth === 0) { setCalMonth(11); setCalYear(y => y - 1); } else setCalMonth(m => m - 1); }} className="text-sm px-2 py-1 rounded border border-[#DDE5F0]"><ChevronLeft size={16} aria-hidden="true" className="inline" /></button>
             <span className="text-sm font-bold text-[#0D2B55]">{MONTHS[calMonth]} {calYear}</span>
-            <button onClick={() => { if (calMonth === 11) { setCalMonth(0); setCalYear(y => y + 1); } else setCalMonth(m => m + 1); }} className="text-sm px-2 py-1 rounded border border-[#DDE5F0]">▶</button>
+            <button onClick={() => { if (calMonth === 11) { setCalMonth(0); setCalYear(y => y + 1); } else setCalMonth(m => m + 1); }} className="text-sm px-2 py-1 rounded border border-[#DDE5F0]"><ChevronRight size={16} aria-hidden="true" className="inline" /></button>
           </div>
 
           {calStudent ? (
             <div className="bg-white border border-[#DDE5F0] rounded-xl overflow-hidden max-w-md">
-              <div className="grid grid-cols-7 text-center text-[10px] font-bold text-[#64748B] uppercase bg-[#F7F9FC] border-b border-[#DDE5F0]">
+              <div className="grid grid-cols-7 text-center text-xs font-bold text-[#64748B] uppercase bg-[#F7F9FC] border-b border-[#DDE5F0]">
                 {['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].map(d => <div key={d} className="py-2">{d}</div>)}
               </div>
               <div className="grid grid-cols-7 text-center">
@@ -210,7 +213,7 @@ export default function AttendancePage() {
                   return (
                     <div key={day} className={`py-2 text-sm ${colors[status] || ''} ${status ? 'font-bold' : ''}`}>
                       {day}
-                      {status && <div className="text-[8px] uppercase">{status}</div>}
+                      {status && <div className="text-xs uppercase">{status}</div>}
                     </div>
                   );
                 })}

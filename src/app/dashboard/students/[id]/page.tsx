@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { api } from '@/lib/api';
 import Link from 'next/link';
+import { ChevronLeft, Banknote, CheckCircle2, Key, Users, X } from 'lucide-react';
 
 interface Student {
   id: string; admission_no: string; first_name: string; last_name: string; gender: string | null;
@@ -58,10 +59,10 @@ export default function StudentDetailPage() {
   return (
     <div>
       <div className="flex items-center gap-3 mb-5">
-        <button onClick={() => router.push('/dashboard/students')} className="text-sm text-[#64748B] hover:text-[#0D2B55]">← Back</button>
+        <button onClick={() => router.push('/dashboard/students')} className="text-sm text-[#64748B] hover:text-[#0D2B55] inline-flex items-center gap-1"><ChevronLeft size={16} aria-hidden="true" /> Back</button>
         <div className="h-4 w-px bg-[#DDE5F0]" />
         <h1 className="text-xl font-bold text-[#0D2B55]">{student.first_name} {student.last_name}</h1>
-        <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${student.student_status === 'active' ? 'bg-[#DCFCE7] text-[#1A7A4A]' : 'bg-[#FEE2E2] text-[#B91C1C]'}`}>{student.student_status}</span>
+        <span className={`px-2 py-0.5 rounded-full text-xs font-bold ${student.student_status === 'active' ? 'bg-[#DCFCE7] text-[#1A7A4A]' : 'bg-[#FEE2E2] text-[#B91C1C]'}`}>{student.student_status}</span>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
@@ -80,8 +81,8 @@ export default function StudentDetailPage() {
               <div className="flex items-center justify-between gap-2">
                 <span className="text-[#64748B]">Login Email</span>
                 <div className="flex items-center gap-1">
-                  <span className="font-semibold text-[10px]">{student.user_email}</span>
-                  <button onClick={() => navigator.clipboard.writeText(student.user_email ?? '')} className="text-[9px] px-1.5 py-0.5 rounded bg-[#F0F4FA] border border-[#DDE5F0] hover:bg-[#E8F0FA]">Copy</button>
+                  <span className="font-semibold text-xs">{student.user_email}</span>
+                  <button onClick={() => navigator.clipboard.writeText(student.user_email ?? '')} className="text-xs px-1.5 py-0.5 rounded bg-[#F0F4FA] border border-[#DDE5F0] hover:bg-[#E8F0FA]">Copy</button>
                 </div>
               </div>
             )}
@@ -93,7 +94,7 @@ export default function StudentDetailPage() {
 
         {/* Fee Status */}
         <div className="bg-white border border-[#DDE5F0] rounded-xl p-5">
-          <h3 className="text-sm font-bold text-[#0D2B55] mb-3">💰 Fee Summary</h3>
+          <h3 className="text-sm font-bold text-[#0D2B55] mb-3 inline-flex items-center gap-1.5"><Banknote size={16} aria-hidden="true" /> Fee Summary</h3>
           {invoices.length === 0 ? (
             <p className="text-xs text-[#64748B]">No invoices yet.</p>
           ) : (
@@ -113,7 +114,7 @@ export default function StudentDetailPage() {
 
         {/* Attendance Summary */}
         <div className="bg-white border border-[#DDE5F0] rounded-xl p-5">
-          <h3 className="text-sm font-bold text-[#0D2B55] mb-3">✅ Attendance</h3>
+          <h3 className="text-sm font-bold text-[#0D2B55] mb-3 inline-flex items-center gap-1.5"><CheckCircle2 size={16} aria-hidden="true" /> Attendance</h3>
           {attendance.length === 0 ? (
             <p className="text-xs text-[#64748B]">No attendance records.</p>
           ) : (
@@ -127,7 +128,7 @@ export default function StudentDetailPage() {
               </div>
               <div className="mt-3 space-y-1 max-h-[120px] overflow-y-auto">
                 {attendance.slice(-7).reverse().map(a => (
-                  <div key={a.id} className="flex justify-between text-[10px]">
+                  <div key={a.id} className="flex justify-between text-xs">
                     <span className="text-[#64748B]">{new Date(a.date).toLocaleDateString('en-NG', { day: 'numeric', month: 'short' })}</span>
                     <span className={`font-bold ${a.status === 'present' ? 'text-[#1A7A4A]' : a.status === 'late' ? 'text-[#D4930A]' : 'text-[#B91C1C]'}`}>{a.status}</span>
                   </div>
@@ -143,7 +144,7 @@ export default function StudentDetailPage() {
       {student.has_account ? (
         <div className="bg-white border border-[#DDE5F0] rounded-xl p-5 mt-4">
           <div className="flex items-center justify-between mb-3">
-            <h3 className="text-sm font-bold text-[#0D2B55]">🔑 Account Credentials</h3>
+            <h3 className="text-sm font-bold text-[#0D2B55] inline-flex items-center gap-1.5"><Key size={16} aria-hidden="true" /> Account Credentials</h3>
             <button onClick={async () => {
               setResetting(true);
               const token = localStorage.getItem('access_token');
@@ -163,12 +164,12 @@ export default function StudentDetailPage() {
           <div className="flex items-center gap-2 bg-[#F0F4FA] rounded-lg px-3.5 py-2.5 w-fit">
             <span className="text-xs text-[#64748B]">Login:</span>
             <strong className="text-xs text-[#0D2B55]">{student.user_email}</strong>
-            <button onClick={() => { navigator.clipboard.writeText(student.user_email ?? ''); }} className="text-[10px] px-2 py-0.5 rounded bg-white border border-[#DDE5F0] hover:bg-[#E8F0FA]">Copy</button>
+            <button onClick={() => { navigator.clipboard.writeText(student.user_email ?? ''); }} className="text-xs px-2 py-0.5 rounded bg-white border border-[#DDE5F0] hover:bg-[#E8F0FA]">Copy</button>
           </div>
         </div>
       ) : (
         <div className="bg-white border border-[#DDE5F0] rounded-xl p-5 mt-4">
-          <h3 className="text-sm font-bold text-[#0D2B55]">🔑 Account</h3>
+          <h3 className="text-sm font-bold text-[#0D2B55] inline-flex items-center gap-1.5"><Key size={16} aria-hidden="true" /> Account</h3>
           <p className="text-xs text-[#64748B] mt-0.5">No login account. Create one from the Classes tab.</p>
         </div>
       )}
@@ -178,17 +179,17 @@ export default function StudentDetailPage() {
           <div className="bg-white rounded-2xl w-[400px] max-w-[95vw]" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between p-5 pb-0">
               <h2 className="text-base font-bold text-[#0D2B55]">Password Reset</h2>
-              <button onClick={() => setPwdResult(null)} className="text-[#64748B] hover:text-[#0D2B55] text-lg">✕</button>
+              <button onClick={() => setPwdResult(null)} className="text-[#64748B] hover:text-[#0D2B55] text-lg" aria-label="Close"><X size={16} aria-hidden="true" /></button>
             </div>
             <div className="p-5 space-y-3">
               <div className="bg-[#F0F4FA] rounded-xl p-4 text-xs space-y-3">
                 <div className="flex items-center justify-between">
                   <div><span className="text-[#64748B]">Email:</span> <strong className="text-[#0D2B55] ml-1">{pwdResult.email}</strong></div>
-                  <button onClick={() => navigator.clipboard.writeText(pwdResult.email)} className="text-[10px] px-2 py-0.5 rounded bg-white border border-[#DDE5F0] hover:bg-[#E8F0FA]">Copy</button>
+                  <button onClick={() => navigator.clipboard.writeText(pwdResult.email)} className="text-xs px-2 py-0.5 rounded bg-white border border-[#DDE5F0] hover:bg-[#E8F0FA]">Copy</button>
                 </div>
                 <div className="flex items-center justify-between">
                   <div><span className="text-[#64748B]">Password:</span> <strong className="text-[#1A7A4A] ml-1">{pwdResult.password}</strong></div>
-                  <button onClick={() => navigator.clipboard.writeText(pwdResult.password)} className="text-[10px] px-2 py-0.5 rounded bg-white border border-[#DDE5F0] hover:bg-[#E8F0FA]">Copy</button>
+                  <button onClick={() => navigator.clipboard.writeText(pwdResult.password)} className="text-xs px-2 py-0.5 rounded bg-white border border-[#DDE5F0] hover:bg-[#E8F0FA]">Copy</button>
                 </div>
               </div>
               <button onClick={() => setPwdResult(null)} className="w-full text-sm px-4 py-2.5 rounded-lg bg-[#0D2B55] text-white hover:bg-[#0A1F3D]">Done</button>
@@ -199,7 +200,7 @@ export default function StudentDetailPage() {
 
       {/* Guardian Info */}
       <div className="bg-white border border-[#DDE5F0] rounded-xl p-5 mt-4">
-        <h3 className="text-sm font-bold text-[#0D2B55] mb-3">👨‍👩‍👧 Guardian</h3>
+        <h3 className="text-sm font-bold text-[#0D2B55] mb-3 inline-flex items-center gap-1.5"><Users size={16} aria-hidden="true" /> Guardian</h3>
         {student.guardian_name ? (
           <div className="grid grid-cols-3 gap-4 text-xs">
             <div><span className="text-[#64748B]">Name</span><p className="font-semibold">{student.guardian_name}</p></div>

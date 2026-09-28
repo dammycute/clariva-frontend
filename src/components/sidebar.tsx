@@ -1,0 +1,131 @@
+'use client';
+
+import { useState, useEffect, useCallback, type ReactNode } from 'react';
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
+import { Menu, X } from 'lucide-react';
+
+export interface NavItem {
+  label: string;
+  href: string;
+  icon: ReactNode;
+}
+
+export interface NavSection {
+  section: string;
+  items: NavItem[];
+}
+
+interface SidebarProps {
+  sections: NavSection[];
+  /** Active state matcher: default is exact match, pass custom for prefix matching */
+  activeMatch?: (href: string, pathname: string) => boolean;
+}
+
+function defaultActiveMatch(href: string, pathname: string): boolean {
+  if (href === '/') return pathname === '/';
+  return pathname === href || pathname.startsWith(href + '/') || pathname.startsWith(href + '?');
+}
+
+export function Sidebar({ sections, activeMatch = defaultActiveMatch }: SidebarProps) {
+  const pathname = usePathname();
+  const [mobileOpen, setMobileOpen] = useState(false);
+
+  const close = useCallback(() => setMobileOpen(false), []);
+
+  // Close drawer on route change
+  useEffect(() => { close(); }, [pathname, close]);
+
+  // Close drawer on Escape
+  useEffect(() => {
+    if (!mobileOpen) return;
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') close(); };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [mobileOpen, close]);
+
+  // Lock body scroll when drawer open
+  useEffect(() => {
+    if (mobileOpen) {
+      document.body.style.overflow = 'hidden';
+      return () => { document.body.style.overflow = ''; };
+    }
+  }, [mobileOpen]);
+
+  const navContent = (
+    <>
+      {sections.map((section) => (
+        <div key={section.section}>
+          <div className="text-[11px] font-bold tracking-wider text-[#64748B] uppercase px-5 pt-[18px] pb-1.5">
+            {section.section}
+          </div>
+          {section.items.map((item) => {
+            const isActive = activeMatch(item.href, pathname);
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                onClick={close}
+                aria-current={isActive ? 'page' : undefined}
+                className={`flex items-center gap-3 px-5 py-2.5 text-sm transition-colors relative min-h-[44px] ${
+                  isActive
+                    ? 'bg-[#E8F0FA] text-[#0D2B55] font-semibold before:absolute before:left-0 before:top-0 before:bottom-0 before:w-[3px] before:bg-[#1A7A4A] before:rounded-r-sm'
+                    : 'text-[#64748B] hover:bg-[#F0F4FA] hover:text-[#0D2B55]'
+                }`}
+              >
+                <span className="w-5 h-5 flex-shrink-0 flex items-center justify-center">{item.icon}</span>
+                {item.label}
+              </Link>
+            );
+          })}
+        </div>
+      ))}
+    </>
+  );
+
+  return (
+    <>
+      {/* Mobile hamburger — only visible below lg */}
+      <button
+        type="button"
+        onClick={() => setMobileOpen(true)}
+        aria-label="Open navigation menu"
+        aria-expanded={mobileOpen}
+        className="lg:hidden fixed bottom-5 right-5 z-40 w-14 h-14 rounded-full bg-[#0D2B55] text-white shadow-lg flex items-center justify-center cursor-pointer hover:bg-[#1A3F6E] transition-colors"
+      >
+        <Menu size={24} />
+      </button>
+
+      {/* Overlay */}
+      {mobileOpen && (
+        <div
+          className="fixed inset-0 bg-black/50 z-50 lg:hidden"
+          onClick={close}
+          aria-hidden="true"
+        />
+      )}
+
+      {/* Drawer */}
+      <nav
+        aria-label="Main navigation"
+        className={`fixed top-0 left-0 bottom-0 w-64 bg-white border-r border-[#DDE5F0] overflow-y-auto z-50 transform transition-transform duration-200 ease-out lg:static lg:translate-x-0 lg:w-60 lg:shrink-0 ${
+          mobileOpen ? 'translate-x-0' : '-translate-x-full'
+        }`}
+      >
+        {/* Mobile close button */}
+        <div className="lg:hidden flex items-center justify-between px-5 h-14 border-b border-[#DDE5F0]">
+          <span className="font-semibold text-sm text-[#0D2B55]">Menu</span>
+          <button
+            type="button"
+            onClick={close}
+            aria-label="Close navigation menu"
+            className="w-10 h-10 flex items-center justify-center rounded-lg hover:bg-[#F0F4FA] cursor-pointer"
+          >
+            <X size={20} />
+          </button>
+        </div>
+        {navContent}
+      </nav>
+    </>
+  );
+}

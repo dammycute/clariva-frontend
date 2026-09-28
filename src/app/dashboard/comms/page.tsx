@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import toast from 'react-hot-toast';
 import { api } from '@/lib/api';
+import { Smartphone, Megaphone, Pencil, X } from 'lucide-react';
 
 interface Announcement {
   id: string; title: string; body: string; audience: string | null;
@@ -72,7 +73,7 @@ export default function CommunicationsPage() {
           <p className="text-xs text-[#64748B] mt-0.5">{items.filter(a => a.published_at).length} published · {items.length} total</p>
         </div>
         <div className="flex gap-2">
-          <button className="text-sm px-3.5 py-2 rounded-lg border border-[#0D2B55] text-[#0D2B55] hover:bg-[#F0F4FA]">📱 SMS Broadcast</button>
+          <button className="text-sm px-3.5 py-2 rounded-lg border border-[#0D2B55] text-[#0D2B55] hover:bg-[#F0F4FA] inline-flex items-center gap-1.5"><Smartphone size={16} aria-hidden="true" /> SMS Broadcast</button>
           <button onClick={openAdd} className="text-sm px-3.5 py-2 rounded-lg bg-[#1A7A4A] text-white hover:bg-[#14663D]">+ New Announcement</button>
         </div>
       </div>
@@ -82,7 +83,7 @@ export default function CommunicationsPage() {
           <div className="p-8 text-center text-sm text-[#64748B]">Loading announcements…</div>
         ) : items.length === 0 ? (
           <div className="p-12 flex flex-col items-center text-center">
-            <div className="text-4xl mb-3">📣</div>
+            <div className="text-4xl mb-3" aria-hidden="true"><Megaphone size={24} /></div>
             <h3 className="text-base font-bold text-[#0D2B55] mb-1">No announcements yet</h3>
             <p className="text-xs text-[#64748B]">Create your first announcement to notify teachers, students, or parents.</p>
           </div>
@@ -94,11 +95,11 @@ export default function CommunicationsPage() {
                   <div className="flex-1 min-w-0 mr-4">
                     <div className="flex items-center gap-2">
                       <h3 className={`text-sm font-bold ${a.published_at ? 'text-[#0D2B55]' : 'text-[#64748B]'}`}>{a.title}</h3>
-                      {a.published_at && <span className="text-[10px] bg-[#DCFCE7] text-[#1A7A4A] px-1.5 py-0.5 rounded-full font-bold">Published</span>}
-                      {!a.published_at && <span className="text-[10px] bg-[#F0F4FA] text-[#64748B] px-1.5 py-0.5 rounded-full">Draft</span>}
+                      {a.published_at && <span className="text-xs bg-[#DCFCE7] text-[#1A7A4A] px-1.5 py-0.5 rounded-full font-bold">Published</span>}
+                      {!a.published_at && <span className="text-xs bg-[#F0F4FA] text-[#64748B] px-1.5 py-0.5 rounded-full">Draft</span>}
                     </div>
                     <p className="text-xs text-[#64748B] mt-1 line-clamp-2">{a.body}</p>
-                    <div className="flex items-center gap-3 mt-1.5 text-[10px] text-[#64748B]">
+                    <div className="flex items-center gap-3 mt-1.5 text-xs text-[#64748B]">
                       <span>Audience: <strong>{a.audience || 'All'}</strong></span>
                       <span>By {a.created_by_name || 'System'}</span>
                       <span>{new Date(a.created_at).toLocaleDateString('en-NG')}</span>
@@ -106,7 +107,7 @@ export default function CommunicationsPage() {
                   </div>
                   <div className="flex items-center gap-1 shrink-0">
                     <button onClick={() => openEdit(a)}
-                      className="text-[11px] px-2 py-1 rounded border border-[#DDE5F0] hover:bg-[#F0F4FA]">✏️</button>
+                      className="text-[11px] px-2 py-1 rounded border border-[#DDE5F0] hover:bg-[#F0F4FA]" aria-label="Edit"><Pencil size={16} aria-hidden="true" /></button>
                     <button onClick={() => togglePublish(a)}
                       className={`text-[11px] px-2 py-1 rounded border ${a.published_at ? 'border-[#FEE2E2] text-[#B91C1C] hover:bg-[#FEE2E2]' : 'border-[#DCFCE7] text-[#1A7A4A] hover:bg-[#DCFCE7]'}`}>
                       {a.published_at ? 'Unpublish' : 'Publish'}
@@ -124,7 +125,7 @@ export default function CommunicationsPage() {
           <div className="bg-white rounded-2xl w-[520px] max-w-[95vw]" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between p-5 pb-0">
               <h2 className="text-base font-bold text-[#0D2B55]">{editingId ? 'Edit Announcement' : 'New Announcement'}</h2>
-              <button onClick={() => setShowModal(false)} className="text-[#64748B] hover:text-[#0D2B55] text-lg">✕</button>
+              <button onClick={() => setShowModal(false)} className="text-[#64748B] hover:text-[#0D2B55] text-lg" aria-label="Close"><X size={16} aria-hidden="true" /></button>
             </div>
             <form onSubmit={handleSave} className="p-5 space-y-3.5">
               <div>

@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import { portal } from '@/lib/api';
+import { Search, Printer } from 'lucide-react';
 import type { JSX } from 'react';
 
 type LookupResult = {
@@ -38,7 +39,7 @@ function StatusBadge({ status }: { status: string }) {
     graduated: 'bg-blue-100 text-blue-700',
     suspended: 'bg-amber-100 text-amber-700',
   };
-  return <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold ${colors[status] || 'bg-gray-100 text-gray-600'}`}>{status}</span>;
+  return <span className={`text-xs px-2 py-0.5 rounded-full font-bold ${colors[status] || 'bg-gray-100 text-gray-600'}`}>{status}</span>;
 }
 
 function FeeStatusBadge({ status }: { status: string }) {
@@ -47,7 +48,7 @@ function FeeStatusBadge({ status }: { status: string }) {
     partial: 'bg-amber-100 text-amber-700',
     unpaid: 'bg-red-100 text-red-700',
   };
-  return <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold ${colors[status] || 'bg-gray-100 text-gray-600'}`}>{status}</span>;
+  return <span className={`text-xs px-2 py-0.5 rounded-full font-bold ${colors[status] || 'bg-gray-100 text-gray-600'}`}>{status}</span>;
 }
 
 function ProgressBar({ pct, color }: { pct: number; color?: string }) {
@@ -104,7 +105,7 @@ export default function PortalPage(): JSX.Element {
     return (
       <div className="min-h-screen bg-[#F8FAFF] flex items-center justify-center p-6">
         <div className="max-w-md w-full bg-white border border-[#DDE5F0] rounded-2xl p-8 text-center">
-          <div className="text-5xl mb-4">🔍</div>
+          <div className="text-5xl mb-4" aria-hidden="true"><Search size={24} /></div>
           <h2 className="text-lg font-bold text-[#0D2B55] mb-2">Code not found</h2>
           <p className="text-sm text-[#64748B] mb-6">This code was not found. Check the code on your child&apos;s report card and try again.</p>
           <Link href="/" className="inline-block text-sm px-5 py-2.5 rounded-lg bg-[#1A7A4A] text-white font-bold hover:bg-[#14663D]">Go to Home</Link>
@@ -130,7 +131,7 @@ export default function PortalPage(): JSX.Element {
             <span className="text-sm font-semibold text-[#0D2B55]">Clariva</span>
           </div>
           <button onClick={() => window.print()}
-            className="text-xs px-3 py-1.5 rounded-lg border border-[#DDE5F0] hover:bg-[#F0F4FA] cursor-pointer">🖨 Print</button>
+            className="text-xs px-3 py-1.5 rounded-lg border border-[#DDE5F0] hover:bg-[#F0F4FA] cursor-pointer inline-flex items-center gap-1.5"><Printer size={16} aria-hidden="true" /> Print</button>
         </div>
 
         {/* print header */}
@@ -162,17 +163,17 @@ export default function PortalPage(): JSX.Element {
           <div className="grid grid-cols-3 gap-3 mb-3">
             <div className="text-center">
               <p className="text-lg font-bold text-[#0D2B55]">₦{fee.total_due.toLocaleString()}</p>
-              <p className="text-[10px] text-[#64748B]">Total Charged</p>
+              <p className="text-xs text-[#64748B]">Total Charged</p>
             </div>
             <div className="text-center">
               <p className="text-lg font-bold text-[#0D2B55]">₦{fee.total_paid.toLocaleString()}</p>
-              <p className="text-[10px] text-[#64748B]">Paid</p>
+              <p className="text-xs text-[#64748B]">Paid</p>
             </div>
             <div className="text-center">
               <p className={`text-lg font-bold ${fee.balance > 0 ? 'text-red-600' : 'text-green-600'}`}>
                 ₦{fee.balance.toLocaleString()}
               </p>
-              <p className="text-[10px] text-[#64748B]">Balance</p>
+              <p className="text-xs text-[#64748B]">Balance</p>
             </div>
           </div>
           <div className="flex items-center justify-between mb-3">
@@ -220,7 +221,7 @@ export default function PortalPage(): JSX.Element {
               {rc.class_rank !== null && (
                 <div className="text-center shrink-0">
                   <p className="text-lg font-bold text-[#0D2B55]">#{rc.class_rank}</p>
-                  <p className="text-[10px] text-[#64748B]">Class Rank</p>
+                  <p className="text-xs text-[#64748B]">Class Rank</p>
                 </div>
               )}
             </div>
@@ -276,15 +277,15 @@ export default function PortalPage(): JSX.Element {
           <div className="grid grid-cols-3 gap-3 text-center text-xs">
             <div className="bg-green-50 rounded-lg p-2">
               <p className="text-lg font-bold text-green-700">{att.present}</p>
-              <p className="text-[10px] text-[#64748B]">Present</p>
+              <p className="text-xs text-[#64748B]">Present</p>
             </div>
             <div className="bg-red-50 rounded-lg p-2">
               <p className="text-lg font-bold text-red-700">{att.absent}</p>
-              <p className="text-[10px] text-[#64748B]">Absent</p>
+              <p className="text-xs text-[#64748B]">Absent</p>
             </div>
             <div className="bg-amber-50 rounded-lg p-2">
               <p className="text-lg font-bold text-amber-700">{att.late}</p>
-              <p className="text-[10px] text-[#64748B]">Late</p>
+              <p className="text-xs text-[#64748B]">Late</p>
             </div>
           </div>
         </Card>
@@ -294,10 +295,10 @@ export default function PortalPage(): JSX.Element {
           <Link href="/guardian" className="text-sm text-[#1A7A4A] font-bold hover:underline print:hidden">
             Want to check anytime? Set up a parent account →
           </Link>
-          <p className="text-[10px] text-[#94A3B8] mt-2">
+          <p className="text-xs text-[#94A3B8] mt-2">
             This information is provided by {data.school_name || 'the school'} via Clariva
           </p>
-          <p className="text-[10px] text-[#94A3B8]">Generated {ts}</p>
+          <p className="text-xs text-[#94A3B8]">Generated {ts}</p>
         </div>
       </div>
     </div>

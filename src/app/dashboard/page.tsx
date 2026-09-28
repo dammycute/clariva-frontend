@@ -4,6 +4,10 @@ import { useState, useEffect } from 'react';
 import { api, auth } from '@/lib/api';
 import { CardSkeleton } from '@/components/skeleton';
 import Link from 'next/link';
+import {
+  Users, UserCog, School, BookOpen, AlertTriangle,
+  CheckCircle2, FileText, Banknote, FileSignature, UserPlus, Calendar,
+} from 'lucide-react';
 
 export default function DashboardHome() {
   const [loaded, setLoaded] = useState(false);
@@ -55,6 +59,7 @@ export default function DashboardHome() {
 
   const attRate = stats.totalAttendance > 0 ? Math.round((stats.present / stats.totalAttendance) * 100) : 0;
   const collRate = stats.totalFees > 0 ? Math.round((stats.collected / stats.totalFees) * 100) : 0;
+  const hasError = error.length > 0;
 
   return (
     <div>
@@ -71,10 +76,10 @@ export default function DashboardHome() {
       {/* Metric Cards */}
       {!loaded ? <CardSkeleton count={4} /> : (
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-        <MetricCard label="Students" value={error.length > 0 && stats.students === 0 ? '—' : stats.students} color="#0D2B55" bg="#E8F0FA" icon={error.length > 0 && stats.students === 0 ? '⚠️' : '👥'} href="/dashboard/students" />
-        <MetricCard label="Staff" value={error.length > 0 && stats.staff === 0 ? '—' : stats.staff} color="#1A7A4A" bg="#DCFCE7" icon={error.length > 0 && stats.staff === 0 ? '⚠️' : '👨‍🏫'} href="/dashboard/teachers" />
-        <MetricCard label="Classes" value={error.length > 0 && stats.classes === 0 ? '—' : stats.classes} color="#D4930A" bg="#FEF3C7" icon={error.length > 0 && stats.classes === 0 ? '⚠️' : '🏫'} href="/dashboard/students" />
-        <MetricCard label="Subjects" value={error.length > 0 && stats.subjects === 0 ? '—' : stats.subjects} color="#7C3AED" bg="#F3E8FF" icon={error.length > 0 && stats.subjects === 0 ? '⚠️' : '📚'} href="/dashboard/grades" />
+        <MetricCard label="Students" value={hasError && stats.students === 0 ? '—' : stats.students} color="#0D2B55" bg="#E8F0FA" icon={hasError && stats.students === 0 ? <AlertTriangle size={20} /> : <Users size={20} />} href="/dashboard/students" />
+        <MetricCard label="Staff" value={hasError && stats.staff === 0 ? '—' : stats.staff} color="#1A7A4A" bg="#DCFCE7" icon={hasError && stats.staff === 0 ? <AlertTriangle size={20} /> : <UserCog size={20} />} href="/dashboard/teachers" />
+        <MetricCard label="Classes" value={hasError && stats.classes === 0 ? '—' : stats.classes} color="#D4930A" bg="#FEF3C7" icon={hasError && stats.classes === 0 ? <AlertTriangle size={20} /> : <School size={20} />} href="/dashboard/students" />
+        <MetricCard label="Subjects" value={hasError && stats.subjects === 0 ? '—' : stats.subjects} color="#7C3AED" bg="#F3E8FF" icon={hasError && stats.subjects === 0 ? <AlertTriangle size={20} /> : <BookOpen size={20} />} href="/dashboard/grades" />
       </div>
       )}
 
@@ -82,25 +87,39 @@ export default function DashboardHome() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
         <div className="bg-white border border-[#DDE5F0] rounded-xl p-4">
           <div className="flex items-center justify-between mb-2">
-            <h3 className="text-sm font-bold text-[#0D2B55]">Attendance Rate</h3>
+            <h2 className="text-sm font-bold text-[#0D2B55]">Attendance Rate</h2>
             <span className="text-xs text-[#64748B]">{stats.present}/{stats.totalAttendance}</span>
           </div>
-          <div className="h-2.5 bg-[#F0F4FA] rounded-full overflow-hidden">
+          <div
+            className="h-2.5 bg-[#F0F4FA] rounded-full overflow-hidden"
+            role="progressbar"
+            aria-valuenow={attRate}
+            aria-valuemin={0}
+            aria-valuemax={100}
+            aria-label={`Attendance rate: ${attRate}%`}
+          >
             <div className="h-full rounded-full transition-all duration-700"
               style={{ width: `${attRate}%`, background: attRate >= 75 ? '#1A7A4A' : attRate >= 50 ? '#D4930A' : '#B91C1C' }} />
           </div>
-          <p className={`text-[11px] font-bold mt-1.5 ${attRate >= 75 ? 'text-[#1A7A4A]' : 'text-[#B91C1C]'}`}>{attRate}% present</p>
+          <p className={`text-xs font-bold mt-1.5 ${attRate >= 75 ? 'text-[#1A7A4A]' : 'text-[#B91C1C]'}`}>{attRate}% present</p>
         </div>
 
         <div className="bg-white border border-[#DDE5F0] rounded-xl p-4">
           <div className="flex items-center justify-between mb-2">
-            <h3 className="text-sm font-bold text-[#0D2B55]">Fee Collection</h3>
+            <h2 className="text-sm font-bold text-[#0D2B55]">Fee Collection</h2>
             <span className="text-xs text-[#64748B]">₦{stats.collected.toLocaleString()} / ₦{stats.totalFees.toLocaleString()}</span>
           </div>
-          <div className="h-2.5 bg-[#F0F4FA] rounded-full overflow-hidden">
+          <div
+            className="h-2.5 bg-[#F0F4FA] rounded-full overflow-hidden"
+            role="progressbar"
+            aria-valuenow={collRate}
+            aria-valuemin={0}
+            aria-valuemax={100}
+            aria-label={`Fee collection rate: ${collRate}%`}
+          >
             <div className="h-full bg-[#1A7A4A] rounded-full transition-all duration-700" style={{ width: `${collRate}%` }} />
           </div>
-          <p className="text-[11px] font-bold mt-1.5 text-[#1A7A4A]">{collRate}% collected</p>
+          <p className="text-xs font-bold mt-1.5 text-[#1A7A4A]">{collRate}% collected</p>
         </div>
       </div>
 
@@ -108,8 +127,8 @@ export default function DashboardHome() {
         {/* Recent Admissions */}
         <div className="bg-white border border-[#DDE5F0] rounded-xl overflow-hidden">
           <div className="px-4 py-3 border-b border-[#DDE5F0] flex items-center justify-between">
-            <h3 className="text-sm font-bold text-[#0D2B55]">Recent Admissions</h3>
-            <Link href="/dashboard/students" className="text-[11px] text-[#1A7A4A] hover:underline">View all</Link>
+            <h2 className="text-sm font-bold text-[#0D2B55]">Recent Admissions</h2>
+            <Link href="/dashboard/students" className="text-xs text-[#1A7A4A] hover:underline">View all</Link>
           </div>
           {recentStudents.length === 0 ? (
             <div className="p-6 text-center text-xs text-[#64748B]">No students yet.</div>
@@ -119,9 +138,9 @@ export default function DashboardHome() {
                 <div key={s.id} className="px-4 py-2.5 flex items-center justify-between">
                   <div>
                     <p className="text-xs font-semibold text-[#0D2B55]">{s.first_name} {s.last_name}</p>
-                    <p className="text-[10px] text-[#64748B]">{s.admission_no} · {s.class_name || '—'}</p>
+                    <p className="text-[11px] text-[#64748B]">{s.admission_no} · {s.class_name || '—'}</p>
                   </div>
-                  <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                  <span className={`px-2 py-0.5 rounded-full text-[11px] font-bold ${
                     s.student_status === 'active' ? 'bg-[#DCFCE7] text-[#1A7A4A]' : 'bg-[#FEE2E2] text-[#B91C1C]'
                   }`}>{s.student_status}</span>
                 </div>
@@ -133,20 +152,20 @@ export default function DashboardHome() {
         {/* Quick Actions */}
         <div className="bg-white border border-[#DDE5F0] rounded-xl overflow-hidden">
           <div className="px-4 py-3 border-b border-[#DDE5F0]">
-            <h3 className="text-sm font-bold text-[#0D2B55]">Quick Actions</h3>
+            <h2 className="text-sm font-bold text-[#0D2B55]">Quick Actions</h2>
           </div>
           <div className="p-4 grid grid-cols-2 gap-2">
             {[
-              { label: 'View Attendance', href: '/dashboard/attendance', icon: '✅' },
-              { label: 'Enter Grades', href: '/dashboard/grades', icon: '📝' },
-              { label: 'Record Payment', href: '/dashboard/fees', icon: '💰' },
-              { label: 'Report Cards', href: '/dashboard/grades?tab=reports', icon: '📄' },
-              { label: 'Add Student', href: '/dashboard/students', icon: '👤' },
-              { label: 'View Timetable', href: '/dashboard/timetable', icon: '📅' },
+              { label: 'View Attendance', href: '/dashboard/attendance', icon: <CheckCircle2 size={16} /> },
+              { label: 'Enter Grades', href: '/dashboard/grades', icon: <FileText size={16} /> },
+              { label: 'Record Payment', href: '/dashboard/fees', icon: <Banknote size={16} /> },
+              { label: 'Report Cards', href: '/dashboard/grades?tab=reports', icon: <FileSignature size={16} /> },
+              { label: 'Add Student', href: '/dashboard/students', icon: <UserPlus size={16} /> },
+              { label: 'View Timetable', href: '/dashboard/timetable', icon: <Calendar size={16} /> },
             ].map(a => (
               <Link key={a.href} href={a.href}
-                className="flex items-center gap-2 px-3 py-2.5 rounded-lg border border-[#DDE5F0] text-xs text-[#0D2B55] hover:bg-[#F0F4FA] transition-colors">
-                <span>{a.icon}</span> {a.label}
+                className="flex items-center gap-2 px-3 py-2.5 rounded-lg border border-[#DDE5F0] text-xs text-[#0D2B55] hover:bg-[#F0F4FA] transition-colors min-h-[44px]">
+                <span className="text-[#64748B]" aria-hidden="true">{a.icon}</span> {a.label}
               </Link>
             ))}
           </div>
@@ -157,13 +176,13 @@ export default function DashboardHome() {
 }
 
 function MetricCard({ label, value, color, bg, icon, href }: {
-  label: string; value: number | string; color: string; bg: string; icon: string; href: string;
+  label: string; value: number | string; color: string; bg: string; icon: React.ReactNode; href: string;
 }) {
   return (
-    <Link href={href} className="bg-white border border-[#DDE5F0] rounded-xl px-4 py-3.5 hover:shadow-sm transition-shadow">
+    <Link href={href} className="bg-white border border-[#DDE5F0] rounded-xl px-4 py-3.5 hover:shadow-sm transition-shadow min-h-[44px]">
       <div className="flex items-center justify-between mb-1">
-        <p className="text-[11px] font-bold text-[#64748B] uppercase tracking-wider">{label}</p>
-        <span className="text-base">{icon}</span>
+        <p className="text-xs font-bold text-[#64748B] uppercase tracking-wider">{label}</p>
+        <span style={{ color }} aria-hidden="true">{icon}</span>
       </div>
       <p className="text-xl font-bold" style={{ color }}>{value}</p>
     </Link>

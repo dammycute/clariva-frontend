@@ -58,7 +58,7 @@ export default function StudentTimetablePage() {
                         {slot ? (
                           <div>
                             <div className="font-semibold text-[#0D2B55]">{slot.subject_name || '—'}</div>
-                            <div className="text-[10px] text-[#64748B]">{slot.teacher_name || ''}{slot.room ? ` · ${slot.room}` : ''}</div>
+                            <div className="text-xs text-[#64748B]">{slot.teacher_name || ''}{slot.room ? ` · ${slot.room}` : ''}</div>
                           </div>
                         ) : (
                           <span className="text-[#DDE5F0]">—</span>

@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import { api, auth } from '@/lib/api';
 import Link from 'next/link';
+import { Users, User, School, BookOpen, Pencil, FileText, Monitor, Calendar } from 'lucide-react';
 
 export default function PrincipalDashboard() {
   const [stats, setStats] = useState({ students: 0, staff: 0, classes: 0, subjects: 0, examSessions: 0, avgScore: 0 });
@@ -34,15 +35,15 @@ export default function PrincipalDashboard() {
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         {[
-          { label: 'Students', value: stats.students, color: '#4C1D95', bg: '#EDE9FE', icon: '👥', href: '/principal/classes' },
-          { label: 'Staff', value: stats.staff, color: '#1A7A4A', bg: '#DCFCE7', icon: '👨‍🏫', href: '/principal/teachers' },
-          { label: 'Classes', value: stats.classes, color: '#D4930A', bg: '#FEF3C7', icon: '🏫', href: '/principal/classes' },
-          { label: 'Subjects', value: stats.subjects, color: '#6D28D9', bg: '#EDE9FE', icon: '📚', href: '/principal/subjects' },
+          { label: 'Students', value: stats.students, color: '#4C1D95', bg: '#EDE9FE', icon: <Users size={16} aria-hidden="true" />, href: '/principal/classes' },
+          { label: 'Staff', value: stats.staff, color: '#1A7A4A', bg: '#DCFCE7', icon: <User size={16} aria-hidden="true" />, href: '/principal/teachers' },
+          { label: 'Classes', value: stats.classes, color: '#D4930A', bg: '#FEF3C7', icon: <School size={16} aria-hidden="true" />, href: '/principal/classes' },
+          { label: 'Subjects', value: stats.subjects, color: '#6D28D9', bg: '#EDE9FE', icon: <BookOpen size={16} aria-hidden="true" />, href: '/principal/subjects' },
         ].map(m => (
           <Link key={m.label} href={m.href} className="bg-white border border-[#DDE5F0] rounded-xl px-4 py-3.5 hover:shadow-sm">
             <div className="flex items-center justify-between mb-1">
               <p className="text-[11px] font-bold text-[#64748B] uppercase tracking-wider">{m.label}</p>
-              <span className="text-base">{m.icon}</span>
+              <span className="inline-flex items-center">{m.icon}</span>
             </div>
             <p className="text-xl font-bold" style={{ color: m.color }}>{loading ? '…' : m.value}</p>
           </Link>
@@ -51,19 +52,19 @@ export default function PrincipalDashboard() {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <Link href="/principal/grades" className="bg-white border border-[#DDE5F0] rounded-xl p-4 hover:shadow-sm">
-          <h3 className="text-sm font-bold text-[#1E1B4B] mb-1">📝 Grade Approval</h3>
+          <h3 className="text-sm font-bold text-[#1E1B4B] mb-1 inline-flex items-center gap-1.5"><Pencil size={16} aria-hidden="true" /> Grade Approval</h3>
           <p className="text-xs text-[#64748B]">Review, approve, or reject teacher-submitted grades</p>
         </Link>
         <Link href="/principal/reports" className="bg-white border border-[#DDE5F0] rounded-xl p-4 hover:shadow-sm">
-          <h3 className="text-sm font-bold text-[#1E1B4B] mb-1">📄 Report Cards</h3>
+          <h3 className="text-sm font-bold text-[#1E1B4B] mb-1 inline-flex items-center gap-1.5"><FileText size={16} aria-hidden="true" /> Report Cards</h3>
           <p className="text-xs text-[#64748B]">Generate termly report cards and release to guardians</p>
         </Link>
         <Link href="/principal/cbt" className="bg-white border border-[#DDE5F0] rounded-xl p-4 hover:shadow-sm">
-          <h3 className="text-sm font-bold text-[#1E1B4B] mb-1">💻 CBT Exams</h3>
+          <h3 className="text-sm font-bold text-[#1E1B4B] mb-1 inline-flex items-center gap-1.5"><Monitor size={16} aria-hidden="true" /> CBT Exams</h3>
           <p className="text-xs text-[#64748B]">Overview of all computer-based tests</p>
         </Link>
         <Link href="/principal/timetable" className="bg-white border border-[#DDE5F0] rounded-xl p-4 hover:shadow-sm">
-          <h3 className="text-sm font-bold text-[#1E1B4B] mb-1">📅 Timetable</h3>
+          <h3 className="text-sm font-bold text-[#1E1B4B] mb-1 inline-flex items-center gap-1.5"><Calendar size={16} aria-hidden="true" /> Timetable</h3>
           <p className="text-xs text-[#64748B]">Manage class schedules and period settings</p>
         </Link>
       </div>

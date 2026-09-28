@@ -70,7 +70,7 @@ export default function TeacherTimetablePage() {
                         {slot ? (
                           <div>
                             <div className="font-semibold text-[#0D2B55]">{slot.subject_name || '—'}</div>
-                            <div className="text-[10px] text-[#64748B]">{slot.room || ''} {slot.teacher_name ? `· ${slot.teacher_name}` : ''}</div>
+                            <div className="text-xs text-[#64748B]">{slot.room || ''} {slot.teacher_name ? `· ${slot.teacher_name}` : ''}</div>
                           </div>
                         ) : (
                           <span className="text-[#DDE5F0]">—</span>

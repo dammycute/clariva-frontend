@@ -44,7 +44,7 @@ export default function TeacherClassesPage() {
                 <div className="px-4 py-3 border-b border-[#DDE5F0] bg-[#F8FAFF] flex items-center justify-between">
                   <div>
                     <h2 className="text-sm font-bold text-[#0D2B55]">{c.name}</h2>
-                    <p className="text-[10px] text-[#64748B]">{c.year_group || '—'} · {c.academic_year || '—'}</p>
+                    <p className="text-xs text-[#64748B]">{c.year_group || '—'} · {c.academic_year || '—'}</p>
                   </div>
                   <span className="text-xs text-[#64748B]">{active.length} active students</span>
                 </div>
@@ -57,7 +57,7 @@ export default function TeacherClassesPage() {
                         <span className="font-semibold text-[#0D2B55]">{s.first_name} {s.last_name}</span>
                         <div className="flex items-center gap-2">
                           <span className="text-[#64748B]">{s.admission_no}</span>
-                          <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold ${s.student_status === 'active' ? 'bg-[#DCFCE7] text-[#1A7A4A]' : 'bg-[#FEE2E2] text-[#B91C1C]'}`}>{s.student_status}</span>
+                          <span className={`px-1.5 py-0.5 rounded text-xs font-bold ${s.student_status === 'active' ? 'bg-[#DCFCE7] text-[#1A7A4A]' : 'bg-[#FEE2E2] text-[#B91C1C]'}`}>{s.student_status}</span>
                         </div>
                       </div>
                     ))

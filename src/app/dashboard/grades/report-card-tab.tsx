@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import toast from 'react-hot-toast';
 import { api } from '@/lib/api';
+import { Printer } from 'lucide-react';
 
 interface GradeEntry {
   subject: string;
@@ -259,7 +260,7 @@ export default function ReportCardTab({ onRefresh }: { onRefresh: () => void }) 
             <div className="flex items-center justify-between p-5 pb-0 no-print">
               <h2 className="text-base font-bold text-[#0D2B55]">Report Card Preview</h2>
               <div className="flex gap-2">
-                <button onClick={handlePrint} className="text-sm px-4 py-2 rounded-lg bg-[#1A7A4A] text-white hover:bg-[#14663D]">🖨️ Print / Export PDF</button>
+                <button onClick={handlePrint} className="text-sm px-4 py-2 rounded-lg bg-[#1A7A4A] text-white hover:bg-[#14663D] inline-flex items-center gap-1.5"><Printer size={16} aria-hidden="true" /> Print / Export PDF</button>
                 <button onClick={() => setPreviewCard(null)} className="text-sm px-4 py-2 rounded-lg border border-[#DDE5F0] bg-white hover:bg-[#F0F4FA]">Close</button>
               </div>
             </div>
@@ -267,7 +268,7 @@ export default function ReportCardTab({ onRefresh }: { onRefresh: () => void }) 
             <div ref={printRef} className="p-8 overflow-y-auto max-h-[70vh]" style={{ fontFamily: 'Inter, sans-serif' }}>
               <div className="text-center mb-6 print:mb-4">
                 <div className="text-2xl font-bold tracking-wider text-[#0D2B55]">CLARIVA</div>
-                <div className="text-[10px] text-[#64748B]">School Management Platform</div>
+                <div className="text-xs text-[#64748B]">School Management Platform</div>
                 <div className="mt-3 text-lg font-bold text-[#0D2B55] border-b-2 border-[#1A7A4A] pb-2">TERMLY REPORT CARD</div>
               </div>
 
@@ -305,24 +306,24 @@ export default function ReportCardTab({ onRefresh }: { onRefresh: () => void }) 
 
               <div className="grid grid-cols-3 gap-4 mb-4 text-xs">
                 <div className="bg-[#F7F9FC] rounded-lg p-2.5 text-center">
-                  <div className="text-[#64748B] text-[10px]">Total Score</div>
+                  <div className="text-[#64748B] text-xs">Total Score</div>
                   <div className="font-bold text-[#0D2B55]">{cardToPrint.total_score ?? '—'}</div>
                 </div>
                 <div className="bg-[#F7F9FC] rounded-lg p-2.5 text-center">
-                  <div className="text-[#64748B] text-[10px]">Average</div>
+                  <div className="text-[#64748B] text-xs">Average</div>
                   <div className="font-bold text-[#0D2B55]">{cardToPrint.average != null ? `${cardToPrint.average}%` : '—'}</div>
                 </div>
                 <div className="bg-[#F7F9FC] rounded-lg p-2.5 text-center">
-                  <div className="text-[#64748B] text-[10px]">Class Rank</div>
+                  <div className="text-[#64748B] text-xs">Class Rank</div>
                   <div className="font-bold text-[#0D2B55]">{cardToPrint.class_rank != null ? `${cardToPrint.class_rank}` : '—'}</div>
                 </div>
               </div>
 
-              <div className="text-[10px] text-[#64748B] border-t border-[#DDE5F0] pt-2 mt-2">
+              <div className="text-xs text-[#64748B] border-t border-[#DDE5F0] pt-2 mt-2">
                 <span className="font-semibold">WAEC Grading:</span>{' '}
                 A1(75-100%) B2(70-74%) B3(65-69%) C4(60-64%) C5(55-59%) C6(50-54%) D7(45-49%) E8(40-44%) F9(0-39%)
               </div>
-              <div className="text-[9px] text-[#94A3B8] mt-1">Generated on {new Date().toLocaleDateString('en-NG', { day: 'numeric', month: 'long', year: 'numeric' })} via Clariva</div>
+              <div className="text-xs text-[#94A3B8] mt-1">Generated on {new Date().toLocaleDateString('en-NG', { day: 'numeric', month: 'long', year: 'numeric' })} via Clariva</div>
             </div>
           </div>
         </div>

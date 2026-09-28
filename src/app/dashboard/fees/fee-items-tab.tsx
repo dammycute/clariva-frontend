@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { api } from '@/lib/api';
 import ConfirmDialog from '@/components/confirm-dialog';
+import { Pencil, Trash2, X, ChevronDown, ChevronRight } from 'lucide-react';
 
 const YEAR_GROUPS = ['JSS1', 'JSS2', 'JSS3', 'SS1', 'SS2', 'SS3'];
 const CATEGORY_GROUPS = ['JSS', 'SS'];
@@ -125,8 +126,8 @@ export default function FeeItemsTab({ onRefresh }: { onRefresh: () => void }) {
                     <tr key={i.id} className="hover:bg-[#F8FAFF] border-t border-[#DDE5F0]">
                       <td className="px-4 py-3">
                         {hasTiers && (
-                          <button onClick={() => setExpandedTiers(prev => { const n = new Set(prev); n.has(i.id) ? n.delete(i.id) : n.add(i.id); return n; })} className="text-[#64748B] hover:text-[#0D2B55] text-xs">
-                            {isExpanded ? '▼' : '▶'}
+                          <button onClick={() => setExpandedTiers(prev => { const n = new Set(prev); n.has(i.id) ? n.delete(i.id) : n.add(i.id); return n; })} className="text-[#64748B] hover:text-[#0D2B55] text-xs" aria-label={isExpanded ? 'Collapse' : 'Expand'}>
+                            {isExpanded ? <ChevronDown size={16} aria-hidden="true" /> : <ChevronRight size={16} aria-hidden="true" />}
                           </button>
                         )}
                       </td>
@@ -135,11 +136,11 @@ export default function FeeItemsTab({ onRefresh }: { onRefresh: () => void }) {
                       <td className="px-4 py-3 text-[#64748B]">{i.class_name}</td>
                       <td className="px-4 py-3">{i.term || '—'}</td>
                       <td className="px-4 py-3">{i.academic_year || '—'}</td>
-                      <td className="px-4 py-3"><span className={`px-2 py-0.5 rounded text-[10px] font-bold ${i.is_mandatory ? 'bg-[#FEF3C7] text-[#D4930A]' : 'bg-[#F7F9FC] text-[#64748B]'}`}>{i.is_mandatory ? 'Yes' : 'No'}</span></td>
+                      <td className="px-4 py-3"><span className={`px-2 py-0.5 rounded text-xs font-bold ${i.is_mandatory ? 'bg-[#FEF3C7] text-[#D4930A]' : 'bg-[#F7F9FC] text-[#64748B]'}`}>{i.is_mandatory ? 'Yes' : 'No'}</span></td>
                       <td className="px-4 py-3 text-right">
                         <div className="flex gap-1 justify-end">
-                          <button onClick={() => openEdit(i)} className="text-xs px-2 py-1 rounded-lg border border-[#DDE5F0] bg-white hover:bg-[#F0F4FA]">✏️</button>
-                      <button onClick={() => setConfirmDelete(i.id)} className="text-xs px-2 py-1 rounded-lg border border-[#FEE2E2] bg-white text-[#B91C1C] hover:bg-[#FEE2E2]">🗑</button>
+                          <button onClick={() => openEdit(i)} className="text-xs px-2 py-1 rounded-lg border border-[#DDE5F0] bg-white hover:bg-[#F0F4FA]" aria-label="Edit"><Pencil size={16} aria-hidden="true" /></button>
+                      <button onClick={() => setConfirmDelete(i.id)} className="text-xs px-2 py-1 rounded-lg border border-[#FEE2E2] bg-white text-[#B91C1C] hover:bg-[#FEE2E2]" aria-label="Delete"><Trash2 size={16} aria-hidden="true" /></button>
                     </div>
                   </td>
                 </tr>
@@ -150,7 +151,7 @@ export default function FeeItemsTab({ onRefresh }: { onRefresh: () => void }) {
                       <div className="flex flex-wrap gap-3">
                         {Object.entries(i.pricing_tiers!).map(([yg, val]) => (
                           <div key={yg} className="bg-white border border-[#DDE5F0] rounded-lg px-3 py-2 min-w-[120px]">
-                            <div className="text-[10px] text-[#64748B] uppercase">{yg}</div>
+                            <div className="text-xs text-[#64748B] uppercase">{yg}</div>
                             <div className="text-sm font-bold text-[#0D2B55]">₦{Number(val).toLocaleString()}</div>
                           </div>
                         ))}
@@ -170,7 +171,7 @@ export default function FeeItemsTab({ onRefresh }: { onRefresh: () => void }) {
           <div className="bg-white rounded-2xl w-[480px] max-w-[95vw]" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between p-5 pb-0">
               <h2 className="text-base font-bold text-[#0D2B55]">{editingId ? 'Edit Fee Item' : 'Add Fee Item'}</h2>
-              <button onClick={() => setShowModal(false)} className="text-[#64748B] hover:text-[#0D2B55] text-lg">✕</button>
+              <button onClick={() => setShowModal(false)} className="text-[#64748B] hover:text-[#0D2B55] text-lg" aria-label="Close"><X size={16} aria-hidden="true" /></button>
             </div>
             <form onSubmit={handleSubmit} className="p-5 space-y-3.5">
               <div>
@@ -217,7 +218,7 @@ export default function FeeItemsTab({ onRefresh }: { onRefresh: () => void }) {
                   )}
                   <div className="mt-2">
                     <label className="flex items-center gap-1.5 text-[11px] font-bold text-[#64748B] uppercase cursor-pointer" onClick={() => setForm({ ...form, pricing_tiers: form.pricing_tiers ? '' : '{}' })}>
-                      <span className={`text-xs transition-transform ${form.pricing_tiers ? 'rotate-90' : ''}`}>▶</span>
+                      <span className={`text-xs transition-transform ${form.pricing_tiers ? 'rotate-90' : ''}`}><ChevronRight size={16} aria-hidden="true" /></span>
                       Pricing per Year Group (expandable)
                     </label>
                     {form.pricing_tiers && (
@@ -227,7 +228,7 @@ export default function FeeItemsTab({ onRefresh }: { onRefresh: () => void }) {
                           try { const p = JSON.parse(form.pricing_tiers); cur = p[yg] !== undefined ? String(p[yg]) : ''; } catch {}
                           return (
                             <div key={yg}>
-                              <label className="text-[10px] text-[#64748B] uppercase block mb-0.5">{yg}</label>
+                              <label className="text-xs text-[#64748B] uppercase block mb-0.5">{yg}</label>
                               <input type="number" min="0" placeholder="₦" value={cur}
                                 onChange={e => {
                                   let p: Record<string, number | undefined> = {};
@@ -341,7 +342,7 @@ function BulkCreateModal({ classes, onClose, onDone }: { classes: Class[]; onClo
       <div className="bg-white rounded-2xl w-[90vw] max-w-[900px] max-h-[90vh] overflow-hidden flex flex-col" onClick={e => e.stopPropagation()}>
         <div className="flex items-center justify-between p-5 pb-0">
           <h2 className="text-base font-bold text-[#0D2B55]">Bulk Create Fees</h2>
-          <button onClick={onClose} className="text-[#64748B] hover:text-[#0D2B55] text-lg">✕</button>
+          <button onClick={onClose} className="text-[#64748B] hover:text-[#0D2B55] text-lg" aria-label="Close"><X size={16} aria-hidden="true" /></button>
         </div>
         <form onSubmit={handleSubmit} className="p-5 space-y-3.5 flex-1 overflow-auto">
           <div className="overflow-x-auto">
@@ -373,7 +374,7 @@ function BulkCreateModal({ classes, onClose, onDone }: { classes: Class[]; onClo
                     ))}
                     <td className="px-2 py-2">
                       {rows.length > 1 && (
-                        <button type="button" onClick={() => removeRow(ri)} className="text-[#B91C1C] text-sm hover:text-red-700">✕</button>
+                        <button type="button" onClick={() => removeRow(ri)} aria-label="Remove row" className="text-[#B91C1C] text-sm hover:text-red-700"><X size={16} aria-hidden="true" /></button>
                       )}
                     </td>
                   </tr>

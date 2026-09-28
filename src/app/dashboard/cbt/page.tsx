@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import toast from 'react-hot-toast';
 import { api } from '@/lib/api';
 import Link from 'next/link';
+import { Monitor, Pencil, ClipboardList, FileText, BarChart3, X } from 'lucide-react';
 
 interface Exam {
   id: string; title: string; subject: string; subject_name?: string;
@@ -115,7 +116,7 @@ export default function CBTExamsPage() {
           <div className="p-8 text-center text-sm text-[#64748B]">Loading exams…</div>
         ) : exams.length === 0 ? (
           <div className="p-12 flex flex-col items-center text-center">
-            <div className="text-4xl mb-3">💻</div>
+            <div className="text-4xl mb-3" aria-hidden="true"><Monitor size={24} /></div>
             <h3 className="text-base font-bold text-[#0D2B55] mb-2">No exams yet</h3>
             <p className="text-xs text-[#64748B] max-w-md">Create your first exam with a question bank, set a schedule, and publish for students.</p>
           </div>
@@ -128,12 +129,12 @@ export default function CBTExamsPage() {
                     <div className="flex items-center gap-2">
                       <Link href={`/dashboard/cbt/${exam.id}`} className="text-sm font-bold text-[#0D2B55] hover:underline">{exam.title}</Link>
                       {false && (exam.status === 'published' || exam.status === 'ongoing') && (
-                        <Link href={`/dashboard/cbt/take/${exam.id}`} className="text-[10px] px-2 py-0.5 rounded bg-[#1A7A4A] text-white font-bold">Take Exam</Link>
+                        <Link href={`/dashboard/cbt/take/${exam.id}`} className="text-xs px-2 py-0.5 rounded bg-[#1A7A4A] text-white font-bold">Take Exam</Link>
                       )}
-                      <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-bold ${statusColors[exam.status] || statusColors.draft}`}>{exam.status}</span>
-                      <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-[#E8F0FA] text-[#0D2B55] font-bold">{exam.question_count}</span>
+                      <span className={`text-xs px-1.5 py-0.5 rounded-full font-bold ${statusColors[exam.status] || statusColors.draft}`}>{exam.status}</span>
+                      <span className="text-xs px-1.5 py-0.5 rounded-full bg-[#E8F0FA] text-[#0D2B55] font-bold">{exam.question_count}</span>
                     </div>
-                    <div className="flex items-center gap-3 mt-1 text-[10px] text-[#64748B]">
+                    <div className="flex items-center gap-3 mt-1 text-xs text-[#64748B]">
                       <span>{exam.subject_name || exam.subject}</span>
                       <span>{exam.class_name || 'All classes'}</span>
                       <span>{exam.duration_mins} min</span>
@@ -142,10 +143,10 @@ export default function CBTExamsPage() {
                     </div>
                   </div>
                   <div className="flex items-center gap-1 shrink-0">
-                    <button onClick={() => openEdit(exam)} className="text-[11px] px-2 py-1 rounded border border-[#DDE5F0] hover:bg-[#F0F4FA]" title="Edit">✏️</button>
-                    <button onClick={() => handleDuplicate(exam)} className="text-[11px] px-2 py-1 rounded border border-[#DDE5F0] hover:bg-[#F0F4FA]" title="Duplicate">📋</button>
-                    <Link href={`/dashboard/cbt/${exam.id}`} className="text-[11px] px-2 py-1 rounded border border-[#DDE5F0] hover:bg-[#F0F4FA]" title="Questions">📝</Link>
-                    <Link href={`/dashboard/cbt/results/${exam.id}`} className="text-[11px] px-2 py-1 rounded border border-[#DDE5F0] hover:bg-[#F0F4FA]" title="Results">📊</Link>
+                    <button onClick={() => openEdit(exam)} className="text-[11px] px-2 py-1 rounded border border-[#DDE5F0] hover:bg-[#F0F4FA]" title="Edit" aria-label="Edit"><Pencil size={16} aria-hidden="true" /></button>
+                    <button onClick={() => handleDuplicate(exam)} className="text-[11px] px-2 py-1 rounded border border-[#DDE5F0] hover:bg-[#F0F4FA]" title="Duplicate" aria-label="Duplicate"><ClipboardList size={16} aria-hidden="true" /></button>
+                    <Link href={`/dashboard/cbt/${exam.id}`} className="text-[11px] px-2 py-1 rounded border border-[#DDE5F0] hover:bg-[#F0F4FA]" title="Questions" aria-label="Questions"><FileText size={16} aria-hidden="true" /></Link>
+                    <Link href={`/dashboard/cbt/results/${exam.id}`} className="text-[11px] px-2 py-1 rounded border border-[#DDE5F0] hover:bg-[#F0F4FA]" title="Results" aria-label="Results"><BarChart3 size={16} aria-hidden="true" /></Link>
                   </div>
                 </div>
               </div>
@@ -159,7 +160,7 @@ export default function CBTExamsPage() {
           <div className="bg-white rounded-2xl w-[560px] max-w-[95vw] max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between p-5 pb-0">
               <h2 className="text-base font-bold text-[#0D2B55]">{editId ? 'Edit Exam' : 'New Exam'}</h2>
-              <button onClick={() => setShowForm(false)} className="text-[#64748B] hover:text-[#0D2B55] text-lg">✕</button>
+              <button onClick={() => setShowForm(false)} className="text-[#64748B] hover:text-[#0D2B55] text-lg" aria-label="Close"><X size={16} aria-hidden="true" /></button>
             </div>
             <form onSubmit={handleSave} className="p-5 space-y-3.5">
               <div>

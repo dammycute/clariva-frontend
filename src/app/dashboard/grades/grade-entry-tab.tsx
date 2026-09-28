@@ -196,7 +196,7 @@ export default function GradeEntryTab({ onRefresh }: { onRefresh: () => void }) 
       )}
 
       {grading && activeComponents.length > 0 && (
-        <div className="flex flex-wrap gap-3 mb-3 text-[10px] text-[#64748B]">
+        <div className="flex flex-wrap gap-3 mb-3 text-xs text-[#64748B]">
           {activeComponents.map(comp => (
             <span key={comp.key}>{comp.label}: <strong className="text-[#0D2B55]">/{comp.max}</strong></span>
           ))}
@@ -223,9 +223,9 @@ export default function GradeEntryTab({ onRefresh }: { onRefresh: () => void }) 
               <tr className="text-[11px] font-bold tracking-wider text-[#64748B] uppercase bg-[#F7F9FC]">
                 <th className="text-left px-4 py-3">#</th><th className="text-left px-4 py-3">Student</th>
                 {activeComponents.map(comp => (
-                  <th key={comp.key} className="text-center px-2 py-3">{comp.label}<br/><span className="text-[10px] font-normal">({comp.max})</span></th>
+                  <th key={comp.key} className="text-center px-2 py-3">{comp.label}<br/><span className="text-xs font-normal">({comp.max})</span></th>
                 ))}
-                <th className="text-center px-2 py-3">Total<br/><span className="text-[10px] font-normal">({totalMaxPossible})</span></th>
+                <th className="text-center px-2 py-3">Total<br/><span className="text-xs font-normal">({totalMaxPossible})</span></th>
                 <th className="text-center px-2 py-3">Grade</th>
               </tr>
             </thead>
@@ -247,7 +247,7 @@ export default function GradeEntryTab({ onRefresh }: { onRefresh: () => void }) 
                     <td className="px-2 py-2 text-center font-bold">{total > 0 ? total : '—'}</td>
                     <td className="px-2 py-2 text-center">
                       {total > 0 && (
-                        <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                        <span className={`px-2 py-0.5 rounded-full text-xs font-bold ${
                           gradeLetter === 'F9' || gradeLetter === 'F' ? 'bg-[#FEE2E2] text-[#B91C1C]' :
                           gradeLetter === 'A1' || gradeLetter === 'A' ? 'bg-[#D1FAE5] text-[#065F46]' :
                           'bg-[#FEF3C7] text-[#D4930A]'

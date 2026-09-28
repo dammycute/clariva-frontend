@@ -72,10 +72,10 @@ export default function TeacherAttendancePage() {
           <div className="px-4 py-2.5 border-b border-[#DDE5F0] bg-[#F8FAFF] flex items-center justify-between">
             <span className="text-xs font-bold text-[#0D2B55]">{students.length} students</span>
             <div className="flex gap-1.5">
-              <button onClick={() => setAll('present')} className="text-[10px] px-2 py-1 rounded bg-[#DCFCE7] text-[#1A7A4A] font-bold">All Present</button>
-              <button onClick={() => setAll('absent')} className="text-[10px] px-2 py-1 rounded bg-[#FEE2E2] text-[#B91C1C] font-bold">All Absent</button>
+              <button onClick={() => setAll('present')} className="text-xs px-2 py-1 rounded bg-[#DCFCE7] text-[#1A7A4A] font-bold">All Present</button>
+              <button onClick={() => setAll('absent')} className="text-xs px-2 py-1 rounded bg-[#FEE2E2] text-[#B91C1C] font-bold">All Absent</button>
               <button onClick={saveAll} disabled={saving}
-                className="text-[10px] px-2 py-1 rounded bg-[#0D2B55] text-white font-bold disabled:opacity-50">
+                className="text-xs px-2 py-1 rounded bg-[#0D2B55] text-white font-bold disabled:opacity-50">
                 {saving ? 'Saving…' : 'Save'}
               </button>
             </div>
@@ -84,12 +84,12 @@ export default function TeacherAttendancePage() {
             <div key={s.id} className="px-4 py-2.5 flex items-center justify-between border-b border-[#DDE5F0] last:border-b-0 hover:bg-[#F8FAFF]">
               <div>
                 <p className="text-xs font-semibold text-[#0D2B55]">{s.first_name} {s.last_name}</p>
-                <p className="text-[10px] text-[#64748B]">{s.admission_no}</p>
+                <p className="text-xs text-[#64748B]">{s.admission_no}</p>
               </div>
               <div className="flex gap-1">
                 {['present', 'absent', 'late'].map(st => (
                   <button key={st} onClick={() => setAttendance({ ...attendance, [s.id]: st })}
-                    className={`text-[10px] px-2.5 py-1 rounded font-bold capitalize ${
+                    className={`text-xs px-2.5 py-1 rounded font-bold capitalize ${
                       attendance[s.id] === st
                         ? st === 'present' ? 'bg-[#DCFCE7] text-[#1A7A4A]' : st === 'late' ? 'bg-[#FEF3C7] text-[#D4930A]' : 'bg-[#FEE2E2] text-[#B91C1C]'
                         : 'bg-[#F0F4FA] text-[#64748B]'

@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { api } from '@/lib/api';
 import Link from 'next/link';
+import { Banknote, User } from 'lucide-react';
 
 export default function BursaryDashboard() {
   const [summary, setSummary] = useState<{
@@ -69,7 +70,7 @@ export default function BursaryDashboard() {
                 <p className="text-xs font-semibold text-[#0D2B55]">{item.name}</p>
                 <div className="text-right">
                   <p className="text-xs text-[#64748B]">₦{item.total_paid.toLocaleString()} / ₦{item.total_due.toLocaleString()}</p>
-                  <p className={`text-[10px] font-bold ${item.outstanding > 0 ? 'text-[#B91C1C]' : 'text-[#1A7A4A]'}`}>
+                  <p className={`text-xs font-bold ${item.outstanding > 0 ? 'text-[#B91C1C]' : 'text-[#1A7A4A]'}`}>
                     {item.outstanding > 0 ? `₦${item.outstanding.toLocaleString()} outstanding` : 'Fully paid'}
                   </p>
                 </div>
@@ -82,11 +83,11 @@ export default function BursaryDashboard() {
       <div className="grid grid-cols-2 gap-3">
         <Link href="/dashboard/fees"
           className="flex items-center gap-3 px-4 py-3.5 bg-white border border-[#DDE5F0] rounded-xl text-sm text-[#0D2B55] hover:bg-[#F0F4FA]">
-          <span className="text-lg">💰</span> Manage Invoices
+          <span className="text-lg" aria-hidden="true"><Banknote size={18} /></span> Manage Invoices
         </Link>
         <Link href="/dashboard/students"
           className="flex items-center gap-3 px-4 py-3.5 bg-white border border-[#DDE5F0] rounded-xl text-sm text-[#0D2B55] hover:bg-[#F0F4FA]">
-          <span className="text-lg">👤</span> View Students
+          <span className="text-lg" aria-hidden="true"><User size={18} /></span> View Students
         </Link>
       </div>
     </div>

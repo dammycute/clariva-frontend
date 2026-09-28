@@ -1,6 +1,7 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { api, auth } from '@/lib/api';
+import { Check, X } from 'lucide-react';
 
 interface Grade { id: string; student: string; student_name: string; subject: string; subject_name: string; scores: Record<string, number>; total: number | null; grade: string | null; results_status: string; }
 interface Subject { id: string; name: string; year_group: string | null; }
@@ -118,8 +119,8 @@ export default function PrincipalGradesPage() {
         </div>
         {selectedSubject && statusFilter === 'submitted' && (
           <div className="flex gap-2 ml-auto">
-            <button onClick={handleApprove} className="text-sm px-4 py-1.5 rounded-lg bg-[#1A7A4A] text-white hover:bg-[#14663D]">✓ Approve All</button>
-            <button onClick={handleReject} className="text-sm px-4 py-1.5 rounded-lg bg-[#B91C1C] text-white hover:bg-[#991B1B]">✗ Reject All</button>
+            <button onClick={handleApprove} className="text-sm px-4 py-1.5 rounded-lg bg-[#1A7A4A] text-white hover:bg-[#14663D] inline-flex items-center gap-1.5"><Check size={16} aria-hidden="true" /> Approve All</button>
+            <button onClick={handleReject} className="text-sm px-4 py-1.5 rounded-lg bg-[#B91C1C] text-white hover:bg-[#991B1B] inline-flex items-center gap-1.5"><X size={16} aria-hidden="true" /> Reject All</button>
           </div>
         )}
       </div>
@@ -140,9 +141,9 @@ export default function PrincipalGradesPage() {
                 <td className="px-4 py-2 font-semibold">{g.student_name}</td>
                 {components.map(c => <td key={c.key} className="px-2 py-2 text-center">{g.scores?.[c.key] ?? '—'}</td>)}
                 <td className="px-2 py-2 text-center font-bold">{g.total ?? '—'}</td>
-                <td className="px-2 py-2 text-center"><span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${g.grade === 'F9' ? 'bg-[#FEE2E2] text-[#B91C1C]' : g.grade === 'A1' ? 'bg-[#D1FAE5] text-[#065F46]' : 'bg-[#FEF3C7] text-[#D4930A]'}`}>{g.grade || '—'}</span></td>
+                <td className="px-2 py-2 text-center"><span className={`px-2 py-0.5 rounded-full text-xs font-bold ${g.grade === 'F9' ? 'bg-[#FEE2E2] text-[#B91C1C]' : g.grade === 'A1' ? 'bg-[#D1FAE5] text-[#065F46]' : 'bg-[#FEF3C7] text-[#D4930A]'}`}>{g.grade || '—'}</span></td>
                 <td className="px-2 py-2 text-center">
-                  <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${g.results_status === 'approved' ? 'bg-[#D1FAE5] text-[#065F46]' : g.results_status === 'rejected' ? 'bg-[#FEE2E2] text-[#B91C1C]' : g.results_status === 'submitted' ? 'bg-[#FEF3C7] text-[#D4930A]' : 'bg-[#E8F0FA] text-[#64748B]'}`}>{g.results_status}</span>
+                  <span className={`px-2 py-0.5 rounded-full text-xs font-bold ${g.results_status === 'approved' ? 'bg-[#D1FAE5] text-[#065F46]' : g.results_status === 'rejected' ? 'bg-[#FEE2E2] text-[#B91C1C]' : g.results_status === 'submitted' ? 'bg-[#FEF3C7] text-[#D4930A]' : 'bg-[#E8F0FA] text-[#64748B]'}`}>{g.results_status}</span>
                 </td>
               </tr>
             ))}</tbody>

@@ -1,5 +1,7 @@
 'use client';
 
+import { useEffect, useRef } from 'react';
+
 interface Props {
   open: boolean;
   title: string;
@@ -11,17 +13,85 @@ interface Props {
 }
 
 export default function ConfirmDialog({ open, title, message, onConfirm, onCancel, confirmLabel = 'Delete', loading }: Props) {
+  const dialogRef = useRef<HTMLDivElement>(null);
+  const confirmRef = useRef<HTMLButtonElement>(null);
+  const previousFocusRef = useRef<HTMLElement | null>(null);
+
+  useEffect(() => {
+    if (!open) return;
+
+    // Store the element that had focus before dialog opened
+    previousFocusRef.current = document.activeElement as HTMLElement;
+
+    // Focus the confirm button
+    confirmRef.current?.focus();
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        onCancel();
+        return;
+      }
+
+      // Focus trap: Tab cycles within dialog
+      if (e.key === 'Tab' && dialogRef.current) {
+        const focusable = dialogRef.current.querySelectorAll<HTMLElement>(
+          'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+        );
+        if (focusable.length === 0) return;
+        const first = focusable[0];
+        const last = focusable[focusable.length - 1];
+        if (e.shiftKey && document.activeElement === first) {
+          e.preventDefault();
+          last.focus();
+        } else if (!e.shiftKey && document.activeElement === last) {
+          e.preventDefault();
+          first.focus();
+        }
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+      // Return focus to the element that triggered the dialog
+      previousFocusRef.current?.focus();
+    };
+  }, [open, onCancel]);
+
   if (!open) return null;
+
   return (
-    <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center" onClick={onCancel}>
-      <div className="bg-white rounded-2xl w-[380px] max-w-[95vw] p-5" onClick={e => e.stopPropagation()}>
-        <h3 className="text-base font-bold text-[#0D2B55] mb-2">{title}</h3>
-        <p className="text-sm text-[#64748B] mb-5">{message}</p>
+    <div
+      className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4"
+      onClick={onCancel}
+      aria-hidden="true"
+    >
+      <div
+        ref={dialogRef}
+        role="alertdialog"
+        aria-modal="true"
+        aria-labelledby="confirm-dialog-title"
+        aria-describedby="confirm-dialog-message"
+        className="bg-white rounded-2xl w-[380px] max-w-[95vw] p-5"
+        onClick={e => e.stopPropagation()}
+      >
+        <h3 id="confirm-dialog-title" className="text-base font-bold text-[#0D2B55] mb-2">{title}</h3>
+        <p id="confirm-dialog-message" className="text-sm text-[#64748B] mb-5">{message}</p>
         <div className="flex justify-end gap-2">
-          <button onClick={onCancel} disabled={loading}
-            className="text-sm px-4 py-2 rounded-lg border border-[#DDE5F0] bg-white hover:bg-[#F0F4FA] disabled:opacity-50">Cancel</button>
-          <button onClick={onConfirm} disabled={loading}
-            className="text-sm px-4 py-2 rounded-lg bg-[#B91C1C] text-white hover:bg-[#991B1B] disabled:opacity-50">
+          <button
+            onClick={onCancel}
+            disabled={loading}
+            className="text-sm px-4 py-2.5 rounded-lg border border-[#DDE5F0] bg-white hover:bg-[#F0F4FA] disabled:opacity-50 cursor-pointer min-h-[40px]"
+          >
+            Cancel
+          </button>
+          <button
+            ref={confirmRef}
+            onClick={onConfirm}
+            disabled={loading}
+            className="text-sm px-4 py-2.5 rounded-lg bg-[#B91C1C] text-white hover:bg-[#991B1B] disabled:opacity-50 cursor-pointer min-h-[40px]"
+          >
             {loading ? 'Deleting…' : confirmLabel}
           </button>
         </div>

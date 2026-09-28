@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { api } from '@/lib/api';
+import { Search, CheckCircle2 } from 'lucide-react';
 
 interface StudentBalance { student_id: string; student_name: string; class_name: string; total_due: number; total_paid: number; balance: number; status: string; }
 
@@ -73,7 +74,7 @@ export default function OutstandingTab() {
 
       <div className="flex items-center gap-2.5 mb-4">
         <div className="relative flex-1 max-w-xs">
-          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[#64748B] text-xs">🔍</span>
+          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[#64748B] text-xs" aria-hidden="true"><Search size={16} /></span>
           <input type="text" value={searchQuery} onChange={e => setSearchQuery(e.target.value)} placeholder="Search student…"
             className="w-full pl-8 pr-3 py-2 rounded-lg border border-[#DDE5F0] text-sm outline-none focus:border-[#1A7A4A]" />
         </div>
@@ -89,7 +90,9 @@ export default function OutstandingTab() {
       <div className="bg-white border border-[#DDE5F0] rounded-xl overflow-x-auto">
         {loading ? <div className="p-8 text-center text-sm text-[#64748B]">Loading report…</div>
         : filtered.length === 0 ? (
-          <div className="p-8 text-center text-sm text-[#64748B]">{report.length === 0 ? '🎉 All fees fully paid!' : 'No students match your filter.'}</div>
+          <div className="p-8 text-center text-sm text-[#64748B]">{report.length === 0
+            ? <><CheckCircle2 size={16} className="inline align-[-3px] mr-1" aria-hidden="true" />All fees fully paid!</>
+            : 'No students match your filter.'}</div>
         ) : (
           <table className="w-full text-xs">
             <thead>
@@ -110,7 +113,7 @@ export default function OutstandingTab() {
                   <td className="px-4 py-3 text-[#1A7A4A]">₦{r.total_paid.toLocaleString()}</td>
                   <td className="px-4 py-3 font-bold text-[#B91C1C]">₦{r.balance.toLocaleString()}</td>
                   <td className="px-4 py-3">
-                    <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold ${r.status === 'unpaid' ? 'bg-[#FEE2E2] text-[#B91C1C]' : 'bg-[#FEF3C7] text-[#D4930A]'}`}>{r.status}</span>
+                    <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold ${r.status === 'unpaid' ? 'bg-[#FEE2E2] text-[#B91C1C]' : 'bg-[#FEF3C7] text-[#D4930A]'}`}>{r.status}</span>
                   </td>
                 </tr>
               ))}

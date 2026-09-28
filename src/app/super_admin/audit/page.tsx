@@ -87,7 +87,7 @@ export default function SuperAdminAudit() {
               <div key={log.id} className="px-4 py-3 hover:bg-[#F8FAFC] transition-colors">
                 <div className="flex items-center justify-between mb-1">
                   <div className="flex items-center gap-2">
-                    <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${ACTION_COLORS[log.action] || 'bg-[#F0F4FA] text-[#64748B]'}`}>
+                    <span className={`px-2 py-0.5 rounded-full text-xs font-bold ${ACTION_COLORS[log.action] || 'bg-[#F0F4FA] text-[#64748B]'}`}>
                       {log.action}
                     </span>
                     <span className="text-xs font-semibold text-[#0D2B55]">{log.model_name}</span>
@@ -95,11 +95,11 @@ export default function SuperAdminAudit() {
                       <span className="text-[11px] text-[#64748B]">— {log.object_repr}</span>
                     )}
                   </div>
-                  <span className="text-[10px] text-[#64748B]">
+                  <span className="text-xs text-[#64748B]">
                     {new Date(log.created_at).toLocaleString('en-NG', { dateStyle: 'medium', timeStyle: 'short' })}
                   </span>
                 </div>
-                <div className="flex items-center gap-3 text-[10px] text-[#64748B]">
+                <div className="flex items-center gap-3 text-xs text-[#64748B]">
                   {log.user && <span>User: {log.user}</span>}
                   {log.object_id && <span>ID: {log.object_id}</span>}
                 </div>

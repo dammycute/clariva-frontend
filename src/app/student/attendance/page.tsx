@@ -31,19 +31,19 @@ export default function StudentAttendancePage() {
       <div className="grid grid-cols-4 gap-4 mb-5">
         <div className="bg-white border border-[#DDE5F0] rounded-xl p-4 text-center">
           <p className="text-2xl font-bold text-[#0D2B55]">{records.length}</p>
-          <p className="text-[10px] text-[#64748B]">Total</p>
+          <p className="text-xs text-[#64748B]">Total</p>
         </div>
         <div className="bg-white border border-[#DDE5F0] rounded-xl p-4 text-center">
           <p className="text-2xl font-bold text-[#1A7A4A]">{present}</p>
-          <p className="text-[10px] text-[#64748B]">Present</p>
+          <p className="text-xs text-[#64748B]">Present</p>
         </div>
         <div className="bg-white border border-[#DDE5F0] rounded-xl p-4 text-center">
           <p className="text-2xl font-bold text-[#D4930A]">{late}</p>
-          <p className="text-[10px] text-[#64748B]">Late</p>
+          <p className="text-xs text-[#64748B]">Late</p>
         </div>
         <div className="bg-white border border-[#DDE5F0] rounded-xl p-4 text-center">
           <p className="text-2xl font-bold text-[#B91C1C]">{absent}</p>
-          <p className="text-[10px] text-[#64748B]">Absent</p>
+          <p className="text-xs text-[#64748B]">Absent</p>
         </div>
       </div>
 
@@ -73,7 +73,7 @@ export default function StudentAttendancePage() {
                 <tr key={i} className="hover:bg-[#F8FAFF] border-t border-[#DDE5F0]">
                   <td className="px-4 py-2.5">{new Date(r.date).toLocaleDateString('en-NG', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' })}</td>
                   <td className="px-4 py-2.5">
-                    <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
+                    <span className={`px-2 py-0.5 rounded text-xs font-bold ${
                       r.status === 'present' ? 'bg-[#DCFCE7] text-[#1A7A4A]' :
                       r.status === 'late' ? 'bg-[#FEF3C7] text-[#D4930A]' : 'bg-[#FEE2E2] text-[#B91C1C]'
                     }`}>{r.status}</span>

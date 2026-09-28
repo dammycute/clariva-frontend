@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { api } from '@/lib/api';
 import ConfirmDialog from '@/components/confirm-dialog';
+import { Check, X } from 'lucide-react';
 
 interface Subject { id: string; name: string; code: string; year_group: string | null; class_name: string | null; teacher: string | null; teacher_name: string | null; is_core: boolean; }
 interface Staff { id: string; full_name: string; }
@@ -122,7 +123,7 @@ export default function SubjectsTab({ onRefresh }: { onRefresh: () => void }) {
                   <td className="px-4 py-3 text-[#64748B]">{s.code || '—'}</td>
                   <td className="px-4 py-3">{s.class_name || 'All'}</td>
                   <td className="px-4 py-3">{s.teacher_name || '—'}</td>
-                  <td className="px-4 py-3">{s.is_core ? <span className="text-[#1A7A4A]">✓</span> : '—'}</td>
+                  <td className="px-4 py-3">{s.is_core ? <span className="text-[#1A7A4A]" aria-label="Core subject"><Check size={16} aria-hidden="true" /></span> : '—'}</td>
                   <td className="px-4 py-3">
                     <button onClick={() => openEdit(s)} className="text-[11px] text-[#1A7A4A] hover:underline mr-2">Edit</button>
                     <button onClick={() => setConfirmDelete(s.id)} className="text-[11px] text-[#B91C1C] hover:underline">Delete</button>
@@ -141,7 +142,7 @@ export default function SubjectsTab({ onRefresh }: { onRefresh: () => void }) {
           <div className="bg-white rounded-2xl w-[480px] max-w-[95vw]" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between p-5 pb-0">
               <h2 className="text-base font-bold text-[#0D2B55]">{editId ? 'Edit Subject' : 'Add Subject'}</h2>
-              <button onClick={() => setShowForm(false)} className="text-[#64748B] hover:text-[#0D2B55] text-lg">✕</button>
+              <button onClick={() => setShowForm(false)} className="text-[#64748B] hover:text-[#0D2B55] text-lg" aria-label="Close"><X size={16} aria-hidden="true" /></button>
             </div>
             <form onSubmit={handleSave} className="p-5 space-y-3.5">
               <div className="grid grid-cols-2 gap-3">

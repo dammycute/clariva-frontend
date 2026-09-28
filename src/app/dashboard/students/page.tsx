@@ -4,6 +4,7 @@ import { Suspense, useState, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
 import StudentsTab from './students-tab';
 import ClassesTab from './classes-tab';
+import { Users, BookOpen } from 'lucide-react';
 
 function StudentsPageInner() {
   const searchParams = useSearchParams();
@@ -29,7 +30,7 @@ function StudentsPageInner() {
             tab === 'students' ? 'bg-[#0D2B55] text-white' : 'text-[#64748B] hover:text-[#0D2B55]'
           }`}
         >
-          👥 Students
+          <Users size={16} aria-hidden="true" className="inline align-[-3px] mr-1.5" />Students
         </button>
         <button
           onClick={() => setTab('classes')}
@@ -37,7 +38,7 @@ function StudentsPageInner() {
             tab === 'classes' ? 'bg-[#0D2B55] text-white' : 'text-[#64748B] hover:text-[#0D2B55]'
           }`}
         >
-          📚 Classes
+          <BookOpen size={16} aria-hidden="true" className="inline align-[-3px] mr-1.5" />Classes
         </button>
       </div>
 
