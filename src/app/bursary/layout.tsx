@@ -1,15 +1,23 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { LogOut } from 'lucide-react';
 import NotificationBell from '@/components/notification-bell';
 import { auth } from '@/lib/api';
+import { findActiveHref } from '@/lib/nav-active';
+
+const BURSARY_NAV = [
+  { label: 'Dashboard', href: '/bursary' },
+  { label: 'Invoices', href: '/bursary/invoices' },
+];
 
 export default function BursaryLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
+  const pathname = usePathname();
   const [user, setUser] = useState<{ first_name: string; last_name: string; role: string } | null>(null);
+  const activeHref = findActiveHref(BURSARY_NAV.map(i => i.href), pathname, '');
 
   useEffect(() => {
     auth.me().then(u => {
@@ -32,8 +40,23 @@ export default function BursaryLayout({ children }: { children: React.ReactNode 
         <div className="flex items-center gap-4">
           <Link href="/bursary" className="font-bold text-sm text-[#0D2B55]">Bursary Portal</Link>
           <nav aria-label="Bursary navigation" className="hidden md:flex items-center gap-1">
-            <Link href="/bursary" className="px-3 py-1.5 text-xs rounded-lg hover:bg-[#F0F4FA] text-[#64748B] hover:text-[#0D2B55] font-medium">Dashboard</Link>
-            <Link href="/bursary/invoices" className="px-3 py-1.5 text-xs rounded-lg hover:bg-[#F0F4FA] text-[#64748B] hover:text-[#0D2B55] font-medium">Invoices</Link>
+            {BURSARY_NAV.map(item => {
+              const isActive = item.href === activeHref;
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  aria-current={isActive ? 'page' : undefined}
+                  className={`px-3 py-1.5 text-xs rounded-lg font-medium transition-colors ${
+                    isActive
+                      ? 'bg-[#E8F0FA] text-[#0D2B55]'
+                      : 'hover:bg-[#F0F4FA] text-[#64748B] hover:text-[#0D2B55]'
+                  }`}
+                >
+                  {item.label}
+                </Link>
+              );
+            })}
           </nav>
         </div>
         <div className="flex items-center gap-3">

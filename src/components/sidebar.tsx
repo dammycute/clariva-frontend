@@ -1,9 +1,10 @@
 'use client';
 
-import { useState, useEffect, useCallback, type ReactNode } from 'react';
+import { useState, useEffect, useCallback, Suspense, type ReactNode } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useSearchParams } from 'next/navigation';
 import { Menu, X } from 'lucide-react';
+import { findActiveHref } from '@/lib/nav-active';
 
 export interface NavItem {
   label: string;
@@ -18,16 +19,46 @@ export interface NavSection {
 
 interface SidebarProps {
   sections: NavSection[];
-  /** Active state matcher: default is exact match, pass custom for prefix matching */
-  activeMatch?: (href: string, pathname: string) => boolean;
 }
 
-function defaultActiveMatch(href: string, pathname: string): boolean {
-  if (href === '/') return pathname === '/';
-  return pathname === href || pathname.startsWith(href + '/') || pathname.startsWith(href + '?');
+function NavContent({ sections, pathname, onNavigate }: { sections: NavSection[]; pathname: string; onNavigate?: () => void }) {
+  const searchParams = useSearchParams();
+  const allHrefs = sections.flatMap(s => s.items.map(i => i.href));
+  const activeHref = findActiveHref(allHrefs, pathname, searchParams.toString());
+
+  return (
+    <>
+      {sections.map((section) => (
+        <div key={section.section}>
+          <div className="text-[11px] font-bold tracking-wider text-[#64748B] uppercase px-5 pt-[18px] pb-1.5">
+            {section.section}
+          </div>
+          {section.items.map((item) => {
+            const isActive = item.href === activeHref;
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                onClick={onNavigate}
+                aria-current={isActive ? 'page' : undefined}
+                className={`flex items-center gap-3 px-5 py-2.5 text-sm transition-colors relative min-h-[44px] ${
+                  isActive
+                    ? 'bg-[#E8F0FA] text-[#0D2B55] font-semibold before:absolute before:left-0 before:top-0 before:bottom-0 before:w-[3px] before:bg-[#1A7A4A] before:rounded-r-sm'
+                    : 'text-[#64748B] hover:bg-[#F0F4FA] hover:text-[#0D2B55]'
+                }`}
+              >
+                <span className="w-5 h-5 flex-shrink-0 flex items-center justify-center">{item.icon}</span>
+                {item.label}
+              </Link>
+            );
+          })}
+        </div>
+      ))}
+    </>
+  );
 }
 
-export function Sidebar({ sections, activeMatch = defaultActiveMatch }: SidebarProps) {
+export function Sidebar({ sections }: SidebarProps) {
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
 
@@ -53,34 +84,9 @@ export function Sidebar({ sections, activeMatch = defaultActiveMatch }: SidebarP
   }, [mobileOpen]);
 
   const navContent = (
-    <>
-      {sections.map((section) => (
-        <div key={section.section}>
-          <div className="text-[11px] font-bold tracking-wider text-[#64748B] uppercase px-5 pt-[18px] pb-1.5">
-            {section.section}
-          </div>
-          {section.items.map((item) => {
-            const isActive = activeMatch(item.href, pathname);
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                onClick={close}
-                aria-current={isActive ? 'page' : undefined}
-                className={`flex items-center gap-3 px-5 py-2.5 text-sm transition-colors relative min-h-[44px] ${
-                  isActive
-                    ? 'bg-[#E8F0FA] text-[#0D2B55] font-semibold before:absolute before:left-0 before:top-0 before:bottom-0 before:w-[3px] before:bg-[#1A7A4A] before:rounded-r-sm'
-                    : 'text-[#64748B] hover:bg-[#F0F4FA] hover:text-[#0D2B55]'
-                }`}
-              >
-                <span className="w-5 h-5 flex-shrink-0 flex items-center justify-center">{item.icon}</span>
-                {item.label}
-              </Link>
-            );
-          })}
-        </div>
-      ))}
-    </>
+    <Suspense fallback={null}>
+      <NavContent sections={sections} pathname={pathname} onNavigate={close} />
+    </Suspense>
   );
 
   return (

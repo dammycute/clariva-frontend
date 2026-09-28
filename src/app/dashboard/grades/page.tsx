@@ -1,6 +1,7 @@
 'use client';
 
-import { useState } from 'react';
+import { Suspense, useState, useEffect } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { BookOpen, FilePenLine, FileText, Settings } from 'lucide-react';
 import SubjectsTab from './subjects-tab';
 import GradeEntryTab from './grade-entry-tab';
@@ -16,10 +17,24 @@ const TABS: { id: Tab; label: string; icon: React.ReactNode }[] = [
   { id: 'settings', label: 'Settings', icon: <Settings size={16} /> },
 ];
 
-export default function GradesPage() {
+const TAB_IDS: Tab[] = TABS.map(t => t.id);
+
+function GradesPageInner() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const [tab, setTab] = useState<Tab>('subjects');
   const [refreshKey, setRefreshKey] = useState(0);
   const refresh = () => setRefreshKey(k => k + 1);
+
+  useEffect(() => {
+    const t = searchParams.get('tab');
+    if (t && (TAB_IDS as string[]).includes(t)) setTab(t as Tab);
+  }, [searchParams]);
+
+  function go(id: Tab) {
+    setTab(id);
+    router.replace(id === 'subjects' ? '/dashboard/grades' : `/dashboard/grades?tab=${id}`, { scroll: false });
+  }
 
   return (
     <div>
@@ -36,7 +51,7 @@ export default function GradesPage() {
             key={t.id}
             role="tab"
             aria-selected={tab === t.id}
-            onClick={() => setTab(t.id)}
+            onClick={() => go(t.id)}
             className={`flex items-center gap-2 px-4 py-2.5 text-sm font-semibold rounded-lg transition-colors whitespace-nowrap cursor-pointer min-h-[40px] ${
               tab === t.id ? 'bg-[#0D2B55] text-white' : 'text-[#64748B] hover:text-[#0D2B55]'
             }`}
@@ -54,4 +69,8 @@ export default function GradesPage() {
       </div>
     </div>
   );
+}
+
+export default function GradesPage() {
+  return <Suspense><GradesPageInner /></Suspense>;
 }

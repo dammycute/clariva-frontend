@@ -1,17 +1,23 @@
 'use client';
 
 import { Suspense, useState, useEffect } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, useRouter } from 'next/navigation';
 import StudentsTab from './students-tab';
 import ClassesTab from './classes-tab';
 import { Users, BookOpen } from 'lucide-react';
 
 function StudentsPageInner() {
   const searchParams = useSearchParams();
+  const router = useRouter();
   const [tab, setTab] = useState<'students' | 'classes'>('students');
   useEffect(() => {
-    if (searchParams.get('tab') === 'classes') setTab('classes');
+    setTab(searchParams.get('tab') === 'classes' ? 'classes' : 'students');
   }, [searchParams]);
+
+  function go(next: 'students' | 'classes') {
+    setTab(next);
+    router.replace(next === 'classes' ? '/dashboard/students?tab=classes' : '/dashboard/students', { scroll: false });
+  }
 
   return (
     <div>
@@ -25,7 +31,7 @@ function StudentsPageInner() {
       {/* Tabs */}
       <div className="flex gap-1 mb-5 bg-white border border-[#DDE5F0] rounded-xl p-1 w-fit">
         <button
-          onClick={() => setTab('students')}
+          onClick={() => go('students')}
           className={`px-4 py-2 text-sm font-semibold rounded-lg transition-colors ${
             tab === 'students' ? 'bg-[#0D2B55] text-white' : 'text-[#64748B] hover:text-[#0D2B55]'
           }`}
@@ -33,7 +39,7 @@ function StudentsPageInner() {
           <Users size={16} aria-hidden="true" className="inline align-[-3px] mr-1.5" />Students
         </button>
         <button
-          onClick={() => setTab('classes')}
+          onClick={() => go('classes')}
           className={`px-4 py-2 text-sm font-semibold rounded-lg transition-colors ${
             tab === 'classes' ? 'bg-[#0D2B55] text-white' : 'text-[#64748B] hover:text-[#0D2B55]'
           }`}

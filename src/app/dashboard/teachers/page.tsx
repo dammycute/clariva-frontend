@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import toast from 'react-hot-toast';
-import { api, auth } from '@/lib/api';
+import { api, auth, ApiError } from '@/lib/api';
 import { downloadCsv } from '@/lib/csv';
 import {
   Table, TableHeader, TableBody, TableRow, TableHead, TableCell,
@@ -13,6 +13,22 @@ interface Staff { id: string; full_name: string; role: string; qualification: st
 
 const STAFF_ROLES = ['Teacher', 'Principal', 'Vice Principal', 'Head of Department', 'Admin', 'Accountant', 'Bursar', 'Nurse', 'Librarian', 'IT Support', 'Security', 'Driver', 'Cleaner'];
 const QUALIFICATIONS = ['NCE', 'OND', 'HND', "Bachelor's", "Master's", 'PhD', 'Other'];
+
+const FIELD_TO_FORM: Record<string, string> = {
+  first_name: 'first_name',
+  last_name: 'last_name',
+  user_email: 'email',
+  user_phone: 'phone',
+  staff_role: 'role',
+  qualification: 'qualification',
+  date_joined: 'date_joined',
+  subjects: 'subjects',
+};
+
+function FieldError({ id, msg }: { id: string; msg?: string }) {
+  if (!msg) return null;
+  return <p id={id} role="alert" className="text-[11px] text-[#B91C1C] mt-1">{msg}</p>;
+}
 
 const COLORS = [
   { bg: '#E8F0FA', text: '#0D2B55' }, { bg: '#DCFCE7', text: '#1A7A4A' },
@@ -32,6 +48,7 @@ export default function StaffPage() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState({ first_name: '', last_name: '', role: 'Teacher', qualification: '', subjects: '', phone: '', email: '', date_joined: '' });
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 
   const [creating, setCreating] = useState<string | null>(null);
   const [creds, setCreds] = useState<{ email: string; password: string } | null>(null);
@@ -57,18 +74,21 @@ export default function StaffPage() {
   function openAdd() {
     setEditingId(null);
     setForm({ first_name: '', last_name: '', role: 'Teacher', qualification: '', subjects: '', phone: '', email: '', date_joined: '' });
+    setFieldErrors({});
     setShowModal(true);
   }
   function openEdit(s: Staff) {
     setEditingId(s.id);
     const nameParts = (s.full_name || '').split(' ');
     setForm({ first_name: nameParts[0] || '', last_name: nameParts.slice(1).join(' ') || '', role: s.role, qualification: s.qualification || '', subjects: s.subjects?.join(', ') || '', phone: s.phone || '', email: s.email || '', date_joined: s.date_joined || '' });
+    setFieldErrors({});
     setShowModal(true);
   }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setSaving(true);
+    setFieldErrors({});
     try {
       const payload: Record<string, unknown> = {
         first_name: form.first_name,
@@ -76,6 +96,7 @@ export default function StaffPage() {
         user_email: form.email,
         user_phone: form.phone || '',
         staff_role: form.role,
+        subjects: form.subjects,
         qualification: form.qualification || undefined,
         date_joined: form.date_joined || undefined,
       };
@@ -86,8 +107,19 @@ export default function StaffPage() {
       }
       setShowModal(false);
       loadStaff();
-    } catch { /* toast shown by api.ts */ }
-    finally { setSaving(false); }
+    } catch (err) {
+      if (err instanceof ApiError) {
+        const mapped: Record<string, string> = {};
+        let general = '';
+        for (const [key, msgs] of Object.entries(err.fields)) {
+          const formKey = FIELD_TO_FORM[key];
+          if (formKey) mapped[formKey] = msgs.join(' ');
+          else general = general || msgs.join(' ');
+        }
+        if (general) mapped._form = general;
+        setFieldErrors(mapped);
+      }
+    } finally { setSaving(false); }
   }
 
   async function resetPassword(s: Staff) {
@@ -309,55 +341,84 @@ export default function StaffPage() {
               <button onClick={() => setShowModal(false)} className="text-[#64748B] hover:text-[#0D2B55] text-lg" aria-label="Close"><X size={16} aria-hidden="true" /></button>
             </div>
             <form onSubmit={handleSubmit} className="p-5 space-y-3.5">
+              {fieldErrors._form && (
+                <p role="alert" className="text-xs text-[#B91C1C] bg-[#FEE2E2] border border-[#FECACA] rounded-lg px-3 py-2">
+                  {fieldErrors._form}
+                </p>
+              )}
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block text-[11px] font-bold text-[#64748B] uppercase mb-1">First name</label>
                   <input value={form.first_name} onChange={e => setForm({ ...form, first_name: e.target.value })} required
+                    aria-invalid={fieldErrors.first_name ? true : undefined}
+                    aria-describedby={fieldErrors.first_name ? 'err-first_name' : undefined}
                     className="w-full px-3 py-2 rounded-lg border border-[#DDE5F0] text-sm outline-none focus:border-[#1A7A4A]" />
+                  <FieldError id="err-first_name" msg={fieldErrors.first_name} />
                 </div>
                 <div>
                   <label className="block text-[11px] font-bold text-[#64748B] uppercase mb-1">Last name</label>
                   <input value={form.last_name} onChange={e => setForm({ ...form, last_name: e.target.value })} required
+                    aria-invalid={fieldErrors.last_name ? true : undefined}
+                    aria-describedby={fieldErrors.last_name ? 'err-last_name' : undefined}
                     className="w-full px-3 py-2 rounded-lg border border-[#DDE5F0] text-sm outline-none focus:border-[#1A7A4A]" />
+                  <FieldError id="err-last_name" msg={fieldErrors.last_name} />
                 </div>
                 <div>
                   <label className="block text-[11px] font-bold text-[#64748B] uppercase mb-1">Role</label>
                   <select value={form.role} onChange={e => setForm({ ...form, role: e.target.value })}
+                    aria-invalid={fieldErrors.role ? true : undefined}
+                    aria-describedby={fieldErrors.role ? 'err-role' : undefined}
                     className="w-full px-3 py-2 rounded-lg border border-[#DDE5F0] text-sm outline-none focus:border-[#1A7A4A] bg-white">
                     {STAFF_ROLES.map(r => <option key={r} value={r}>{r}</option>)}
                   </select>
+                  <FieldError id="err-role" msg={fieldErrors.role} />
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block text-[11px] font-bold text-[#64748B] uppercase mb-1">Qualification</label>
                   <select value={form.qualification} onChange={e => setForm({ ...form, qualification: e.target.value })}
+                    aria-invalid={fieldErrors.qualification ? true : undefined}
+                    aria-describedby={fieldErrors.qualification ? 'err-qualification' : undefined}
                     className="w-full px-3 py-2 rounded-lg border border-[#DDE5F0] text-sm outline-none focus:border-[#1A7A4A] bg-white">
                     <option value="">Select</option>
                     {QUALIFICATIONS.map(q => <option key={q} value={q}>{q}</option>)}
                   </select>
+                  <FieldError id="err-qualification" msg={fieldErrors.qualification} />
                 </div>
                 <div>
                   <label className="block text-[11px] font-bold text-[#64748B] uppercase mb-1">Date joined</label>
                   <input type="date" value={form.date_joined} onChange={e => setForm({ ...form, date_joined: e.target.value })}
+                    aria-invalid={fieldErrors.date_joined ? true : undefined}
+                    aria-describedby={fieldErrors.date_joined ? 'err-date_joined' : undefined}
                     className="w-full px-3 py-2 rounded-lg border border-[#DDE5F0] text-sm outline-none focus:border-[#1A7A4A]" />
+                  <FieldError id="err-date_joined" msg={fieldErrors.date_joined} />
                 </div>
               </div>
               <div>
                 <label className="block text-[11px] font-bold text-[#64748B] uppercase mb-1">Subjects (comma-separated)</label>
                 <input value={form.subjects} onChange={e => setForm({ ...form, subjects: e.target.value })}
+                  aria-invalid={fieldErrors.subjects ? true : undefined}
+                  aria-describedby={fieldErrors.subjects ? 'err-subjects' : undefined}
                   className="w-full px-3 py-2 rounded-lg border border-[#DDE5F0] text-sm outline-none focus:border-[#1A7A4A]" />
+                <FieldError id="err-subjects" msg={fieldErrors.subjects} />
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block text-[11px] font-bold text-[#64748B] uppercase mb-1">Phone</label>
                   <input value={form.phone} onChange={e => setForm({ ...form, phone: e.target.value })}
+                    aria-invalid={fieldErrors.phone ? true : undefined}
+                    aria-describedby={fieldErrors.phone ? 'err-phone' : undefined}
                     className="w-full px-3 py-2 rounded-lg border border-[#DDE5F0] text-sm outline-none focus:border-[#1A7A4A]" />
+                  <FieldError id="err-phone" msg={fieldErrors.phone} />
                 </div>
                 <div>
                   <label className="block text-[11px] font-bold text-[#64748B] uppercase mb-1">Email</label>
                   <input type="email" value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} required
+                    aria-invalid={fieldErrors.email ? true : undefined}
+                    aria-describedby={fieldErrors.email ? 'err-email' : undefined}
                     className="w-full px-3 py-2 rounded-lg border border-[#DDE5F0] text-sm outline-none focus:border-[#1A7A4A]" />
+                  <FieldError id="err-email" msg={fieldErrors.email} />
                 </div>
               </div>
               <div className="flex justify-end gap-2 pt-2">
