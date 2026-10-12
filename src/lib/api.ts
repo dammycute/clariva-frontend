@@ -55,7 +55,7 @@ function setCookie(name: string, value: string) {
   // Secure flags: HttpOnly cannot be set from JS, but server should set it.
   // SameSite=Strict prevents CSRF. Secure requires HTTPS in production.
   const isSecure = window.location.protocol === 'https:';
-  document.cookie = `${name}=${value}; path=/; max-age=${7 * 24 * 60 * 60}; SameSite=Strict${isSecure ? '; Secure' : ''}`;
+  document.cookie = `${name}=${value}; path=/; max-age=${2 * 60 * 60}; SameSite=Strict${isSecure ? '; Secure' : ''}`;
 }
 function deleteCookie(name: string) {
   document.cookie = `${name}=; path=/; max-age=0`;
@@ -178,7 +178,12 @@ export const auth = {
   async me() {
     return request<{ id: number; email: string; first_name: string; last_name: string; phone: string | null; role: string; school_id: number | null }>('GET', '/auth/me/');
   },
-  logout() { clearTokens(); },
+  logout() {
+    const refresh = typeof window !== 'undefined' ? sessionStorage.getItem('refresh_token') : null;
+    // Best-effort server-side revoke; local state is cleared regardless.
+    if (refresh) void request('POST', '/auth/logout/', { refresh }).catch(() => undefined);
+    clearTokens();
+  },
   getToken,
   getRole: () => typeof window !== 'undefined' ? sessionStorage.getItem('user_role') : null,
 };
