@@ -4,11 +4,17 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { portal, auth } from '@/lib/api';
-import { ClipboardList } from 'lucide-react';
+import { AuthShell, FormError } from '@/components/auth-shell';
+import { Button } from '@/components/ui/button';
+import { TextField, PasswordField } from '@/components/ui/text-field';
+
+type Mode = 'code' | 'login' | 'setup';
+
+const naira = (n: number) => `₦${Math.round(n).toLocaleString('en-NG')}`;
 
 export default function GuardianLoginPage() {
   const router = useRouter();
-  const [mode, setMode] = useState<'code' | 'login' | 'setup'>('code');
+  const [mode, setMode] = useState<Mode>('code');
 
   // Code lookup state
   const [code, setCode] = useState('');
@@ -23,9 +29,12 @@ export default function GuardianLoginPage() {
   const [setupPassword, setSetupPassword] = useState('');
   const [setupConfirmPassword, setSetupConfirmPassword] = useState('');
   const [setupStudentCode, setSetupStudentCode] = useState('');
+  const [fieldErrors, setFieldErrors] = useState<{ password?: string; confirm?: string }>({});
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+
+  const switchMode = (m: Mode) => { setMode(m); setError(''); setFieldErrors({}); };
 
   const handleLookup = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -60,14 +69,11 @@ export default function GuardianLoginPage() {
   const handleSetup = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
-    if (setupPassword !== setupConfirmPassword) {
-      setError('Passwords do not match');
-      return;
-    }
-    if (setupPassword.length < 6) {
-      setError('Password must be at least 6 characters');
-      return;
-    }
+    const errors: { password?: string; confirm?: string } = {};
+    if (setupPassword.length < 6) errors.password = 'Use at least 6 characters.';
+    if (setupPassword !== setupConfirmPassword) errors.confirm = 'The two passwords do not match.';
+    setFieldErrors(errors);
+    if (errors.password || errors.confirm) return;
     setLoading(true);
     try {
       await portal.setup(setupPhone, setupPassword, setupStudentCode.toUpperCase().trim());
@@ -81,169 +87,130 @@ export default function GuardianLoginPage() {
     }
   };
 
+  const fee = lookupResult?.fee_summary as Record<string, number> | undefined;
+  const report = lookupResult?.latest_report_card as Record<string, unknown> | null | undefined;
+
+  const heading =
+    mode === 'code' ? (lookupResult ? (lookupResult.full_name as string) : 'Check your child\'s records')
+    : mode === 'login' ? 'Parent sign in'
+    : 'Create a parent account';
+  const subheading =
+    mode === 'code' ? (lookupResult ? `${lookupResult.admission_no as string} · ${(lookupResult.class_name as string) || 'Class not set'}` : 'Enter the access code the school gave you.')
+    : mode === 'login' ? 'Use the phone number you registered with.'
+    : 'You will need your child\'s access code once.';
+
   return (
-    <div className="min-h-screen flex items-center justify-center"
-      style={{
-        background: '#0D2B55',
-        backgroundImage: 'radial-gradient(ellipse at 20% 50%, #1A3F6E 0%, transparent 60%), radial-gradient(ellipse at 80% 20%, #0F2D5A 0%, transparent 50%)',
-      }}
-    >
-      <div className="w-full max-w-[400px] mx-4">
-        <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-8">
-          <div className="flex items-center gap-3 mb-6">
-            <div className="w-10 h-10 bg-[#1A7A4A] rounded-lg flex items-center justify-center text-white font-bold text-lg">C</div>
-            <span className="font-semibold text-xl text-white">Clariva</span>
-          </div>
+    <AuthShell sideLink={{ href: '/', label: 'School staff and students sign in here' }}>
+      <h1 className="text-2xl font-semibold text-ink tracking-tight text-balance">{heading}</h1>
+      <p className="text-sm text-muted mt-1 mb-6">{subheading}</p>
 
-          {/* Mode tabs */}
-          <div className="flex gap-2 mb-6">
-            <button onClick={() => { setMode('code'); setError(''); setLookupResult(null); }}
-              className={`text-xs px-3 py-1.5 rounded-lg transition-colors ${mode === 'code' ? 'bg-[#1A7A4A] text-white' : 'bg-white/10 text-white/60 hover:bg-white/20'}`}>
-              Student Code
+      {mode !== 'setup' && !lookupResult && (
+        <div role="tablist" aria-label="Parent access" className="flex gap-5 border-b border-line mb-6">
+          {([['code', 'Access code'], ['login', 'Parent account']] as const).map(([m, label]) => (
+            <button
+              key={m}
+              role="tab"
+              aria-selected={mode === m}
+              onClick={() => { switchMode(m); setLookupResult(null); }}
+              className={`pb-2.5 -mb-px text-sm border-b-2 cursor-pointer transition-colors ${
+                mode === m ? 'border-brand text-ink font-semibold' : 'border-transparent text-muted hover:text-ink'
+              }`}
+            >
+              {label}
             </button>
-            <button onClick={() => { setMode('login'); setError(''); }}
-              className={`text-xs px-3 py-1.5 rounded-lg transition-colors ${mode === 'login' ? 'bg-[#1A7A4A] text-white' : 'bg-white/10 text-white/60 hover:bg-white/20'}`}>
-              Parent Login
-            </button>
-          </div>
+          ))}
+        </div>
+      )}
 
-          {mode === 'code' && !lookupResult && (
-            <form onSubmit={handleLookup}>
-              <p className="text-white/60 text-sm mb-4">Enter the student access code from the school</p>
-              <div className="mb-3.5">
-                <input type="text" value={code} onChange={e => setCode(e.target.value.toUpperCase())}
-                  placeholder="CLR-XXXXXXXX" maxLength={12} required
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-white/10 border border-white/20 text-white text-sm outline-none focus:border-[#1A7A4A] placeholder:text-white/30 font-mono" />
+      {mode === 'code' && !lookupResult && (
+        <form onSubmit={handleLookup} className="space-y-4">
+          <TextField id="guardian-code" label="Access code" value={code}
+            onChange={e => setCode(e.target.value.toUpperCase())}
+            placeholder="CLR-XXXXXXXX" maxLength={12} required className="font-mono tracking-wider" />
+          <FormError>{error}</FormError>
+          <Button type="submit" disabled={loading || !code.trim()} className="w-full">
+            {loading ? 'Looking up…' : 'View records'}
+          </Button>
+        </form>
+      )}
+
+      {mode === 'code' && lookupResult && fee && (
+        <div className="space-y-6">
+          <dl className="grid grid-cols-3 border-y border-line py-4">
+            {([['Due', fee.total_due, ''], ['Paid', fee.total_paid, ''], ['Balance', fee.balance, fee.balance > 0 ? 'text-danger' : 'text-success']] as const).map(([label, value, tone]) => (
+              <div key={label}>
+                <dt className="text-[13px] text-muted">{label}</dt>
+                <dd className={`text-base font-semibold tabular-nums mt-0.5 ${tone || 'text-ink'}`}>{naira(value)}</dd>
               </div>
-              {error && <p className="text-red-300 text-xs mb-3">{error}</p>}
-              <button type="submit" disabled={loading}
-                className="w-full py-3 rounded-xl bg-[#1A7A4A] text-white text-sm font-bold hover:bg-[#14663D] disabled:opacity-50">
-                {loading ? 'Looking up…' : 'View Records →'}
-              </button>
-            </form>
-          )}
+            ))}
+          </dl>
 
-          {mode === 'code' && lookupResult && (
+          {!!report && (
             <div>
-              <div className="text-center mb-5">
-                <div className="text-3xl mb-2" aria-hidden="true"><ClipboardList size={24} /></div>
-                <h2 className="text-lg font-bold text-white">{lookupResult.full_name as string}</h2>
-                <p className="text-xs text-white/50">{lookupResult.admission_no as string} · {lookupResult.class_name as string || '—'}</p>
-              </div>
-
-              <div className="bg-white/10 rounded-xl p-4 mb-4">
-                <p className="text-xs text-white/50 font-bold uppercase mb-2">Fee Summary</p>
-                <div className="grid grid-cols-3 gap-2 text-center">
-                  <div>
-                    <p className="text-xs text-white/50">Due</p>
-                    <p className="text-sm font-bold text-white">₦{(lookupResult.fee_summary as Record<string, number>).total_due.toLocaleString()}</p>
-                  </div>
-                  <div>
-                    <p className="text-xs text-white/50">Paid</p>
-                    <p className="text-sm font-bold text-[#4ADE80]">₦{(lookupResult.fee_summary as Record<string, number>).total_paid.toLocaleString()}</p>
-                  </div>
-                  <div>
-                    <p className="text-xs text-white/50">Balance</p>
-                    <p className={`text-sm font-bold ${(lookupResult.fee_summary as Record<string, number>).balance > 0 ? 'text-[#FB7185]' : 'text-[#4ADE80]'}`}>
-                      ₦{(lookupResult.fee_summary as Record<string, number>).balance.toLocaleString()}
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              {!!lookupResult.latest_report_card && (
-                <div className="bg-white/10 rounded-xl p-4 mb-5">
-                  <p className="text-xs text-white/50 font-bold uppercase mb-2">Latest Report Card</p>
-                  <p className="text-xs text-white/70">{(lookupResult.latest_report_card as Record<string, unknown>).term as string} {(lookupResult.latest_report_card as Record<string, unknown>).academic_year as string}</p>
-                  <p className="text-lg font-bold text-white">{(lookupResult.latest_report_card as Record<string, number>).average}%</p>
-                </div>
-              )}
-
-              <div className="bg-[#1A3F6E] border border-white/10 rounded-xl p-4 text-center mb-4">
-                <p className="text-xs text-white/70 mb-2">Set up a parent account to check anytime without the code</p>
-                <button onClick={() => { setMode('setup'); setSetupStudentCode(code); setError(''); }}
-                  className="text-xs px-4 py-2 rounded-lg bg-[#1A7A4A] text-white hover:bg-[#14663D]">
-                  Set Up Account
-                </button>
-              </div>
-
-              <button onClick={() => { setLookupResult(null); setCode(''); }}
-                className="text-xs text-white/50 hover:text-white/80 underline block mx-auto">
-                Look up another code
-              </button>
+              <p className="text-[13px] text-muted">Latest report card, {report.term as string} {report.academic_year as string}</p>
+              <p className="text-2xl font-semibold text-ink tabular-nums mt-0.5">{report.average as number}%</p>
             </div>
           )}
 
-          {mode === 'login' && (
-            <form onSubmit={handleLogin}>
-              <p className="text-white/60 text-sm mb-4">Sign in to your parent account</p>
-              <div className="mb-3.5">
-                <label className="block text-white/70 text-xs font-semibold mb-1.5 uppercase">Phone Number</label>
-                <input type="tel" value={loginPhone} onChange={e => setLoginPhone(e.target.value)} required
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-white/10 border border-white/20 text-white text-sm outline-none focus:border-[#1A7A4A] placeholder:text-white/30" />
-              </div>
-              <div className="mb-3.5">
-                <label className="block text-white/70 text-xs font-semibold mb-1.5 uppercase">Password</label>
-                <input type="password" value={loginPassword} onChange={e => setLoginPassword(e.target.value)} required minLength={6}
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-white/10 border border-white/20 text-white text-sm outline-none focus:border-[#1A7A4A] placeholder:text-white/30" />
-              </div>
-              {error && <p className="text-red-300 text-xs mb-3">{error}</p>}
-              <button type="submit" disabled={loading}
-                className="w-full py-3 rounded-xl bg-[#1A7A4A] text-white text-sm font-bold hover:bg-[#14663D] disabled:opacity-50">
-                {loading ? 'Signing in…' : 'Access Portal →'}
-              </button>
-              <p className="mt-3 text-center">
-                <button type="button" onClick={() => { setMode('setup'); setError(''); }}
-                  className="text-xs text-white/50 hover:text-white/70 underline">
-                  First time? Set up access
-                </button>
-              </p>
-            </form>
-          )}
-
-          {mode === 'setup' && (
-            <form onSubmit={handleSetup}>
-              <p className="text-white/60 text-sm mb-4">Create a parent account</p>
-              <div className="mb-3.5">
-                <label className="block text-white/70 text-xs font-semibold mb-1.5 uppercase">Phone Number</label>
-                <input type="tel" value={setupPhone} onChange={e => setSetupPhone(e.target.value)} required
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-white/10 border border-white/20 text-white text-sm outline-none focus:border-[#1A7A4A] placeholder:text-white/30" />
-              </div>
-              <div className="mb-3.5">
-                <label className="block text-white/70 text-xs font-semibold mb-1.5 uppercase">Password (min 6 characters)</label>
-                <input type="password" value={setupPassword} onChange={e => setSetupPassword(e.target.value)} required minLength={6}
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-white/10 border border-white/20 text-white text-sm outline-none focus:border-[#1A7A4A] placeholder:text-white/30" />
-              </div>
-              <div className="mb-3.5">
-                <label className="block text-white/70 text-xs font-semibold mb-1.5 uppercase">Confirm Password</label>
-                <input type="password" value={setupConfirmPassword} onChange={e => setSetupConfirmPassword(e.target.value)} required minLength={6}
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-white/10 border border-white/20 text-white text-sm outline-none focus:border-[#1A7A4A] placeholder:text-white/30" />
-              </div>
-              <div className="mb-3.5">
-                <label className="block text-white/70 text-xs font-semibold mb-1.5 uppercase">Student Code</label>
-                <input type="text" value={setupStudentCode} onChange={e => setSetupStudentCode(e.target.value.toUpperCase())}
-                  placeholder="CLR-XXXXXXXX" maxLength={12} required
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-white/10 border border-white/20 text-white text-sm outline-none focus:border-[#1A7A4A] placeholder:text-white/30 font-mono" />
-              </div>
-              {error && <p className="text-red-300 text-xs mb-3">{error}</p>}
-              <button type="submit" disabled={loading}
-                className="w-full py-3 rounded-xl bg-[#1A7A4A] text-white text-sm font-bold hover:bg-[#14663D] disabled:opacity-50">
-                {loading ? 'Setting up…' : 'Create Account →'}
-              </button>
-              <p className="mt-3 text-center">
-                <button type="button" onClick={() => { setMode('login'); setError(''); }}
-                  className="text-xs text-white/50 hover:text-white/70 underline">
-                  Already have an account? Log in
-                </button>
-              </p>
-            </form>
-          )}
-
-          <p className="mt-4 text-center text-xs text-white/40">
-            <Link href="/" className="text-white/70 underline">School staff login →</Link>
-          </p>
+          <div className="space-y-3">
+            <Button onClick={() => { setSetupStudentCode(code); switchMode('setup'); }} className="w-full">
+              Create a parent account
+            </Button>
+            <p className="text-[13px] text-muted">An account lets you check records any time, without the code.</p>
+            <button onClick={() => { setLookupResult(null); setCode(''); }}
+              className="text-[13px] text-ink underline underline-offset-2 cursor-pointer">
+              Look up another code
+            </button>
+          </div>
         </div>
-      </div>
-    </div>
+      )}
+
+      {mode === 'login' && (
+        <form onSubmit={handleLogin} className="space-y-4">
+          <TextField id="guardian-phone" label="Phone number" type="tel" autoComplete="username" value={loginPhone}
+            onChange={e => setLoginPhone(e.target.value)} placeholder="08012345678" required />
+          <PasswordField id="guardian-password" label="Password" autoComplete="current-password" value={loginPassword}
+            onChange={e => setLoginPassword(e.target.value)} required minLength={6} />
+          <FormError>{error}</FormError>
+          <Button type="submit" disabled={loading} className="w-full">
+            {loading ? 'Signing in…' : 'Sign in'}
+          </Button>
+          <p className="text-[13px] text-muted">
+            First time here?{' '}
+            <button type="button" onClick={() => switchMode('setup')} className="text-ink underline underline-offset-2 cursor-pointer">
+              Create an account
+            </button>
+          </p>
+        </form>
+      )}
+
+      {mode === 'setup' && (
+        <form onSubmit={handleSetup} className="space-y-4" noValidate>
+          <TextField id="setup-phone" label="Phone number" type="tel" autoComplete="username" value={setupPhone}
+            onChange={e => setSetupPhone(e.target.value)} placeholder="08012345678" required />
+          <PasswordField id="setup-password" label="Password" autoComplete="new-password" value={setupPassword}
+            onChange={e => setSetupPassword(e.target.value)} hint="At least 6 characters." error={fieldErrors.password} required />
+          <PasswordField id="setup-confirm" label="Confirm password" autoComplete="new-password" value={setupConfirmPassword}
+            onChange={e => setSetupConfirmPassword(e.target.value)} error={fieldErrors.confirm} required />
+          <TextField id="setup-code" label="Student access code" value={setupStudentCode}
+            onChange={e => setSetupStudentCode(e.target.value.toUpperCase())}
+            placeholder="CLR-XXXXXXXX" maxLength={12} required className="font-mono tracking-wider" />
+          <FormError>{error}</FormError>
+          <Button type="submit" disabled={loading} className="w-full">
+            {loading ? 'Creating account…' : 'Create account'}
+          </Button>
+          <p className="text-[13px] text-muted">
+            Already have an account?{' '}
+            <button type="button" onClick={() => switchMode('login')} className="text-ink underline underline-offset-2 cursor-pointer">
+              Sign in
+            </button>
+          </p>
+        </form>
+      )}
+
+      <p className="text-[13px] text-muted mt-8 lg:hidden">
+        <Link href="/" className="underline underline-offset-2 hover:text-ink">School staff and students sign in here</Link>
+      </p>
+    </AuthShell>
   );
 }

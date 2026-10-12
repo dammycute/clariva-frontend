@@ -54,45 +54,45 @@ export default function TeacherAttendancePage() {
 
   return (
     <div>
-      <h1 className="text-xl font-bold text-[#0D2B55] mb-1">Mark Attendance</h1>
-      <p className="text-xs text-[#64748B] mb-5">For your assigned classes</p>
+      <h1 className="text-xl font-semibold text-ink mb-1">Mark Attendance</h1>
+      <p className="text-xs text-muted mb-5">For your assigned classes</p>
 
       <div className="flex items-center gap-3 mb-4">
         <select value={selectedClass} onChange={e => setSelectedClass(e.target.value)}
-          className="text-sm border border-[#DDE5F0] rounded-lg px-3 py-2 bg-white outline-none">
+          className="text-sm border border-line rounded px-3 py-2 bg-surface outline-none">
           <option value="">Select class</option>
           {classes.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
         </select>
         <input type="date" value={date} onChange={e => setDate(e.target.value)}
-          className="text-sm border border-[#DDE5F0] rounded-lg px-3 py-2 outline-none" />
+          className="text-sm border border-line rounded px-3 py-2 outline-none" />
       </div>
 
       {selectedClass && (
-        <div className="bg-white border border-[#DDE5F0] rounded-xl overflow-hidden">
-          <div className="px-4 py-2.5 border-b border-[#DDE5F0] bg-[#F8FAFF] flex items-center justify-between">
-            <span className="text-xs font-bold text-[#0D2B55]">{students.length} students</span>
+        <div className="bg-surface border border-line rounded overflow-hidden">
+          <div className="px-4 py-2.5 border-b border-line bg-page flex items-center justify-between">
+            <span className="text-xs font-semibold text-ink">{students.length} students</span>
             <div className="flex gap-1.5">
-              <button onClick={() => setAll('present')} className="text-xs px-2 py-1 rounded bg-[#DCFCE7] text-[#1A7A4A] font-bold">All Present</button>
-              <button onClick={() => setAll('absent')} className="text-xs px-2 py-1 rounded bg-[#FEE2E2] text-[#B91C1C] font-bold">All Absent</button>
+              <button onClick={() => setAll('present')} className="text-xs px-2 py-1 rounded bg-success/10 text-success font-semibold">All Present</button>
+              <button onClick={() => setAll('absent')} className="text-xs px-2 py-1 rounded bg-danger-soft text-danger font-semibold">All Absent</button>
               <button onClick={saveAll} disabled={saving}
-                className="text-xs px-2 py-1 rounded bg-[#0D2B55] text-white font-bold disabled:opacity-50">
+                className="text-xs px-2 py-1 rounded bg-brand text-brand-ink font-semibold disabled:opacity-50">
                 {saving ? 'Saving…' : 'Save'}
               </button>
             </div>
           </div>
           {students.map(s => (
-            <div key={s.id} className="px-4 py-2.5 flex items-center justify-between border-b border-[#DDE5F0] last:border-b-0 hover:bg-[#F8FAFF]">
+            <div key={s.id} className="px-4 py-2.5 flex items-center justify-between border-b border-line last:border-b-0 hover:bg-page">
               <div>
-                <p className="text-xs font-semibold text-[#0D2B55]">{s.first_name} {s.last_name}</p>
-                <p className="text-xs text-[#64748B]">{s.admission_no}</p>
+                <p className="text-xs font-semibold text-ink">{s.first_name} {s.last_name}</p>
+                <p className="text-xs text-muted">{s.admission_no}</p>
               </div>
               <div className="flex gap-1">
                 {['present', 'absent', 'late'].map(st => (
                   <button key={st} onClick={() => setAttendance({ ...attendance, [s.id]: st })}
-                    className={`text-xs px-2.5 py-1 rounded font-bold capitalize ${
+                    className={`text-xs px-2.5 py-1 rounded font-semibold capitalize ${
                       attendance[s.id] === st
-                        ? st === 'present' ? 'bg-[#DCFCE7] text-[#1A7A4A]' : st === 'late' ? 'bg-[#FEF3C7] text-[#D4930A]' : 'bg-[#FEE2E2] text-[#B91C1C]'
-                        : 'bg-[#F0F4FA] text-[#64748B]'
+                        ? st === 'present' ? 'bg-success/10 text-success' : st === 'late' ? 'bg-warning/10 text-warning' : 'bg-danger-soft text-danger'
+                        : 'bg-surface-2 text-muted'
                     }`}>{st}</button>
                 ))}
               </div>

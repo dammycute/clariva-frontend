@@ -18,27 +18,78 @@
 
   --background: var(--off-white);
   --foreground: var(--text);
+
+  /* Semantic tokens. New and migrated UI uses these (bg-surface, text-muted, ...);
+     the legacy variables above stay until every page is migrated. */
+  --c-page: #F7F9FC;
+  --c-surface: #FFFFFF;
+  --c-surface-2: #F0F4FA;
+  --c-line: #DDE5F0;
+  --c-ink: #0F172A;
+  --c-muted: #64748B;
+  --c-brand: #0D2B55;
+  --c-brand-ink: #FFFFFF;
+  --c-brand-soft: #E8F0FA;
+  --c-success: #1A7A4A;
+  --c-warning: #B45309;
+  --c-danger: #B91C1C;
+  --c-danger-soft: #FEF2F2;
+  --c-ring: #0D2B55;
+}
+
+/* Dark values. Not exposed in the UI yet: most pages still use hardcoded
+   colours, so a toggle would give a half-dark app. Wire it up once migrated. */
+:root[data-theme="dark"] {
+  --c-page: #0B1220;
+  --c-surface: #111A2B;
+  --c-surface-2: #17233A;
+  --c-line: #243247;
+  --c-ink: #E6EDF7;
+  --c-muted: #93A4BC;
+  --c-brand: #7FA6E6;
+  --c-brand-ink: #0B1220;
+  --c-brand-soft: #172A4A;
+  --c-success: #4CC38A;
+  --c-warning: #E0A04A;
+  --c-danger: #F08A8A;
+  --c-danger-soft: #3A1A1D;
+  --c-ring: #7FA6E6;
+  color-scheme: dark;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-inter);
+  --font-sans: var(--font-geist);
   --color-navy: #0D2B55;
   --color-growth: #1A7A4A;
   --color-gold: #D4930A;
   --color-sky: #E8F0FA;
+
+  --color-page: var(--c-page);
+  --color-surface: var(--c-surface);
+  --color-surface-2: var(--c-surface-2);
+  --color-line: var(--c-line);
+  --color-ink: var(--c-ink);
+  --color-muted: var(--c-muted);
+  --color-brand: var(--c-brand);
+  --color-brand-ink: var(--c-brand-ink);
+  --color-brand-soft: var(--c-brand-soft);
+  --color-success: var(--c-success);
+  --color-warning: var(--c-warning);
+  --color-danger: var(--c-danger);
+  --color-danger-soft: var(--c-danger-soft);
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: var(--font-inter), system-ui, sans-serif;
+  font-family: var(--font-geist), system-ui, sans-serif;
 }
 
 /* Global focus-visible ring for keyboard accessibility */
 *:focus-visible {
-  outline: 2px solid var(--growth);
+  outline: 2px solid var(--c-ring);
   outline-offset: 2px;
   border-radius: 2px;
 }

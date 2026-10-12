@@ -125,50 +125,50 @@ export default function TeacherGradesPage() {
 
   return (
     <div>
-      <h1 className="text-xl font-bold text-[#0D2B55] mb-1">Grade Entry</h1>
-      <p className="text-xs text-[#64748B] mb-5">Enter grades for your subjects</p>
+      <h1 className="text-xl font-semibold text-ink mb-1">Grade Entry</h1>
+      <p className="text-xs text-muted mb-5">Enter grades for your subjects</p>
 
       <div className="flex items-center gap-3 mb-4 flex-wrap">
-        <select value={selectedSubject} onChange={e => setSelectedSubject(e.target.value)} className="text-sm border border-[#DDE5F0] rounded-lg px-3 py-2 bg-white outline-none">
+        <select value={selectedSubject} onChange={e => setSelectedSubject(e.target.value)} className="text-sm border border-line rounded px-3 py-2 bg-surface outline-none">
           <option value="">Select subject</option>
           {subjects.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
         </select>
-        <select value={selectedClass} onChange={e => { setSelectedClass(e.target.value); setSelectedSubject(''); }} className="text-sm border border-[#DDE5F0] rounded-lg px-3 py-2 bg-white outline-none">
+        <select value={selectedClass} onChange={e => { setSelectedClass(e.target.value); setSelectedSubject(''); }} className="text-sm border border-line rounded px-3 py-2 bg-surface outline-none">
           <option value="">Select class</option>
           {classes.map(c => <option key={c.id} value={c.id}>
             {c.name}{c.form_teacher ? ' (Form Teacher)' : ''}
           </option>)}
         </select>
-        <button onClick={saveAll} disabled={!selectedClass || !selectedSubject || saving} className="text-sm px-4 py-2 rounded-lg bg-[#1A7A4A] text-white hover:bg-[#14663D] disabled:opacity-50">
+        <button onClick={saveAll} disabled={!selectedClass || !selectedSubject || saving} className="text-sm px-4 py-2 rounded bg-brand text-brand-ink hover:opacity-90 disabled:opacity-50">
           {saving ? 'Saving…' : 'Save All Grades'}
         </button>
         {selectedSubject && (
-          <button onClick={submitToPrincipal} className="text-sm px-4 py-2 rounded-lg bg-[#D4930A] text-white hover:bg-[#B87D0A]">
+          <button onClick={submitToPrincipal} className="text-sm px-4 py-2 rounded bg-warning text-white hover:opacity-90">
             Submit to Principal
           </button>
         )}
       </div>
 
       {components.length > 0 && (
-        <div className="flex flex-wrap gap-3 mb-3 text-xs text-[#64748B]">
+        <div className="flex flex-wrap gap-3 mb-3 text-xs text-muted">
           {components.map(comp => (
-            <span key={comp.key}>{comp.label}: <strong className="text-[#0D2B55]">/{comp.max}</strong></span>
+            <span key={comp.key}>{comp.label}: <strong className="text-ink">/{comp.max}</strong></span>
           ))}
         </div>
       )}
 
       {isFormTeacher && (
-        <div className="px-3 py-1.5 mb-3 bg-[#EDE9FE] border border-[#C4B5FD] rounded-lg text-[11px] text-[#4C1D95]">
-          You are the form teacher — all year-group subjects are available for grade entry.
+        <div className="px-3 py-1.5 mb-3 bg-brand-soft border border-[#C4B5FD] rounded text-xs text-brand">
+          You are the form teacher - all year-group subjects are available for grade entry.
         </div>
       )}
 
-      {message && <div className={`px-4 py-2 rounded-lg text-xs mb-3 ${message.includes('Saved') || message.includes('Submitted') ? 'bg-[#D1FAE5] text-[#065F46]' : 'bg-[#FEE2E2] text-[#B91C1C]'}`}>{message}</div>}
+      {message && <div className={`px-4 py-2 rounded text-xs mb-3 ${message.includes('Saved') || message.includes('Submitted') ? 'bg-success/10 text-success' : 'bg-danger-soft text-danger'}`}>{message}</div>}
 
       {selectedClass && selectedSubject && (
-        <div className="bg-white border border-[#DDE5F0] rounded-xl overflow-x-auto">
+        <div className="bg-surface border border-line rounded overflow-x-auto">
           <table className="w-full text-xs">
-            <thead><tr className="text-[11px] font-bold text-[#64748B] uppercase bg-[#F7F9FC]">
+            <thead><tr className="text-xs font-semibold text-muted bg-page">
               <th className="text-left px-4 py-3">Student</th>
               {components.map(comp => (
                 <th key={comp.key} className="text-center px-2 py-3">{comp.label}<br/><span className="text-xs font-normal">({comp.max})</span></th>
@@ -177,16 +177,16 @@ export default function TeacherGradesPage() {
             </tr></thead>
             <tbody>{students.map(s => {
               const g = grades[s.id];
-              return (<tr key={s.id} className="hover:bg-[#F8FAFF] border-t border-[#DDE5F0]">
+              return (<tr key={s.id} className="hover:bg-page border-t border-line">
                 <td className="px-4 py-2 font-semibold">{fullName(s)}</td>
                 {components.map(comp => (
-                  <td key={comp.key} className="px-2 py-2"><input type="number" value={g?.scores[comp.key] ?? ''} onChange={e => updateGrade(s.id, comp.key, e.target.value)} className="w-full px-2 py-1.5 rounded border border-[#DDE5F0] text-center text-sm outline-none focus:border-[#1A7A4A]" /></td>
+                  <td key={comp.key} className="px-2 py-2"><input type="number" value={g?.scores[comp.key] ?? ''} onChange={e => updateGrade(s.id, comp.key, e.target.value)} className="w-full px-2 py-1.5 rounded border border-line text-center text-sm outline-none focus:border-brand" /></td>
                 ))}
-                <td className="px-2 py-2 text-center font-bold">{g?.total ?? 0}</td>
+                <td className="px-2 py-2 text-center font-semibold">{g?.total ?? 0}</td>
                 <td className="px-2 py-2 text-center">
                   {g?.results_status && g.results_status !== 'draft' ? (
-                    <span className={`px-2 py-0.5 rounded-full text-xs font-bold ${g.results_status === 'approved' ? 'bg-[#D1FAE5] text-[#065F46]' : g.results_status === 'submitted' ? 'bg-[#FEF3C7] text-[#D4930A]' : 'bg-[#FEE2E2] text-[#B91C1C]'}`}>{g.results_status}</span>
-                  ) : <span className="text-[#94A3B8]">—</span>}
+                    <span className={`px-2 py-0.5 rounded text-xs font-semibold ${g.results_status === 'approved' ? 'bg-success/10 text-success' : g.results_status === 'submitted' ? 'bg-warning/10 text-warning' : 'bg-danger-soft text-danger'}`}>{g.results_status}</span>
+                  ) : <span className="text-muted">-</span>}
                 </td>
               </tr>);
             })}</tbody>

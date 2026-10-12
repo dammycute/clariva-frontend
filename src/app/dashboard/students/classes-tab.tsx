@@ -90,19 +90,19 @@ export default function ClassesTab() {
   return (
     <div>
       <div className="flex items-center justify-between mb-4">
-        <p className="text-xs text-[#64748B]">{classes.length} classes configured</p>
-        <button onClick={openAdd} className="text-sm px-3.5 py-2 rounded-lg bg-[#1A7A4A] text-white hover:bg-[#14663D]">+ Add Class</button>
+        <p className="text-xs text-muted">{classes.length} classes configured</p>
+        <button onClick={openAdd} className="text-sm px-3.5 py-2 rounded bg-brand text-brand-ink hover:opacity-90">+ Add Class</button>
       </div>
 
-      <div className="bg-white border border-[#DDE5F0] rounded-xl overflow-x-auto">
+      <div className="bg-surface border border-line rounded overflow-x-auto">
         {loading ? (
-          <div className="p-8 text-center text-sm text-[#64748B]">Loading classes…</div>
+          <div className="p-8 text-center text-sm text-muted">Loading classes…</div>
         ) : classes.length === 0 ? (
-          <div className="p-8 text-center text-sm text-[#64748B]">No classes yet.</div>
+          <div className="p-8 text-center text-sm text-muted">No classes yet.</div>
         ) : (
           <table className="w-full text-xs">
             <thead>
-              <tr className="text-[11px] font-bold tracking-wider text-[#64748B] uppercase bg-[#F7F9FC]">
+              <tr className="text-xs font-semibold text-muted bg-page">
                 <th className="text-left px-4 py-3">Class</th>
                 <th className="text-left px-4 py-3">Year Group</th>
                 <th className="text-left px-4 py-3">Arm</th>
@@ -113,12 +113,12 @@ export default function ClassesTab() {
             </thead>
             <tbody>
               {classes.map(c => (
-                  <tr key={c.id} className="hover:bg-[#F8FAFF] border-t border-[#DDE5F0]">
+                  <tr key={c.id} className="hover:bg-page border-t border-line">
                     <td className="px-4 py-3 font-semibold truncate max-w-[160px]" title={c.name}>{c.name}</td>
-                    <td className="px-4 py-3 text-[#64748B]">{c.year_group || '—'}</td>
-                    <td className="px-4 py-3">{c.arm || '—'}</td>
-                    <td className="px-4 py-3 truncate max-w-[160px]" title={c.form_teacher_name || ''}>{c.form_teacher_name || '—'}</td>
-                    <td className="px-4 py-3 truncate max-w-[100px]" title={c.academic_year || ''}>{c.academic_year || '—'}</td>
+                    <td className="px-4 py-3 text-muted">{c.year_group || '-'}</td>
+                    <td className="px-4 py-3">{c.arm || '-'}</td>
+                    <td className="px-4 py-3 truncate max-w-[160px]" title={c.form_teacher_name || ''}>{c.form_teacher_name || '-'}</td>
+                    <td className="px-4 py-3 truncate max-w-[100px]" title={c.academic_year || ''}>{c.academic_year || '-'}</td>
                     <td className="px-4 py-3 text-right">
                     <div className="flex gap-1 justify-end">
                       <button onClick={async () => {
@@ -134,11 +134,11 @@ export default function ClassesTab() {
                         setCreatingAccounts(null);
                         if (data.created) setAccountsResult(data.created);
                       }} disabled={creatingAccounts === c.id}
-                        className="text-xs px-2 py-1 rounded-lg bg-[#0D2B55] text-white hover:bg-[#0A1F3D] disabled:opacity-50 inline-flex items-center gap-1">
+                        className="text-xs px-2 py-1 rounded bg-brand text-brand-ink hover:bg-brand disabled:opacity-50 inline-flex items-center gap-1">
                         {creatingAccounts === c.id ? '…' : <><UserPlus size={16} aria-hidden="true" /> Accounts</>}
                       </button>
-                      <button onClick={() => openEdit(c)} aria-label="Edit" className="text-xs px-2 py-1 rounded-lg border border-[#DDE5F0] bg-white hover:bg-[#F0F4FA]"><Pencil size={16} aria-hidden="true" /></button>
-                      <button onClick={() => setConfirm({ id: c.id, name: c.name })} aria-label="Delete" className="text-xs px-2 py-1 rounded-lg border border-[#FEE2E2] bg-white text-[#B91C1C] hover:bg-[#FEE2E2]"><Trash2 size={16} aria-hidden="true" /></button>
+                      <button onClick={() => openEdit(c)} aria-label="Edit" className="text-xs px-2 py-1 rounded border border-line bg-surface hover:bg-surface-2"><Pencil size={16} aria-hidden="true" /></button>
+                      <button onClick={() => setConfirm({ id: c.id, name: c.name })} aria-label="Delete" className="text-xs px-2 py-1 rounded border border-danger-soft bg-surface text-danger hover:bg-danger-soft"><Trash2 size={16} aria-hidden="true" /></button>
                     </div>
                   </td>
                 </tr>
@@ -152,23 +152,23 @@ export default function ClassesTab() {
 
       {accountsResult && (
         <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center" onClick={() => setAccountsResult(null)}>
-          <div className="bg-white rounded-2xl w-[500px] max-w-[95vw] max-h-[80vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+          <div className="bg-surface rounded w-[500px] max-w-[95vw] max-h-[80vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between p-5 pb-0">
-              <h2 className="text-base font-bold text-[#0D2B55]">Student Accounts Created</h2>
-              <button onClick={() => setAccountsResult(null)} className="text-[#64748B] hover:text-[#0D2B55] text-lg" aria-label="Close"><X size={16} aria-hidden="true" /></button>
+              <h2 className="text-base font-semibold text-ink">Student Accounts Created</h2>
+              <button onClick={() => setAccountsResult(null)} className="text-muted hover:text-ink text-lg" aria-label="Close"><X size={16} aria-hidden="true" /></button>
             </div>
             <div className="p-5">
-              <p className="text-xs text-[#64748B] mb-4">{accountsResult.length} accounts created. Share credentials with students.</p>
-              <div className="divide-y divide-[#DDE5F0] max-h-[400px] overflow-y-auto border border-[#DDE5F0] rounded-xl">
+              <p className="text-xs text-muted mb-4">{accountsResult.length} accounts created. Share credentials with students.</p>
+              <div className="divide-y divide-line max-h-[400px] overflow-y-auto border border-line rounded">
                 {accountsResult.map((a, i) => (
                   <div key={i} className="p-3 text-xs">
-                    <p className="font-bold text-[#0D2B55]">{a.name}</p>
-                    <p className="text-[#64748B]">Email: {a.email}</p>
-                    <p className="text-[#1A7A4A] font-semibold">Password: {a.password}</p>
+                    <p className="font-semibold text-ink">{a.name}</p>
+                    <p className="text-muted">Email: {a.email}</p>
+                    <p className="text-brand font-semibold">Password: {a.password}</p>
                   </div>
                 ))}
               </div>
-              <button onClick={() => setAccountsResult(null)} className="mt-4 w-full text-sm px-4 py-2.5 rounded-lg bg-[#0D2B55] text-white hover:bg-[#0A1F3D]">Done</button>
+              <button onClick={() => setAccountsResult(null)} className="mt-4 w-full text-sm px-4 py-2.5 rounded bg-brand text-brand-ink hover:bg-brand">Done</button>
             </div>
           </div>
         </div>
@@ -176,54 +176,54 @@ export default function ClassesTab() {
 
       {showModal && (
         <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center" onClick={() => setShowModal(false)}>
-          <div className="bg-white rounded-2xl w-[460px] max-w-[95vw]" onClick={e => e.stopPropagation()}>
+          <div className="bg-surface rounded w-[460px] max-w-[95vw]" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between p-5 pb-0">
-              <h2 className="text-base font-bold text-[#0D2B55]">{editingId ? 'Edit Class' : 'Add New Class'}</h2>
-              <button onClick={() => setShowModal(false)} className="text-[#64748B] hover:text-[#0D2B55] text-lg" aria-label="Close"><X size={16} aria-hidden="true" /></button>
+              <h2 className="text-base font-semibold text-ink">{editingId ? 'Edit Class' : 'Add New Class'}</h2>
+              <button onClick={() => setShowModal(false)} className="text-muted hover:text-ink text-lg" aria-label="Close"><X size={16} aria-hidden="true" /></button>
             </div>
             <form onSubmit={handleSubmit} className="p-5 space-y-3.5">
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-[11px] font-bold text-[#64748B] uppercase mb-1">Year group</label>
+                  <label className="block text-xs font-semibold text-muted mb-1">Year group</label>
                   <select value={form.year_group} onChange={e => updateField('year_group', e.target.value)} required
-                    className="w-full px-3 py-2 rounded-lg border border-[#DDE5F0] text-sm outline-none focus:border-[#1A7A4A] bg-white">
+                    className="w-full px-3 py-2 rounded border border-line text-sm outline-none focus:border-brand bg-surface">
                     <option value="">Select</option>
                     {YEAR_GROUPS.map(y => <option key={y} value={y}>{y}</option>)}
                   </select>
                 </div>
                 <div>
-                  <label className="block text-[11px] font-bold text-[#64748B] uppercase mb-1">Arm</label>
+                  <label className="block text-xs font-semibold text-muted mb-1">Arm</label>
                   <select value={form.arm} onChange={e => updateField('arm', e.target.value)}
-                    className="w-full px-3 py-2 rounded-lg border border-[#DDE5F0] text-sm outline-none focus:border-[#1A7A4A] bg-white">
+                    className="w-full px-3 py-2 rounded border border-line text-sm outline-none focus:border-brand bg-surface">
                     <option value="">Select</option>
                     {ARMS.map(a => <option key={a} value={a}>{a}</option>)}
                   </select>
                 </div>
               </div>
               <div>
-                <label className="block text-[11px] font-bold text-[#64748B] uppercase mb-1">Class name (auto-generated)</label>
-                <input value={form.name} readOnly className="w-full px-3 py-2 rounded-lg border border-[#DDE5F0] text-sm bg-[#F7F9FC] text-[#64748B]" />
+                <label className="block text-xs font-semibold text-muted mb-1">Class name (auto-generated)</label>
+                <input value={form.name} readOnly className="w-full px-3 py-2 rounded border border-line text-sm bg-page text-muted" />
                 {duplicateName && (
-                  <p className="text-[11px] text-[#B91C1C] mt-1.5 inline-flex items-center gap-1"><AlertTriangle size={16} aria-hidden="true" /> The name &quot;{form.name}&quot; is already taken.</p>
+                  <p className="text-xs text-danger mt-1.5 inline-flex items-center gap-1"><AlertTriangle size={16} aria-hidden="true" /> The name &quot;{form.name}&quot; is already taken.</p>
                 )}
               </div>
               <div>
-                <label className="block text-[11px] font-bold text-[#64748B] uppercase mb-1">Form teacher</label>
+                <label className="block text-xs font-semibold text-muted mb-1">Form teacher</label>
                 <select value={form.form_teacher || ''} onChange={e => setForm({ ...form, form_teacher: e.target.value || '' })}
-                  className="w-full px-3 py-2 rounded-lg border border-[#DDE5F0] text-sm outline-none focus:border-[#1A7A4A] bg-white">
+                  className="w-full px-3 py-2 rounded border border-line text-sm outline-none focus:border-brand bg-surface">
                   <option value="">Not assigned</option>
                   {staffList.map(s => <option key={s.id} value={s.user_id || s.id}>{s.full_name}</option>)}
                 </select>
               </div>
               <div>
-                <label className="block text-[11px] font-bold text-[#64748B] uppercase mb-1">Academic year</label>
+                <label className="block text-xs font-semibold text-muted mb-1">Academic year</label>
                 <input value={form.academic_year} onChange={e => setForm({ ...form, academic_year: e.target.value })}
-                  className="w-full px-3 py-2 rounded-lg border border-[#DDE5F0] text-sm outline-none focus:border-[#1A7A4A]" />
+                  className="w-full px-3 py-2 rounded border border-line text-sm outline-none focus:border-brand" />
               </div>
-              {submitError && <p className="text-[11px] text-[#B91C1C]">{submitError}</p>}
+              {submitError && <p className="text-xs text-danger">{submitError}</p>}
               <div className="flex justify-end gap-2 pt-2">
-                <button type="button" onClick={() => setShowModal(false)} className="text-sm px-4 py-2 rounded-lg border border-[#DDE5F0] bg-white hover:bg-[#F0F4FA]">Cancel</button>
-                <button type="submit" disabled={!!duplicateName} className="text-sm px-4 py-2 rounded-lg bg-[#1A7A4A] text-white hover:bg-[#14663D] disabled:opacity-50">{editingId ? 'Save Changes' : 'Add Class'}</button>
+                <button type="button" onClick={() => setShowModal(false)} className="text-sm px-4 py-2 rounded border border-line bg-surface hover:bg-surface-2">Cancel</button>
+                <button type="submit" disabled={!!duplicateName} className="text-sm px-4 py-2 rounded bg-brand text-brand-ink hover:opacity-90 disabled:opacity-50">{editingId ? 'Save Changes' : 'Add Class'}</button>
               </div>
             </form>
           </div>

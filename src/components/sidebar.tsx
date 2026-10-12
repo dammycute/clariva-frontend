@@ -19,6 +19,10 @@ export interface NavSection {
 
 interface SidebarProps {
   sections: NavSection[];
+  /** Rendered at the top of the nav (wordmark, school name). */
+  header?: ReactNode;
+  /** Pinned to the bottom of the nav (signed-in user, sign out). */
+  footer?: ReactNode;
 }
 
 function NavContent({ sections, pathname, onNavigate }: { sections: NavSection[]; pathname: string; onNavigate?: () => void }) {
@@ -30,9 +34,11 @@ function NavContent({ sections, pathname, onNavigate }: { sections: NavSection[]
     <>
       {sections.map((section) => (
         <div key={section.section}>
-          <div className="text-[11px] font-bold tracking-wider text-[#64748B] uppercase px-5 pt-[18px] pb-1.5">
-            {section.section}
-          </div>
+          {section.section ? (
+            <div className="text-xs font-medium text-muted px-5 pt-5 pb-1.5">
+              {section.section}
+            </div>
+          ) : <div className="pt-3" />}
           {section.items.map((item) => {
             const isActive = item.href === activeHref;
             return (
@@ -41,10 +47,10 @@ function NavContent({ sections, pathname, onNavigate }: { sections: NavSection[]
                 href={item.href}
                 onClick={onNavigate}
                 aria-current={isActive ? 'page' : undefined}
-                className={`flex items-center gap-3 px-5 py-2.5 text-sm transition-colors relative min-h-[44px] ${
+                className={`flex items-center gap-3 px-5 py-2 text-sm transition-colors relative min-h-[40px] lg:min-h-[36px] ${
                   isActive
-                    ? 'bg-[#E8F0FA] text-[#0D2B55] font-semibold before:absolute before:left-0 before:top-0 before:bottom-0 before:w-[3px] before:bg-[#1A7A4A] before:rounded-r-sm'
-                    : 'text-[#64748B] hover:bg-[#F0F4FA] hover:text-[#0D2B55]'
+                    ? 'bg-brand-soft text-brand font-medium before:absolute before:left-0 before:top-0 before:bottom-0 before:w-0.5 before:bg-brand'
+                    : 'text-muted hover:bg-surface-2 hover:text-ink'
                 }`}
               >
                 <span className="w-5 h-5 flex-shrink-0 flex items-center justify-center">{item.icon}</span>
@@ -58,7 +64,7 @@ function NavContent({ sections, pathname, onNavigate }: { sections: NavSection[]
   );
 }
 
-export function Sidebar({ sections }: SidebarProps) {
+export function Sidebar({ sections, header, footer }: SidebarProps) {
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
 
@@ -97,9 +103,9 @@ export function Sidebar({ sections }: SidebarProps) {
         onClick={() => setMobileOpen(true)}
         aria-label="Open navigation menu"
         aria-expanded={mobileOpen}
-        className="lg:hidden fixed bottom-5 right-5 z-40 w-14 h-14 rounded-full bg-[#0D2B55] text-white shadow-lg flex items-center justify-center cursor-pointer hover:bg-[#1A3F6E] transition-colors"
+        className="lg:hidden fixed bottom-5 right-5 z-40 w-12 h-12 rounded-md bg-brand text-brand-ink shadow-md flex items-center justify-center cursor-pointer hover:opacity-90 transition-opacity"
       >
-        <Menu size={24} />
+        <Menu size={22} />
       </button>
 
       {/* Overlay */}
@@ -114,23 +120,25 @@ export function Sidebar({ sections }: SidebarProps) {
       {/* Drawer */}
       <nav
         aria-label="Main navigation"
-        className={`fixed top-0 left-0 bottom-0 w-64 bg-white border-r border-[#DDE5F0] overflow-y-auto z-50 transform transition-transform duration-200 ease-out lg:static lg:translate-x-0 lg:w-60 lg:shrink-0 ${
+        className={`fixed top-0 left-0 bottom-0 w-64 bg-surface border-r border-line overflow-y-auto z-50 flex flex-col transform transition-transform duration-200 ease-out lg:static lg:translate-x-0 lg:w-58 lg:shrink-0 ${
           mobileOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
         {/* Mobile close button */}
-        <div className="lg:hidden flex items-center justify-between px-5 h-14 border-b border-[#DDE5F0]">
-          <span className="font-semibold text-sm text-[#0D2B55]">Menu</span>
+        <div className="lg:hidden flex items-center justify-between px-5 h-14 border-b border-line">
+          <span className="font-semibold text-sm text-ink">Menu</span>
           <button
             type="button"
             onClick={close}
             aria-label="Close navigation menu"
-            className="w-10 h-10 flex items-center justify-center rounded-lg hover:bg-[#F0F4FA] cursor-pointer"
+            className="w-10 h-10 flex items-center justify-center rounded-md hover:bg-surface-2 cursor-pointer"
           >
             <X size={20} />
           </button>
         </div>
-        {navContent}
+        {header}
+        <div className="flex-1">{navContent}</div>
+        {footer}
       </nav>
     </>
   );

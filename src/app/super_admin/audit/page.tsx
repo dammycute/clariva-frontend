@@ -16,9 +16,9 @@ interface AuditEntry {
 }
 
 const ACTION_COLORS: Record<string, string> = {
-  create: 'bg-[#DCFCE7] text-[#1A7A4A]',
-  update: 'bg-[#FEF3C7] text-[#D4930A]',
-  delete: 'bg-[#FEE2E2] text-[#B91C1C]',
+  create: 'bg-success/10 text-success',
+  update: 'bg-warning/10 text-warning',
+  delete: 'bg-danger-soft text-danger',
 };
 
 export default function SuperAdminAudit() {
@@ -53,19 +53,19 @@ export default function SuperAdminAudit() {
   return (
     <div>
       <div className="mb-5">
-        <h1 className="text-2xl font-bold text-[#0D2B55]">Audit Logs</h1>
-        <p className="text-xs text-[#64748B] mt-0.5">{logs.length} total entries across all schools</p>
+        <h1 className="text-2xl font-semibold text-ink">Audit Logs</h1>
+        <p className="text-xs text-muted mt-0.5">{logs.length} total entries across all schools</p>
       </div>
 
       <div className="flex gap-2 mb-4 flex-wrap">
         <button onClick={() => setActionFilter('all')}
-          className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
-            actionFilter === 'all' ? 'bg-[#0D2B55] text-white' : 'bg-[#F0F4FA] text-[#64748B] hover:bg-[#E8F0FA]'
+          className={`px-3 py-1.5 rounded text-xs font-medium transition-colors ${
+            actionFilter === 'all' ? 'bg-brand text-brand-ink' : 'bg-surface-2 text-muted hover:bg-brand-soft'
           }`}>All ({logs.length})</button>
         {Object.entries(actionCounts).sort(([,a],[,b]) => b - a).map(([action, count]) => (
           <button key={action} onClick={() => setActionFilter(action)}
-            className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
-              actionFilter === action ? 'bg-[#0D2B55] text-white' : 'bg-[#F0F4FA] text-[#64748B] hover:bg-[#E8F0FA]'
+            className={`px-3 py-1.5 rounded text-xs font-medium transition-colors ${
+              actionFilter === action ? 'bg-brand text-brand-ink' : 'bg-surface-2 text-muted hover:bg-brand-soft'
             }`}>{action} ({count})</button>
         ))}
       </div>
@@ -73,33 +73,33 @@ export default function SuperAdminAudit() {
       <div className="mb-4">
         <input type="text" placeholder="Search by model, description, or user..."
           value={search} onChange={e => setSearch(e.target.value)}
-          className="w-full max-w-md px-3 py-2 rounded-lg border border-[#DDE5F0] text-sm focus:outline-none focus:ring-2 focus:ring-[#1A7A4A] focus:border-transparent" />
+          className="w-full max-w-md px-3 py-2 rounded border border-line text-sm focus:outline-none focus:ring-2 focus:ring-brand focus:border-transparent" />
       </div>
 
       {loading ? (
-        <div className="space-y-3">{Array.from({ length: 8 }).map((_, i) => <div key={i} className="h-14 bg-white rounded-xl animate-pulse" />)}</div>
+        <div className="space-y-3">{Array.from({ length: 8 }).map((_, i) => <div key={i} className="h-14 bg-surface rounded animate-pulse" />)}</div>
       ) : filtered.length === 0 ? (
-        <div className="bg-white border border-[#DDE5F0] rounded-xl p-8 text-center text-sm text-[#64748B]">No audit logs found.</div>
+        <div className="bg-surface border border-line rounded p-8 text-center text-sm text-muted">No audit logs found.</div>
       ) : (
-        <div className="bg-white border border-[#DDE5F0] rounded-xl overflow-hidden">
-          <div className="divide-y divide-[#DDE5F0]">
+        <div className="bg-surface border border-line rounded overflow-hidden">
+          <div className="divide-y divide-line">
             {filtered.map(log => (
               <div key={log.id} className="px-4 py-3 hover:bg-[#F8FAFC] transition-colors">
                 <div className="flex items-center justify-between mb-1">
                   <div className="flex items-center gap-2">
-                    <span className={`px-2 py-0.5 rounded-full text-xs font-bold ${ACTION_COLORS[log.action] || 'bg-[#F0F4FA] text-[#64748B]'}`}>
+                    <span className={`px-2 py-0.5 rounded text-xs font-semibold ${ACTION_COLORS[log.action] || 'bg-surface-2 text-muted'}`}>
                       {log.action}
                     </span>
-                    <span className="text-xs font-semibold text-[#0D2B55]">{log.model_name}</span>
+                    <span className="text-xs font-semibold text-ink">{log.model_name}</span>
                     {log.object_repr && (
-                      <span className="text-[11px] text-[#64748B]">— {log.object_repr}</span>
+                      <span className="text-xs text-muted">- {log.object_repr}</span>
                     )}
                   </div>
-                  <span className="text-xs text-[#64748B]">
+                  <span className="text-xs text-muted">
                     {new Date(log.created_at).toLocaleString('en-NG', { dateStyle: 'medium', timeStyle: 'short' })}
                   </span>
                 </div>
-                <div className="flex items-center gap-3 text-xs text-[#64748B]">
+                <div className="flex items-center gap-3 text-xs text-muted">
                   {log.user && <span>User: {log.user}</span>}
                   {log.object_id && <span>ID: {log.object_id}</span>}
                 </div>

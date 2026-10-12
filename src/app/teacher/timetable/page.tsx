@@ -32,48 +32,48 @@ export default function TeacherTimetablePage() {
 
   return (
     <div>
-      <h1 className="text-xl font-bold text-[#0D2B55] mb-1">My Timetable</h1>
-      <p className="text-xs text-[#64748B] mb-5">View your class timetables</p>
+      <h1 className="text-xl font-semibold text-ink mb-1">My Timetable</h1>
+      <p className="text-xs text-muted mb-5">View your class timetables</p>
 
       <div className="mb-4">
         <select value={selectedClass} onChange={e => setSelectedClass(e.target.value)}
-          className="text-sm border border-[#DDE5F0] rounded-lg px-3 py-2 bg-white outline-none">
+          className="text-sm border border-line rounded px-3 py-2 bg-surface outline-none">
           <option value="">Select class</option>
           {classes.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
         </select>
       </div>
 
       {loading ? (
-        <div className="text-sm text-[#64748B] p-8">Loading timetable…</div>
+        <div className="text-sm text-muted p-8">Loading timetable…</div>
       ) : !tt ? (
-        <div className="bg-white border border-[#DDE5F0] rounded-xl p-8 text-center text-sm text-[#64748B]">
+        <div className="bg-surface border border-line rounded p-8 text-center text-sm text-muted">
           {selectedClass ? 'No timetable published for this class.' : 'Select a class to view its timetable.'}
         </div>
       ) : (
-        <div className="bg-white border border-[#DDE5F0] rounded-xl overflow-x-auto">
+        <div className="bg-surface border border-line rounded overflow-x-auto">
           <table className="w-full text-xs">
             <thead>
-              <tr className="bg-[#F7F9FC]">
-                <th className="px-3 py-2.5 text-[11px] font-bold text-[#64748B] uppercase text-left w-20">Period</th>
-                {DAYS.map(d => <th key={d} className="px-3 py-2.5 text-[11px] font-bold text-[#64748B] uppercase text-center">{d}</th>)}
+              <tr className="bg-page">
+                <th className="px-3 py-2.5 text-xs font-semibold text-muted text-left w-20">Period</th>
+                {DAYS.map(d => <th key={d} className="px-3 py-2.5 text-xs font-semibold text-muted text-center">{d}</th>)}
               </tr>
             </thead>
             <tbody>
               {PERIODS.map(p => (
-                <tr key={p} className="border-t border-[#DDE5F0]">
-                  <td className="px-3 py-2.5 font-bold text-[#0D2B55]">{p}</td>
+                <tr key={p} className="border-t border-line">
+                  <td className="px-3 py-2.5 font-semibold text-ink">{p}</td>
                   {DAYS.map(d => {
                     const slot = tt.slots.find(s => s.day === d && s.period === p);
                     const isMySubject = slot?.teacher_name || slot?.subject_name;
                     return (
-                      <td key={d} className={`px-3 py-2.5 text-center ${slot ? (isMySubject ? 'bg-[#E8F0FA]' : '') : 'bg-[#FAFBFC]'}`}>
+                      <td key={d} className={`px-3 py-2.5 text-center ${slot ? (isMySubject ? 'bg-brand-soft' : '') : 'bg-[#FAFBFC]'}`}>
                         {slot ? (
                           <div>
-                            <div className="font-semibold text-[#0D2B55]">{slot.subject_name || '—'}</div>
-                            <div className="text-xs text-[#64748B]">{slot.room || ''} {slot.teacher_name ? `· ${slot.teacher_name}` : ''}</div>
+                            <div className="font-semibold text-ink">{slot.subject_name || '-'}</div>
+                            <div className="text-xs text-muted">{slot.room || ''} {slot.teacher_name ? `· ${slot.teacher_name}` : ''}</div>
                           </div>
                         ) : (
-                          <span className="text-[#DDE5F0]">—</span>
+                          <span className="text-line">-</span>
                         )}
                       </td>
                     );

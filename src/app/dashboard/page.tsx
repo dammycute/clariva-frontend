@@ -2,42 +2,50 @@
 
 import { useState, useEffect } from 'react';
 import { api, auth } from '@/lib/api';
-import { CardSkeleton } from '@/components/skeleton';
 import Link from 'next/link';
-import {
-  Users, UserCog, School, BookOpen, AlertTriangle,
-  CheckCircle2, FileText, Banknote, FileSignature, UserPlus, Calendar,
-} from 'lucide-react';
+import { ChevronRight } from 'lucide-react';
+
+type Student = { id: string; first_name: string; last_name: string; admission_no: string; class_name?: string; student_status: string };
+
+const naira = (n: number) => `₦${Math.round(n).toLocaleString('en-NG')}`;
+
+const SHORTCUTS = [
+  { label: 'Record a payment', href: '/dashboard/fees' },
+  { label: 'Take attendance', href: '/dashboard/attendance' },
+  { label: 'Enter grades', href: '/dashboard/grades' },
+  { label: 'Add a student', href: '/dashboard/students' },
+  { label: 'Print report cards', href: '/dashboard/grades?tab=reports' },
+];
+
+type Attention = { tone: 'danger' | 'warning' | 'info'; text: string; action: string; href: string };
 
 export default function DashboardHome() {
   const [loaded, setLoaded] = useState(false);
-  const [error, setError] = useState<string[]>([]);
+  const [error, setError] = useState('');
   const [stats, setStats] = useState({
-    students: 0, staff: 0, classes: 0, subjects: 0,
+    students: 0, staff: 0, classes: 0,
     outstanding: 0, totalFees: 0, collected: 0,
     present: 0, totalAttendance: 0,
   });
-  const [recentStudents, setRecentStudents] = useState<{ id: string; first_name: string; last_name: string; admission_no: string; class_name?: string; student_status: string }[]>([]);
+  const [recentStudents, setRecentStudents] = useState<Student[]>([]);
   const [school, setSchool] = useState<{ name: string; current_term: string; current_academic_year: string } | null>(null);
 
   useEffect(() => {
     (async () => {
-      const errors: string[] = [];
       try {
         const me = await auth.me();
         if (!me?.school_id) { setLoaded(true); return; }
 
-        const [analysis, school] = await Promise.all([
+        const [analysis, schoolInfo] = await Promise.all([
           api.analytics.get(me.school_id),
           api.schools.get(me.school_id) as Promise<{ name: string; current_term: string; current_academic_year: string }>,
         ]);
 
-        setSchool(school);
+        setSchool(schoolInfo);
         setStats({
           students: analysis.students,
           staff: analysis.staff,
           classes: analysis.classes,
-          subjects: analysis.subjects,
           outstanding: analysis.fees.outstanding,
           totalFees: analysis.fees.total_due,
           collected: analysis.fees.total_paid,
@@ -46,145 +54,173 @@ export default function DashboardHome() {
         });
 
         const s = await api.students.list({ status: 'active' });
-        setRecentStudents(
-          (Array.isArray(s) ? s as Array<{ id: string; first_name: string; last_name: string; admission_no: string; class_name?: string; student_status: string }> : []).slice(0, 5)
-        );
-        setLoaded(true);
+        setRecentStudents((Array.isArray(s) ? s as Student[] : []).slice(0, 5));
       } catch (err) {
-        errors.push(err instanceof Error ? err.message : 'Failed to load dashboard data');
-        setError(errors);
+        setError(err instanceof Error ? err.message : 'Failed to load dashboard data');
       } finally { setLoaded(true); }
     })();
   }, []);
 
   const attRate = stats.totalAttendance > 0 ? Math.round((stats.present / stats.totalAttendance) * 100) : 0;
   const collRate = stats.totalFees > 0 ? Math.round((stats.collected / stats.totalFees) * 100) : 0;
-  const hasError = error.length > 0;
+  const dash = '—';
+
+  const attention: Attention[] = [];
+  if (loaded && !error) {
+    if (stats.outstanding > 0) {
+      attention.push({
+        tone: collRate < 50 ? 'danger' : 'warning',
+        text: `${naira(stats.outstanding)} in fees is still outstanding (${collRate}% collected)`,
+        action: 'View fees', href: '/dashboard/fees',
+      });
+    }
+    if (stats.totalAttendance === 0) {
+      attention.push({ tone: 'info', text: 'No attendance has been recorded yet', action: 'Open attendance', href: '/dashboard/attendance' });
+    } else if (attRate < 75) {
+      attention.push({ tone: 'warning', text: `Attendance is ${attRate}%, below the 75% mark`, action: 'Open attendance', href: '/dashboard/attendance' });
+    }
+    if (stats.students === 0) {
+      attention.push({ tone: 'info', text: 'No students have been added yet', action: 'Add a student', href: '/dashboard/students' });
+    }
+  }
+
+  const dot = { danger: 'bg-danger', warning: 'bg-warning', info: 'bg-muted' } as const;
 
   return (
-    <div>
-      <div className="flex items-center justify-between mb-5">
-        <div>
-          <h1 className="text-2xl font-bold text-[#0D2B55]">{school?.name || 'Dashboard'}</h1>
-          <p className="text-xs text-[#64748B] mt-0.5">
-            {school?.current_term || '—'} · {school?.current_academic_year || '—'}
-            {' · '}{new Date().toLocaleDateString('en-NG', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
-          </p>
-        </div>
-      </div>
+    <div className="max-w-[1120px]">
+      <header className="mb-6">
+        <h1 className="text-[22px] font-semibold text-ink leading-tight">Overview</h1>
+        <p className="text-[13px] text-muted mt-1">
+          {school?.current_term || dash} {school?.current_academic_year || ''}
+          {' · '}{new Date().toLocaleDateString('en-NG', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
+        </p>
+      </header>
 
-      {/* Metric Cards */}
-      {!loaded ? <CardSkeleton count={4} /> : (
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-        <MetricCard label="Students" value={hasError && stats.students === 0 ? '—' : stats.students} color="#0D2B55" bg="#E8F0FA" icon={hasError && stats.students === 0 ? <AlertTriangle size={20} /> : <Users size={20} />} href="/dashboard/students" />
-        <MetricCard label="Staff" value={hasError && stats.staff === 0 ? '—' : stats.staff} color="#1A7A4A" bg="#DCFCE7" icon={hasError && stats.staff === 0 ? <AlertTriangle size={20} /> : <UserCog size={20} />} href="/dashboard/teachers" />
-        <MetricCard label="Classes" value={hasError && stats.classes === 0 ? '—' : stats.classes} color="#D4930A" bg="#FEF3C7" icon={hasError && stats.classes === 0 ? <AlertTriangle size={20} /> : <School size={20} />} href="/dashboard/students" />
-        <MetricCard label="Subjects" value={hasError && stats.subjects === 0 ? '—' : stats.subjects} color="#7C3AED" bg="#F3E8FF" icon={hasError && stats.subjects === 0 ? <AlertTriangle size={20} /> : <BookOpen size={20} />} href="/dashboard/grades" />
-      </div>
+      {error && (
+        <div role="alert" className="mb-6 text-sm text-danger bg-danger-soft border border-danger/30 rounded px-3 py-2">
+          {error}
+        </div>
       )}
 
-      {/* Progress Widgets */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
-        <div className="bg-white border border-[#DDE5F0] rounded-xl p-4">
-          <div className="flex items-center justify-between mb-2">
-            <h2 className="text-sm font-bold text-[#0D2B55]">Attendance Rate</h2>
-            <span className="text-xs text-[#64748B]">{stats.present}/{stats.totalAttendance}</span>
-          </div>
-          <div
-            className="h-2.5 bg-[#F0F4FA] rounded-full overflow-hidden"
-            role="progressbar"
-            aria-valuenow={attRate}
-            aria-valuemin={0}
-            aria-valuemax={100}
-            aria-label={`Attendance rate: ${attRate}%`}
-          >
-            <div className="h-full rounded-full transition-all duration-700"
-              style={{ width: `${attRate}%`, background: attRate >= 75 ? '#1A7A4A' : attRate >= 50 ? '#D4930A' : '#B91C1C' }} />
-          </div>
-          <p className={`text-xs font-bold mt-1.5 ${attRate >= 75 ? 'text-[#1A7A4A]' : 'text-[#B91C1C]'}`}>{attRate}% present</p>
-        </div>
-
-        <div className="bg-white border border-[#DDE5F0] rounded-xl p-4">
-          <div className="flex items-center justify-between mb-2">
-            <h2 className="text-sm font-bold text-[#0D2B55]">Fee Collection</h2>
-            <span className="text-xs text-[#64748B]">₦{stats.collected.toLocaleString()} / ₦{stats.totalFees.toLocaleString()}</span>
-          </div>
-          <div
-            className="h-2.5 bg-[#F0F4FA] rounded-full overflow-hidden"
-            role="progressbar"
-            aria-valuenow={collRate}
-            aria-valuemin={0}
-            aria-valuemax={100}
-            aria-label={`Fee collection rate: ${collRate}%`}
-          >
-            <div className="h-full bg-[#1A7A4A] rounded-full transition-all duration-700" style={{ width: `${collRate}%` }} />
-          </div>
-          <p className="text-xs font-bold mt-1.5 text-[#1A7A4A]">{collRate}% collected</p>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        {/* Recent Admissions */}
-        <div className="bg-white border border-[#DDE5F0] rounded-xl overflow-hidden">
-          <div className="px-4 py-3 border-b border-[#DDE5F0] flex items-center justify-between">
-            <h2 className="text-sm font-bold text-[#0D2B55]">Recent Admissions</h2>
-            <Link href="/dashboard/students" className="text-xs text-[#1A7A4A] hover:underline">View all</Link>
-          </div>
-          {recentStudents.length === 0 ? (
-            <div className="p-6 text-center text-xs text-[#64748B]">No students yet.</div>
-          ) : (
-            <div className="divide-y divide-[#DDE5F0]">
-              {recentStudents.map(s => (
-                <div key={s.id} className="px-4 py-2.5 flex items-center justify-between">
-                  <div>
-                    <p className="text-xs font-semibold text-[#0D2B55]">{s.first_name} {s.last_name}</p>
-                    <p className="text-[11px] text-[#64748B]">{s.admission_no} · {s.class_name || '—'}</p>
-                  </div>
-                  <span className={`px-2 py-0.5 rounded-full text-[11px] font-bold ${
-                    s.student_status === 'active' ? 'bg-[#DCFCE7] text-[#1A7A4A]' : 'bg-[#FEE2E2] text-[#B91C1C]'
-                  }`}>{s.student_status}</span>
-                </div>
-              ))}
+      {/* Summary strip */}
+      <section aria-label="Summary" className="bg-line border border-line rounded overflow-hidden grid grid-cols-2 lg:grid-cols-4 gap-px mb-6">
+        {!loaded ? (
+          Array.from({ length: 4 }).map((_, i) => (
+            <div key={i} className="p-4 bg-surface space-y-2">
+              <div className="h-3 w-1/2 bg-surface-2 rounded animate-pulse" />
+              <div className="h-7 w-2/3 bg-surface-2 rounded animate-pulse" />
+              <div className="h-3 w-1/3 bg-surface-2 rounded animate-pulse" />
             </div>
-          )}
+          ))
+        ) : (
+          <>
+            <Stat label="Students" value={error ? dash : stats.students.toLocaleString()} note={error ? '' : `across ${stats.classes} ${stats.classes === 1 ? 'class' : 'classes'}`} />
+            <Stat label="Staff" value={error ? dash : stats.staff.toLocaleString()} />
+            <Stat
+              label="Fees collected"
+              value={error ? dash : naira(stats.collected)}
+              note={error ? '' : `of ${naira(stats.totalFees)} billed, ${collRate}%`}
+              progress={error ? undefined : collRate}
+            />
+            <Stat
+              label="Attendance"
+              value={error ? dash : stats.totalAttendance > 0 ? `${attRate}%` : dash}
+              note={error || stats.totalAttendance === 0 ? '' : `${stats.present.toLocaleString()} of ${stats.totalAttendance.toLocaleString()} records present`}
+            />
+          </>
+        )}
+      </section>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-2">
+          <Panel title="Needs attention" aside={loaded && !error && attention.length > 0 ? `${attention.length} open` : undefined}>
+            {!loaded ? (
+              <div className="p-4 space-y-3">
+                {[0, 1].map(i => <div key={i} className="h-4 bg-surface-2 rounded animate-pulse" />)}
+              </div>
+            ) : attention.length === 0 ? (
+              <p className="px-4 py-5 text-sm text-muted">{error ? 'Unavailable until the data loads.' : 'Nothing needs attention right now.'}</p>
+            ) : (
+              <ul className="divide-y divide-line">
+                {attention.map(a => (
+                  <li key={a.text} className="px-4 py-3 flex items-center gap-3 text-sm">
+                    <span className={`w-2 h-2 rounded-full shrink-0 ${dot[a.tone]}`} aria-hidden="true" />
+                    <span className="flex-1 text-ink">{a.text}</span>
+                    <Link href={a.href} className="text-brand font-medium hover:underline shrink-0">{a.action}</Link>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </Panel>
         </div>
 
-        {/* Quick Actions */}
-        <div className="bg-white border border-[#DDE5F0] rounded-xl overflow-hidden">
-          <div className="px-4 py-3 border-b border-[#DDE5F0]">
-            <h2 className="text-sm font-bold text-[#0D2B55]">Quick Actions</h2>
-          </div>
-          <div className="p-4 grid grid-cols-2 gap-2">
-            {[
-              { label: 'View Attendance', href: '/dashboard/attendance', icon: <CheckCircle2 size={16} /> },
-              { label: 'Enter Grades', href: '/dashboard/grades', icon: <FileText size={16} /> },
-              { label: 'Record Payment', href: '/dashboard/fees', icon: <Banknote size={16} /> },
-              { label: 'Report Cards', href: '/dashboard/grades?tab=reports', icon: <FileSignature size={16} /> },
-              { label: 'Add Student', href: '/dashboard/students', icon: <UserPlus size={16} /> },
-              { label: 'View Timetable', href: '/dashboard/timetable', icon: <Calendar size={16} /> },
-            ].map(a => (
-              <Link key={a.href} href={a.href}
-                className="flex items-center gap-2 px-3 py-2.5 rounded-lg border border-[#DDE5F0] text-xs text-[#0D2B55] hover:bg-[#F0F4FA] transition-colors min-h-[44px]">
-                <span className="text-[#64748B]" aria-hidden="true">{a.icon}</span> {a.label}
-              </Link>
-            ))}
-          </div>
+        <div className="space-y-6">
+          <Panel title="Recent admissions" action={<Link href="/dashboard/students" className="text-[13px] text-brand hover:underline">All students</Link>}>
+            {!loaded ? (
+              <div className="p-4 space-y-3">
+                {[0, 1, 2].map(i => <div key={i} className="h-4 bg-surface-2 rounded animate-pulse" />)}
+              </div>
+            ) : recentStudents.length === 0 ? (
+              <p className="px-4 py-5 text-sm text-muted">No students yet.</p>
+            ) : (
+              <ul className="divide-y divide-line">
+                {recentStudents.map(s => (
+                  <li key={s.id}>
+                    <Link href={`/dashboard/students/${s.id}`} className="block px-4 py-2.5 hover:bg-surface-2 transition-colors">
+                      <p className="text-sm text-ink font-medium">{s.first_name} {s.last_name}</p>
+                      <p className="text-xs text-muted mt-0.5">{s.admission_no} · {s.class_name || 'No class'}</p>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </Panel>
+
+          <Panel title="Shortcuts">
+            <ul className="divide-y divide-line">
+              {SHORTCUTS.map(s => (
+                <li key={s.href + s.label}>
+                  <Link href={s.href} className="flex items-center justify-between px-4 min-h-[44px] text-sm text-ink hover:bg-surface-2 transition-colors">
+                    {s.label}
+                    <ChevronRight size={16} className="text-muted" aria-hidden="true" />
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </Panel>
         </div>
       </div>
     </div>
   );
 }
 
-function MetricCard({ label, value, color, bg, icon, href }: {
-  label: string; value: number | string; color: string; bg: string; icon: React.ReactNode; href: string;
-}) {
+function Stat({ label, value, note, progress }: { label: string; value: string; note?: string; progress?: number }) {
   return (
-    <Link href={href} className="bg-white border border-[#DDE5F0] rounded-xl px-4 py-3.5 hover:shadow-sm transition-shadow min-h-[44px]">
-      <div className="flex items-center justify-between mb-1">
-        <p className="text-xs font-bold text-[#64748B] uppercase tracking-wider">{label}</p>
-        <span style={{ color }} aria-hidden="true">{icon}</span>
+    <div className="p-4 bg-surface">
+      <p className="text-[13px] text-muted">{label}</p>
+      <p className="text-[26px] font-semibold text-ink leading-tight mt-1 tabular-nums">{value}</p>
+      {note && <p className="text-xs text-muted mt-1 tabular-nums">{note}</p>}
+      {progress !== undefined && (
+        <div
+          className="h-1 bg-surface-2 rounded-full overflow-hidden mt-2"
+          role="progressbar" aria-valuenow={progress} aria-valuemin={0} aria-valuemax={100} aria-label={`${label}: ${progress}%`}
+        >
+          <div className="h-full bg-brand" style={{ width: `${Math.min(progress, 100)}%` }} />
+        </div>
+      )}
+    </div>
+  );
+}
+
+function Panel({ title, aside, action, children }: { title: string; aside?: string; action?: React.ReactNode; children: React.ReactNode }) {
+  return (
+    <section className="bg-surface border border-line rounded overflow-hidden">
+      <div className="px-4 h-11 border-b border-line flex items-center justify-between">
+        <h2 className="text-[15px] font-semibold text-ink">{title}</h2>
+        {aside && <span className="text-[13px] text-muted">{aside}</span>}
+        {action}
       </div>
-      <p className="text-xl font-bold" style={{ color }}>{value}</p>
-    </Link>
+      {children}
+    </section>
   );
 }

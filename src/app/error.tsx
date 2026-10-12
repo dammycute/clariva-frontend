@@ -1,6 +1,7 @@
-﻿'use client';
+'use client';
 
 import { useEffect } from 'react';
+import { Button } from '@/components/ui/button';
 
 export default function Error({
   error,
@@ -14,17 +15,14 @@ export default function Error({
   }, [error]);
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-[60vh] p-8 text-center">
-      <h2 className="text-2xl font-bold text-[#0D2B55] mb-3">Something went wrong</h2>
-      <p className="text-sm text-[#64748B] mb-6">
-        An unexpected error occurred. Please try again.
-      </p>
-      <button
-        onClick={reset}
-        className="px-6 py-3 bg-[#1A7A4A] text-white text-sm font-bold rounded-lg hover:bg-[#14663D] cursor-pointer transition-colors"
-      >
-        Try Again
-      </button>
-    </div>
+    <main className="min-h-[60vh] flex items-center px-6">
+      <div className="w-full max-w-[420px] mx-auto">
+        <h1 className="text-2xl font-semibold text-ink tracking-tight text-balance">Something went wrong</h1>
+        <p className="text-sm text-muted mt-2 text-pretty">
+          We couldn&apos;t load this page. Try again, and if it keeps happening, tell your school administrator.
+        </p>
+        <Button onClick={reset} className="mt-6">Try again</Button>
+      </div>
+    </main>
   );
 }

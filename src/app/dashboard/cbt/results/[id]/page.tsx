@@ -38,7 +38,7 @@ export default function ExamResultsPage() {
     })();
   }, [id, router]);
 
-  if (loading) return <div className="text-sm text-[#64748B] p-8">Loading results…</div>;
+  if (loading) return <div className="text-sm text-muted p-8">Loading results…</div>;
   if (!exam) return null;
 
   const passed = sessions.filter(s => s.passed);
@@ -47,33 +47,33 @@ export default function ExamResultsPage() {
   return (
     <div>
       <div className="flex items-center gap-3 mb-5">
-        <button onClick={() => router.push('/dashboard/cbt')} className="text-sm text-[#64748B] hover:text-[#0D2B55] inline-flex items-center gap-1"><ChevronLeft size={16} aria-hidden="true" /> Exams</button>
-        <div className="h-4 w-px bg-[#DDE5F0]" />
-        <h1 className="text-xl font-bold text-[#0D2B55]">{exam.title} — Results</h1>
+        <button onClick={() => router.push('/dashboard/cbt')} className="text-sm text-muted hover:text-ink inline-flex items-center gap-1"><ChevronLeft size={16} aria-hidden="true" /> Exams</button>
+        <div className="h-4 w-px bg-line" />
+        <h1 className="text-xl font-semibold text-ink">{exam.title} - Results</h1>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-5">
-        <div className="bg-white border border-[#DDE5F0] rounded-xl p-4 text-center">
-          <p className="text-2xl font-bold text-[#0D2B55]">{sessions.length}</p>
-          <p className="text-xs text-[#64748B]">Submissions</p>
+        <div className="bg-surface border border-line rounded p-4 text-center">
+          <p className="text-2xl font-semibold text-ink">{sessions.length}</p>
+          <p className="text-xs text-muted">Submissions</p>
         </div>
-        <div className="bg-white border border-[#DDE5F0] rounded-xl p-4 text-center">
-          <p className="text-2xl font-bold text-[#1A7A4A]">{passed.length}</p>
-          <p className="text-xs text-[#64748B]">Passed</p>
+        <div className="bg-surface border border-line rounded p-4 text-center">
+          <p className="text-2xl font-semibold text-brand">{passed.length}</p>
+          <p className="text-xs text-muted">Passed</p>
         </div>
-        <div className="bg-white border border-[#DDE5F0] rounded-xl p-4 text-center">
-          <p className={`text-2xl font-bold ${avgScore >= exam.pass_mark ? 'text-[#1A7A4A]' : 'text-[#B91C1C]'}`}>{avgScore}%</p>
-          <p className="text-xs text-[#64748B]">Avg Score</p>
+        <div className="bg-surface border border-line rounded p-4 text-center">
+          <p className={`text-2xl font-semibold ${avgScore >= exam.pass_mark ? 'text-brand' : 'text-danger'}`}>{avgScore}%</p>
+          <p className="text-xs text-muted">Avg Score</p>
         </div>
       </div>
 
-      <div className="bg-white border border-[#DDE5F0] rounded-xl overflow-x-auto">
+      <div className="bg-surface border border-line rounded overflow-x-auto">
         {sessions.length === 0 ? (
-          <div className="p-8 text-center text-sm text-[#64748B]">No submissions yet.</div>
+          <div className="p-8 text-center text-sm text-muted">No submissions yet.</div>
         ) : (
           <table className="w-full text-xs">
             <thead>
-              <tr className="text-[11px] font-bold tracking-wider text-[#64748B] uppercase bg-[#F7F9FC]">
+              <tr className="text-xs font-semibold text-muted bg-page">
                 <th className="text-left px-4 py-3">Student</th>
                 <th className="text-left px-4 py-3">Score</th>
                 <th className="text-left px-4 py-3">Percentage</th>
@@ -87,22 +87,22 @@ export default function ExamResultsPage() {
               {sessions.map(s => {
                 const pct = s.total_marks > 0 ? Math.round((s.score / s.total_marks) * 100) : 0;
                 return (
-                  <tr key={s.id} className="hover:bg-[#F8FAFF] border-t border-[#DDE5F0]">
+                  <tr key={s.id} className="hover:bg-page border-t border-line">
                     <td className="px-4 py-3 font-semibold">{s.student_name || s.student}</td>
                     <td className="px-4 py-3">{s.score}/{s.total_marks}</td>
                     <td className="px-4 py-3">
-                      <span className={`font-bold ${pct >= exam.pass_mark ? 'text-[#1A7A4A]' : 'text-[#B91C1C]'}`}>{pct}%</span>
+                      <span className={`font-semibold ${pct >= exam.pass_mark ? 'text-brand' : 'text-danger'}`}>{pct}%</span>
                     </td>
                     <td className="px-4 py-3">
-                      <span className={`px-2 py-0.5 rounded text-xs font-bold ${s.passed ? 'bg-[#DCFCE7] text-[#1A7A4A]' : 'bg-[#FEE2E2] text-[#B91C1C]'}`}>{s.passed ? 'Pass' : 'Fail'}</span>
+                      <span className={`px-2 py-0.5 rounded text-xs font-semibold ${s.passed ? 'bg-success/10 text-success' : 'bg-danger-soft text-danger'}`}>{s.passed ? 'Pass' : 'Fail'}</span>
                     </td>
                     <td className="px-4 py-3">{s.tab_switches || 0}</td>
                     <td className="px-4 py-3">
                       {s.late_submission
-                        ? <span className="px-2 py-0.5 rounded text-xs font-bold bg-amber-100 text-amber-700">Late</span>
-                        : <span className="text-[#64748B]">—</span>}
+                        ? <span className="px-2 py-0.5 rounded text-xs font-semibold bg-amber-100 text-amber-700">Late</span>
+                        : <span className="text-muted">-</span>}
                     </td>
-                    <td className="px-4 py-3 text-[#64748B]">{s.submitted_at ? new Date(s.submitted_at).toLocaleString('en-NG') : '—'}</td>
+                    <td className="px-4 py-3 text-muted">{s.submitted_at ? new Date(s.submitted_at).toLocaleString('en-NG') : '-'}</td>
                   </tr>
                 );
               })}

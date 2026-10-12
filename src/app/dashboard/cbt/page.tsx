@@ -105,36 +105,36 @@ export default function CBTExamsPage() {
     <div>
       <div className="flex items-center justify-between mb-5">
         <div>
-          <h1 className="text-2xl font-bold text-[#0D2B55]">CBT Examinations</h1>
-          <p className="text-xs text-[#64748B] mt-0.5">{exams.length} exams · {exams.filter(e => e.status === 'published').length} published</p>
+          <h1 className="text-2xl font-semibold text-ink">CBT Examinations</h1>
+          <p className="text-xs text-muted mt-0.5">{exams.length} exams · {exams.filter(e => e.status === 'published').length} published</p>
         </div>
-        <button onClick={openAdd} className="text-sm px-3.5 py-2 rounded-lg bg-[#1A7A4A] text-white hover:bg-[#14663D]">+ New Exam</button>
+        <button onClick={openAdd} className="text-sm px-3.5 py-2 rounded bg-brand text-brand-ink hover:opacity-90">+ New Exam</button>
       </div>
 
-      <div className="bg-white border border-[#DDE5F0] rounded-xl overflow-hidden">
+      <div className="bg-surface border border-line rounded overflow-hidden">
         {loading ? (
-          <div className="p-8 text-center text-sm text-[#64748B]">Loading exams…</div>
+          <div className="p-8 text-center text-sm text-muted">Loading exams…</div>
         ) : exams.length === 0 ? (
           <div className="p-12 flex flex-col items-center text-center">
             <div className="text-4xl mb-3" aria-hidden="true"><Monitor size={24} /></div>
-            <h3 className="text-base font-bold text-[#0D2B55] mb-2">No exams yet</h3>
-            <p className="text-xs text-[#64748B] max-w-md">Create your first exam with a question bank, set a schedule, and publish for students.</p>
+            <h3 className="text-base font-semibold text-ink mb-2">No exams yet</h3>
+            <p className="text-xs text-muted max-w-md">Create your first exam with a question bank, set a schedule, and publish for students.</p>
           </div>
         ) : (
-          <div className="divide-y divide-[#DDE5F0]">
+          <div className="divide-y divide-line">
             {exams.map(exam => (
-              <div key={exam.id} className="px-4 py-3 hover:bg-[#F8FAFF]">
+              <div key={exam.id} className="px-4 py-3 hover:bg-page">
                 <div className="flex items-start justify-between">
                   <div className="flex-1 min-w-0 mr-4">
                     <div className="flex items-center gap-2">
-                      <Link href={`/dashboard/cbt/${exam.id}`} className="text-sm font-bold text-[#0D2B55] hover:underline">{exam.title}</Link>
+                      <Link href={`/dashboard/cbt/${exam.id}`} className="text-sm font-semibold text-ink hover:underline">{exam.title}</Link>
                       {false && (exam.status === 'published' || exam.status === 'ongoing') && (
-                        <Link href={`/dashboard/cbt/take/${exam.id}`} className="text-xs px-2 py-0.5 rounded bg-[#1A7A4A] text-white font-bold">Take Exam</Link>
+                        <Link href={`/dashboard/cbt/take/${exam.id}`} className="text-xs px-2 py-0.5 rounded bg-brand text-brand-ink font-semibold">Take Exam</Link>
                       )}
-                      <span className={`text-xs px-1.5 py-0.5 rounded-full font-bold ${statusColors[exam.status] || statusColors.draft}`}>{exam.status}</span>
-                      <span className="text-xs px-1.5 py-0.5 rounded-full bg-[#E8F0FA] text-[#0D2B55] font-bold">{exam.question_count}</span>
+                      <span className={`text-xs px-1.5 py-0.5 rounded font-semibold ${statusColors[exam.status] || statusColors.draft}`}>{exam.status}</span>
+                      <span className="text-xs px-1.5 py-0.5 rounded bg-brand-soft text-ink font-semibold">{exam.question_count}</span>
                     </div>
-                    <div className="flex items-center gap-3 mt-1 text-xs text-[#64748B]">
+                    <div className="flex items-center gap-3 mt-1 text-xs text-muted">
                       <span>{exam.subject_name || exam.subject}</span>
                       <span>{exam.class_name || 'All classes'}</span>
                       <span>{exam.duration_mins} min</span>
@@ -143,10 +143,10 @@ export default function CBTExamsPage() {
                     </div>
                   </div>
                   <div className="flex items-center gap-1 shrink-0">
-                    <button onClick={() => openEdit(exam)} className="text-[11px] px-2 py-1 rounded border border-[#DDE5F0] hover:bg-[#F0F4FA]" title="Edit" aria-label="Edit"><Pencil size={16} aria-hidden="true" /></button>
-                    <button onClick={() => handleDuplicate(exam)} className="text-[11px] px-2 py-1 rounded border border-[#DDE5F0] hover:bg-[#F0F4FA]" title="Duplicate" aria-label="Duplicate"><ClipboardList size={16} aria-hidden="true" /></button>
-                    <Link href={`/dashboard/cbt/${exam.id}`} className="text-[11px] px-2 py-1 rounded border border-[#DDE5F0] hover:bg-[#F0F4FA]" title="Questions" aria-label="Questions"><FileText size={16} aria-hidden="true" /></Link>
-                    <Link href={`/dashboard/cbt/results/${exam.id}`} className="text-[11px] px-2 py-1 rounded border border-[#DDE5F0] hover:bg-[#F0F4FA]" title="Results" aria-label="Results"><BarChart3 size={16} aria-hidden="true" /></Link>
+                    <button onClick={() => openEdit(exam)} className="text-xs px-2 py-1 rounded border border-line hover:bg-surface-2" title="Edit" aria-label="Edit"><Pencil size={16} aria-hidden="true" /></button>
+                    <button onClick={() => handleDuplicate(exam)} className="text-xs px-2 py-1 rounded border border-line hover:bg-surface-2" title="Duplicate" aria-label="Duplicate"><ClipboardList size={16} aria-hidden="true" /></button>
+                    <Link href={`/dashboard/cbt/${exam.id}`} className="text-xs px-2 py-1 rounded border border-line hover:bg-surface-2" title="Questions" aria-label="Questions"><FileText size={16} aria-hidden="true" /></Link>
+                    <Link href={`/dashboard/cbt/results/${exam.id}`} className="text-xs px-2 py-1 rounded border border-line hover:bg-surface-2" title="Results" aria-label="Results"><BarChart3 size={16} aria-hidden="true" /></Link>
                   </div>
                 </div>
               </div>
@@ -157,30 +157,30 @@ export default function CBTExamsPage() {
 
       {showForm && (
         <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center" onClick={() => setShowForm(false)}>
-          <div className="bg-white rounded-2xl w-[560px] max-w-[95vw] max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+          <div className="bg-surface rounded w-[560px] max-w-[95vw] max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between p-5 pb-0">
-              <h2 className="text-base font-bold text-[#0D2B55]">{editId ? 'Edit Exam' : 'New Exam'}</h2>
-              <button onClick={() => setShowForm(false)} className="text-[#64748B] hover:text-[#0D2B55] text-lg" aria-label="Close"><X size={16} aria-hidden="true" /></button>
+              <h2 className="text-base font-semibold text-ink">{editId ? 'Edit Exam' : 'New Exam'}</h2>
+              <button onClick={() => setShowForm(false)} className="text-muted hover:text-ink text-lg" aria-label="Close"><X size={16} aria-hidden="true" /></button>
             </div>
             <form onSubmit={handleSave} className="p-5 space-y-3.5">
               <div>
-                <label className="block text-[11px] font-bold text-[#64748B] uppercase mb-1">Title</label>
+                <label className="block text-xs font-semibold text-muted mb-1">Title</label>
                 <input value={form.title} onChange={e => setForm({ ...form, title: e.target.value })} required
-                  className="w-full px-3 py-2 rounded-lg border border-[#DDE5F0] text-sm outline-none focus:border-[#1A7A4A]" />
+                  className="w-full px-3 py-2 rounded border border-line text-sm outline-none focus:border-brand" />
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-[11px] font-bold text-[#64748B] uppercase mb-1">Subject</label>
+                  <label className="block text-xs font-semibold text-muted mb-1">Subject</label>
                   <select value={form.subject} onChange={e => setForm({ ...form, subject: e.target.value })} required
-                    className="w-full px-3 py-2 rounded-lg border border-[#DDE5F0] text-sm outline-none focus:border-[#1A7A4A] bg-white">
+                    className="w-full px-3 py-2 rounded border border-line text-sm outline-none focus:border-brand bg-surface">
                     <option value="">Select subject</option>
                     {subjects.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
                   </select>
                 </div>
                 <div>
-                  <label className="block text-[11px] font-bold text-[#64748B] uppercase mb-1">Class</label>
+                  <label className="block text-xs font-semibold text-muted mb-1">Class</label>
                   <select value={form.class_group} onChange={e => setForm({ ...form, class_group: e.target.value })}
-                    className="w-full px-3 py-2 rounded-lg border border-[#DDE5F0] text-sm outline-none focus:border-[#1A7A4A] bg-white">
+                    className="w-full px-3 py-2 rounded border border-line text-sm outline-none focus:border-brand bg-surface">
                     <option value="">All classes</option>
                     {classes.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
                   </select>
@@ -188,61 +188,61 @@ export default function CBTExamsPage() {
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-[11px] font-bold text-[#64748B] uppercase mb-1">Duration (minutes)</label>
+                  <label className="block text-xs font-semibold text-muted mb-1">Duration (minutes)</label>
                   <input type="number" value={form.duration_mins} onChange={e => setForm({ ...form, duration_mins: e.target.value })} required min={1}
-                    className="w-full px-3 py-2 rounded-lg border border-[#DDE5F0] text-sm outline-none focus:border-[#1A7A4A]" />
+                    className="w-full px-3 py-2 rounded border border-line text-sm outline-none focus:border-brand" />
                 </div>
                 <div>
-                  <label className="block text-[11px] font-bold text-[#64748B] uppercase mb-1">Pass Mark (%)</label>
+                  <label className="block text-xs font-semibold text-muted mb-1">Pass Mark (%)</label>
                   <input type="number" value={form.pass_mark} onChange={e => setForm({ ...form, pass_mark: e.target.value })} required min={0} max={100}
-                    className="w-full px-3 py-2 rounded-lg border border-[#DDE5F0] text-sm outline-none focus:border-[#1A7A4A]" />
+                    className="w-full px-3 py-2 rounded border border-line text-sm outline-none focus:border-brand" />
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-[11px] font-bold text-[#64748B] uppercase mb-1">Start Time</label>
+                  <label className="block text-xs font-semibold text-muted mb-1">Start Time</label>
                   <input type="datetime-local" value={form.start_time} onChange={e => setForm({ ...form, start_time: e.target.value })}
-                    className="w-full px-3 py-2 rounded-lg border border-[#DDE5F0] text-sm outline-none focus:border-[#1A7A4A]" />
+                    className="w-full px-3 py-2 rounded border border-line text-sm outline-none focus:border-brand" />
                 </div>
                 <div>
-                  <label className="block text-[11px] font-bold text-[#64748B] uppercase mb-1">End Time</label>
+                  <label className="block text-xs font-semibold text-muted mb-1">End Time</label>
                   <input type="datetime-local" value={form.end_time} onChange={e => setForm({ ...form, end_time: e.target.value })}
-                    className="w-full px-3 py-2 rounded-lg border border-[#DDE5F0] text-sm outline-none focus:border-[#1A7A4A]" />
+                    className="w-full px-3 py-2 rounded border border-line text-sm outline-none focus:border-brand" />
                 </div>
               </div>
               <div>
-                <label className="block text-[11px] font-bold text-[#64748B] uppercase mb-1">Status</label>
+                <label className="block text-xs font-semibold text-muted mb-1">Status</label>
                 <select value={form.status} onChange={e => setForm({ ...form, status: e.target.value })}
-                  className="w-full px-3 py-2 rounded-lg border border-[#DDE5F0] text-sm outline-none focus:border-[#1A7A4A] bg-white">
+                  className="w-full px-3 py-2 rounded border border-line text-sm outline-none focus:border-brand bg-surface">
                   {STATUS_OPTIONS.map(s => <option key={s} value={s}>{s}</option>)}
                 </select>
               </div>
               <div>
-                <label className="block text-[11px] font-bold text-[#64748B] uppercase mb-1">Instructions</label>
+                <label className="block text-xs font-semibold text-muted mb-1">Instructions</label>
                 <textarea value={form.instructions} onChange={e => setForm({ ...form, instructions: e.target.value })} rows={3}
-                  className="w-full px-3 py-2 rounded-lg border border-[#DDE5F0] text-sm outline-none focus:border-[#1A7A4A]" />
+                  className="w-full px-3 py-2 rounded border border-line text-sm outline-none focus:border-brand" />
               </div>
               <div className="flex gap-4">
                 <label className="flex items-center gap-2 cursor-pointer text-sm">
                   <input type="checkbox" checked={form.shuffle_questions} onChange={e => setForm({ ...form, shuffle_questions: e.target.checked })}
-                    className="w-4 h-4 rounded border-[#DDE5F0] text-[#1A7A4A] focus:ring-[#1A7A4A]" />
+                    className="w-4 h-4 rounded border-line text-brand focus:ring-brand" />
                   Shuffle questions
                 </label>
                 <label className="flex items-center gap-2 cursor-pointer text-sm">
                   <input type="checkbox" checked={form.shuffle_options} onChange={e => setForm({ ...form, shuffle_options: e.target.checked })}
-                    className="w-4 h-4 rounded border-[#DDE5F0] text-[#1A7A4A] focus:ring-[#1A7A4A]" />
+                    className="w-4 h-4 rounded border-line text-brand focus:ring-brand" />
                   Shuffle options
                 </label>
                 <label className="flex items-center gap-2 cursor-pointer text-sm">
                   <input type="checkbox" checked={form.time_limit_enforced} onChange={e => setForm({ ...form, time_limit_enforced: e.target.checked })}
-                    className="w-4 h-4 rounded border-[#DDE5F0] text-[#1A7A4A] focus:ring-[#1A7A4A]" />
+                    className="w-4 h-4 rounded border-line text-brand focus:ring-brand" />
                   Enforce time limit
                 </label>
               </div>
               <div className="flex justify-end gap-2 pt-2">
-                <button type="button" onClick={() => setShowForm(false)} className="text-sm px-4 py-2 rounded-lg border border-[#DDE5F0] bg-white hover:bg-[#F0F4FA]">Cancel</button>
+                <button type="button" onClick={() => setShowForm(false)} className="text-sm px-4 py-2 rounded border border-line bg-surface hover:bg-surface-2">Cancel</button>
                 <button type="submit" disabled={saving}
-                  className="text-sm px-4 py-2 rounded-lg bg-[#1A7A4A] text-white hover:bg-[#14663D] disabled:opacity-50">
+                  className="text-sm px-4 py-2 rounded bg-brand text-brand-ink hover:opacity-90 disabled:opacity-50">
                   {saving ? 'Saving…' : editId ? 'Save Changes' : 'Create Exam'}
                 </button>
               </div>

@@ -1,55 +1,23 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
-import { auth } from '@/lib/api';
-import { useEffect, useState } from 'react';
-import { LogOut } from 'lucide-react';
-import { Sidebar, type NavSection } from '@/components/sidebar';
-import {
-  LayoutDashboard, FileText, CheckCircle2, Calendar, Monitor,
-} from 'lucide-react';
+import { PortalShell } from '@/components/portal-shell';
+import type { NavSection } from '@/components/sidebar';
+import { LayoutDashboard, FileText, CheckCircle2, Calendar, MonitorCheck } from 'lucide-react';
 
-const NAV_SECTIONS: NavSection[] = [
-  { section: 'Portal', items: [
-    { label: 'Dashboard', href: '/student', icon: <LayoutDashboard size={18} /> },
-    { label: 'My Grades', href: '/student/grades', icon: <FileText size={18} /> },
-    { label: 'Attendance', href: '/student/attendance', icon: <CheckCircle2 size={18} /> },
-    { label: 'Timetable', href: '/student/timetable', icon: <Calendar size={18} /> },
-    { label: 'CBT Exams', href: '/student/exams', icon: <Monitor size={18} /> },
+const icon = { size: 16, strokeWidth: 1.75 } as const;
+
+const NAV: NavSection[] = [
+  { section: '', items: [
+    { label: 'Dashboard', href: '/student', icon: <LayoutDashboard {...icon} /> },
+  ]},
+  { section: 'School', items: [
+    { label: 'My grades', href: '/student/grades', icon: <FileText {...icon} /> },
+    { label: 'Attendance', href: '/student/attendance', icon: <CheckCircle2 {...icon} /> },
+    { label: 'Timetable', href: '/student/timetable', icon: <Calendar {...icon} /> },
+    { label: 'CBT exams', href: '/student/exams', icon: <MonitorCheck {...icon} /> },
   ]},
 ];
 
 export default function StudentLayout({ children }: { children: React.ReactNode }) {
-  const router = useRouter();
-  const [checking, setChecking] = useState(true);
-
-  useEffect(() => {
-    if (!auth.getToken()) { router.push('/'); return; }
-    auth.me().then(() => setChecking(false)).catch(() => {});
-  }, [router]);
-
-  if (checking) return null;
-
-  return (
-    <div className="h-dvh flex flex-col overflow-hidden bg-[#F7F9FC]">
-      <header className="h-14 bg-white border-b border-[#DDE5F0] flex items-center justify-between px-4 sm:px-6 shrink-0">
-        <div className="flex items-center gap-2">
-          <div className="w-7 h-7 bg-[#1A7A4A] rounded-lg flex items-center justify-center text-white font-bold text-xs" aria-hidden="true">S</div>
-          <span className="font-semibold text-sm text-[#0D2B55]">Student Portal</span>
-          <span className="text-[11px] bg-[#DCFCE7] text-[#1A7A4A] px-2 py-0.5 rounded-full font-bold hidden sm:inline-block">Student</span>
-        </div>
-        <button
-          onClick={() => { auth.logout(); router.push('/'); }}
-          aria-label="Log out"
-          className="flex items-center gap-1.5 text-xs px-3 py-2 rounded-lg border border-[#DDE5F0] bg-white hover:bg-[#F0F4FA] cursor-pointer min-h-[36px]"
-        >
-          <LogOut size={14} /> Log out
-        </button>
-      </header>
-      <div className="flex flex-1 overflow-hidden">
-        <Sidebar sections={NAV_SECTIONS} />
-        <main className="flex-1 overflow-y-auto p-4 sm:p-6 pb-20 lg:pb-6">{children}</main>
-      </div>
-    </div>
-  );
+  return <PortalShell nav={NAV}>{children}</PortalShell>;
 }

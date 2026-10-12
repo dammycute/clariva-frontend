@@ -29,7 +29,8 @@ function decodeJwtPayload(token: string): Record<string, unknown> | null {
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  if (pathname.startsWith('/portal') || pathname === '/' || pathname.startsWith('/onboard')) {
+  // `/guardian` is the guardian login page; `/guardian/dashboard` stays protected.
+  if (pathname.startsWith('/portal') || pathname === '/' || pathname.startsWith('/onboard') || pathname === '/guardian') {
     return NextResponse.next();
   }
 

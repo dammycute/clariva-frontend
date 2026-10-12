@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import toast from 'react-hot-toast';
-import { api } from '@/lib/api';
+import { api, auth, request } from '@/lib/api';
 import { Printer } from 'lucide-react';
 
 interface GradeEntry {
@@ -25,10 +25,10 @@ const TERMS = ['1st Term', '2nd Term', '3rd Term'];
 const YEAR_GROUPS = ['JSS1', 'JSS2', 'JSS3', 'SS1', 'SS2', 'SS3'];
 
 function getGradeColor(grade: string | null): string {
-  if (!grade) return 'text-[#64748B]';
-  if (grade === 'A1') return 'text-[#065F46]';
-  if (grade === 'F9') return 'text-[#B91C1C]';
-  return 'text-[#D4930A]';
+  if (!grade) return 'text-muted';
+  if (grade === 'A1') return 'text-success';
+  if (grade === 'F9') return 'text-danger';
+  return 'text-warning';
 }
 
 export default function ReportCardTab({ onRefresh }: { onRefresh: () => void }) {
@@ -67,16 +67,9 @@ export default function ReportCardTab({ onRefresh }: { onRefresh: () => void }) 
     setGenerating(true);
     setMessage('');
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api'}/results/report-cards/generate/`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
-        },
-        body: JSON.stringify({ class_id: selectedClass, term, academic_year: academicYear }),
+      const data = await request<{ generated: number }>('POST', '/results/report-cards/generate/', {
+        class_id: selectedClass, term, academic_year: academicYear,
       });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Generation failed');
       setMessage(`Generated ${data.generated} report card${data.generated !== 1 ? 's' : ''}.`);
       const cardRes = await api.reportCards.list({ class_id: selectedClass, term });
       setCards(cardRes as ReportCard[]);
@@ -91,9 +84,7 @@ export default function ReportCardTab({ onRefresh }: { onRefresh: () => void }) 
   async function handlePreview(card: ReportCard) {
     setPreviewCard(card);
     try {
-      const me = await (await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api'}/auth/me/`, {
-        headers: { 'Authorization': `Bearer ${localStorage.getItem('access_token')}` },
-      })).json();
+      const me = await auth.me();
       if (me?.school_id) {
         const gc = await api.gradingConfig.get(me.school_id) as unknown as { components: typeof components };
         setComponents(gc.components || []);
@@ -190,7 +181,7 @@ export default function ReportCardTab({ onRefresh }: { onRefresh: () => void }) 
     <div>
       <div className="flex items-center gap-3 mb-4 flex-wrap">
         <select value={selectedClass} onChange={e => setSelectedClass(e.target.value)}
-          className="text-sm border border-[#DDE5F0] rounded-lg px-3 py-2 bg-white text-[#0D2B55] outline-none">
+          className="text-sm border border-line rounded px-3 py-2 bg-surface text-ink outline-none">
           <option value="">Select class</option>
           {YEAR_GROUPS.map(yg => (
             <optgroup key={yg} label={yg}>
@@ -201,35 +192,35 @@ export default function ReportCardTab({ onRefresh }: { onRefresh: () => void }) 
           ))}
         </select>
         <select value={term} onChange={e => setTerm(e.target.value)}
-          className="text-sm border border-[#DDE5F0] rounded-lg px-3 py-2 bg-white text-[#0D2B55] outline-none">
+          className="text-sm border border-line rounded px-3 py-2 bg-surface text-ink outline-none">
           {TERMS.map(t => <option key={t} value={t}>{t}</option>)}
         </select>
         <input value={academicYear} onChange={e => setAcademicYear(e.target.value)}
-          className="text-sm border border-[#DDE5F0] rounded-lg px-3 py-2 bg-white text-[#0D2B55] outline-none w-[130px]" />
+          className="text-sm border border-line rounded px-3 py-2 bg-surface text-ink outline-none w-[130px]" />
         {selectedClass && (
           <button onClick={handleGenerate} disabled={generating}
-            className="text-sm px-4 py-2 rounded-lg bg-[#1A7A4A] text-white hover:bg-[#14663D] disabled:opacity-50">
+            className="text-sm px-4 py-2 rounded bg-brand text-brand-ink hover:opacity-90 disabled:opacity-50">
             {generating ? 'Generating…' : 'Generate Report Cards'}
           </button>
         )}
       </div>
 
       {message && (
-        <div className={`px-4 py-2 rounded-lg text-xs mb-3 ${message.includes('Generated') || message.includes('generated') ? 'bg-[#D1FAE5] text-[#065F46]' : 'bg-[#FEE2E2] text-[#B91C1C]'}`}>
+        <div className={`px-4 py-2 rounded text-xs mb-3 ${message.includes('Generated') || message.includes('generated') ? 'bg-success/10 text-success' : 'bg-danger-soft text-danger'}`}>
           {message}
         </div>
       )}
 
-      <div className="bg-white border border-[#DDE5F0] rounded-xl overflow-x-auto">
-        {loading ? <div className="p-8 text-center text-sm text-[#64748B]">Loading…</div>
+      <div className="bg-surface border border-line rounded overflow-x-auto">
+        {loading ? <div className="p-8 text-center text-sm text-muted">Loading…</div>
         : filteredCards.length === 0 ? (
-          <div className="p-8 text-center text-sm text-[#64748B]">
+          <div className="p-8 text-center text-sm text-muted">
             {selectedClass ? 'No report cards generated yet. Click "Generate Report Cards" above.' : 'Select a class to view report cards.'}
           </div>
         ) : (
           <table className="w-full text-xs">
             <thead>
-              <tr className="text-[11px] font-bold tracking-wider text-[#64748B] uppercase bg-[#F7F9FC]">
+              <tr className="text-xs font-semibold text-muted bg-page">
                 <th className="text-left px-4 py-3">Student</th><th className="text-left px-4 py-3">Class</th>
                 <th className="text-right px-4 py-3">Subjects</th><th className="text-right px-4 py-3">Average</th>
                 <th className="text-right px-4 py-3">Rank</th><th className="text-left px-4 py-3">Actions</th>
@@ -237,14 +228,14 @@ export default function ReportCardTab({ onRefresh }: { onRefresh: () => void }) 
             </thead>
             <tbody>
               {filteredCards.map(c => (
-                <tr key={c.id} className="hover:bg-[#F8FAFF] border-t border-[#DDE5F0]">
+                <tr key={c.id} className="hover:bg-page border-t border-line">
                   <td className="px-4 py-3 font-semibold">{c.student_name}</td>
-                  <td className="px-4 py-3 text-[#64748B]">{c.class_name}</td>
+                  <td className="px-4 py-3 text-muted">{c.class_name}</td>
                   <td className="px-4 py-3 text-right">{c.grades?.length || 0}</td>
-                  <td className="px-4 py-3 text-right font-bold">{c.average != null ? `${c.average}%` : '—'}</td>
-                  <td className="px-4 py-3 text-right">{c.class_rank != null ? `${c.class_rank}` : '—'}</td>
+                  <td className="px-4 py-3 text-right font-semibold">{c.average != null ? `${c.average}%` : '-'}</td>
+                  <td className="px-4 py-3 text-right">{c.class_rank != null ? `${c.class_rank}` : '-'}</td>
                   <td className="px-4 py-3">
-                    <button onClick={() => handlePreview(c)} className="text-[11px] text-[#1A7A4A] hover:underline">Preview</button>
+                    <button onClick={() => handlePreview(c)} className="text-xs text-brand hover:underline">Preview</button>
                   </td>
                 </tr>
               ))}
@@ -256,32 +247,32 @@ export default function ReportCardTab({ onRefresh }: { onRefresh: () => void }) 
       {/* Print Preview Modal */}
       {cardToPrint && (
         <div id="report-card-modal" className="fixed inset-0 bg-black/40 z-50 flex items-start justify-center py-8 overflow-y-auto" onClick={() => setPreviewCard(null)}>
-          <div className="bg-white max-w-[900px] w-full mx-4 rounded-2xl overflow-hidden" onClick={e => e.stopPropagation()}>
+          <div className="bg-surface max-w-[900px] w-full mx-4 rounded overflow-hidden" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between p-5 pb-0 no-print">
-              <h2 className="text-base font-bold text-[#0D2B55]">Report Card Preview</h2>
+              <h2 className="text-base font-semibold text-ink">Report Card Preview</h2>
               <div className="flex gap-2">
-                <button onClick={handlePrint} className="text-sm px-4 py-2 rounded-lg bg-[#1A7A4A] text-white hover:bg-[#14663D] inline-flex items-center gap-1.5"><Printer size={16} aria-hidden="true" /> Print / Export PDF</button>
-                <button onClick={() => setPreviewCard(null)} className="text-sm px-4 py-2 rounded-lg border border-[#DDE5F0] bg-white hover:bg-[#F0F4FA]">Close</button>
+                <button onClick={handlePrint} className="text-sm px-4 py-2 rounded bg-brand text-brand-ink hover:opacity-90 inline-flex items-center gap-1.5"><Printer size={16} aria-hidden="true" /> Print / Export PDF</button>
+                <button onClick={() => setPreviewCard(null)} className="text-sm px-4 py-2 rounded border border-line bg-surface hover:bg-surface-2">Close</button>
               </div>
             </div>
 
             <div ref={printRef} className="p-8 overflow-y-auto max-h-[70vh]" style={{ fontFamily: 'Inter, sans-serif' }}>
               <div className="text-center mb-6 print:mb-4">
-                <div className="text-2xl font-bold tracking-wider text-[#0D2B55]">CLARIVA</div>
-                <div className="text-xs text-[#64748B]">School Management Platform</div>
-                <div className="mt-3 text-lg font-bold text-[#0D2B55] border-b-2 border-[#1A7A4A] pb-2">TERMLY REPORT CARD</div>
+                <div className="text-2xl font-semibold text-ink">CLARIVA</div>
+                <div className="text-xs text-muted">School Management Platform</div>
+                <div className="mt-3 text-lg font-semibold text-ink border-b-2 border-brand pb-2">TERMLY REPORT CARD</div>
               </div>
 
               <div className="grid grid-cols-2 gap-x-8 gap-y-1 mb-4 text-xs">
-                <div><span className="text-[#64748B]">Student:</span> <span className="font-semibold text-[#0D2B55]">{cardToPrint.student_name}</span></div>
-                <div><span className="text-[#64748B]">Class:</span> <span className="font-semibold text-[#0D2B55]">{cardToPrint.class_name}</span></div>
-                <div><span className="text-[#64748B]">Term:</span> <span className="font-semibold text-[#0D2B55]">{cardToPrint.term}</span></div>
-                <div><span className="text-[#64748B]">Academic Year:</span> <span className="font-semibold text-[#0D2B55]">{cardToPrint.academic_year}</span></div>
+                <div><span className="text-muted">Student:</span> <span className="font-semibold text-ink">{cardToPrint.student_name}</span></div>
+                <div><span className="text-muted">Class:</span> <span className="font-semibold text-ink">{cardToPrint.class_name}</span></div>
+                <div><span className="text-muted">Term:</span> <span className="font-semibold text-ink">{cardToPrint.term}</span></div>
+                <div><span className="text-muted">Academic Year:</span> <span className="font-semibold text-ink">{cardToPrint.academic_year}</span></div>
               </div>
 
               <table className="w-full text-xs border-collapse mb-3">
                 <thead>
-                  <tr className="bg-[#0D2B55] text-white">
+                  <tr className="bg-brand text-brand-ink">
                     <th className="text-left px-3 py-2">Subject</th>
                     {activeComponents.map(c => (
                       <th key={c.key} className="text-center px-2 py-2">{c.label} ({c.max})</th>
@@ -292,38 +283,38 @@ export default function ReportCardTab({ onRefresh }: { onRefresh: () => void }) 
                 </thead>
                 <tbody>
                   {(cardToPrint.grades || []).map((g, i) => (
-                    <tr key={i} className={i % 2 === 0 ? 'bg-[#F7F9FC]' : ''}>
-                      <td className="px-3 py-1.5 font-semibold text-[#0D2B55]">{g.subject}</td>
+                    <tr key={i} className={i % 2 === 0 ? 'bg-page' : ''}>
+                      <td className="px-3 py-1.5 font-semibold text-ink">{g.subject}</td>
                       {activeComponents.map(c => (
-                        <td key={c.key} className="text-center px-2 py-1.5">{g.scores?.[c.key] != null ? g.scores[c.key] : '—'}</td>
+                        <td key={c.key} className="text-center px-2 py-1.5">{g.scores?.[c.key] != null ? g.scores[c.key] : '-'}</td>
                       ))}
-                      <td className="text-center px-2 py-1.5 font-bold">{g.total != null ? g.total : '—'}</td>
-                      <td className={`text-center px-2 py-1.5 font-bold ${getGradeColor(g.grade)}`}>{g.grade || '—'}</td>
+                      <td className="text-center px-2 py-1.5 font-semibold">{g.total != null ? g.total : '-'}</td>
+                      <td className={`text-center px-2 py-1.5 font-semibold ${getGradeColor(g.grade)}`}>{g.grade || '-'}</td>
                     </tr>
                   ))}
                 </tbody>
               </table>
 
               <div className="grid grid-cols-3 gap-4 mb-4 text-xs">
-                <div className="bg-[#F7F9FC] rounded-lg p-2.5 text-center">
-                  <div className="text-[#64748B] text-xs">Total Score</div>
-                  <div className="font-bold text-[#0D2B55]">{cardToPrint.total_score ?? '—'}</div>
+                <div className="bg-page rounded p-2.5 text-center">
+                  <div className="text-muted text-xs">Total Score</div>
+                  <div className="font-semibold text-ink">{cardToPrint.total_score ?? '-'}</div>
                 </div>
-                <div className="bg-[#F7F9FC] rounded-lg p-2.5 text-center">
-                  <div className="text-[#64748B] text-xs">Average</div>
-                  <div className="font-bold text-[#0D2B55]">{cardToPrint.average != null ? `${cardToPrint.average}%` : '—'}</div>
+                <div className="bg-page rounded p-2.5 text-center">
+                  <div className="text-muted text-xs">Average</div>
+                  <div className="font-semibold text-ink">{cardToPrint.average != null ? `${cardToPrint.average}%` : '-'}</div>
                 </div>
-                <div className="bg-[#F7F9FC] rounded-lg p-2.5 text-center">
-                  <div className="text-[#64748B] text-xs">Class Rank</div>
-                  <div className="font-bold text-[#0D2B55]">{cardToPrint.class_rank != null ? `${cardToPrint.class_rank}` : '—'}</div>
+                <div className="bg-page rounded p-2.5 text-center">
+                  <div className="text-muted text-xs">Class Rank</div>
+                  <div className="font-semibold text-ink">{cardToPrint.class_rank != null ? `${cardToPrint.class_rank}` : '-'}</div>
                 </div>
               </div>
 
-              <div className="text-xs text-[#64748B] border-t border-[#DDE5F0] pt-2 mt-2">
+              <div className="text-xs text-muted border-t border-line pt-2 mt-2">
                 <span className="font-semibold">WAEC Grading:</span>{' '}
                 A1(75-100%) B2(70-74%) B3(65-69%) C4(60-64%) C5(55-59%) C6(50-54%) D7(45-49%) E8(40-44%) F9(0-39%)
               </div>
-              <div className="text-xs text-[#94A3B8] mt-1">Generated on {new Date().toLocaleDateString('en-NG', { day: 'numeric', month: 'long', year: 'numeric' })} via Clariva</div>
+              <div className="text-xs text-muted mt-1">Generated on {new Date().toLocaleDateString('en-NG', { day: 'numeric', month: 'long', year: 'numeric' })} via Clariva</div>
             </div>
           </div>
         </div>

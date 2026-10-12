@@ -214,24 +214,24 @@ export default function ExamDetailPage() {
   const totalMarks = questions.reduce((a, q) => a + (q.mark || 1), 0);
   const estTime = questions.length * 1.5; // rough 1.5 min per question
 
-  if (loading) return <div className="text-sm text-[#64748B] p-8">Loading exam…</div>;
+  if (loading) return <div className="text-sm text-muted p-8">Loading exam…</div>;
   if (!exam) return null;
 
   const qs = questions.length;
 
   // ---- render helpers ----
   function renderBadge(label: string, colorClass: string) {
-    return <span className={`text-xs px-1.5 py-0.5 rounded-full font-bold ${colorClass}`}>{label}</span>;
+    return <span className={`text-xs px-1.5 py-0.5 rounded font-semibold ${colorClass}`}>{label}</span>;
   }
 
   return (
     <div>
       {/* header */}
       <div className="flex items-center gap-3 mb-5">
-        <button onClick={() => router.push('/dashboard/cbt')} className="text-sm text-[#64748B] hover:text-[#0D2B55] inline-flex items-center gap-1"><ChevronLeft size={16} aria-hidden="true" /> Exams</button>
-        <div className="h-4 w-px bg-[#DDE5F0]" />
-        <h1 className="text-xl font-bold text-[#0D2B55]">{exam.title}</h1>
-        <span className={`text-xs px-2 py-0.5 rounded-full font-bold ${exam.status === 'published' ? 'bg-blue-100 text-blue-700' : exam.status === 'draft' ? 'bg-gray-100 text-gray-600' : exam.status === 'ongoing' ? 'bg-green-100 text-green-700' : exam.status === 'completed' ? 'bg-amber-100 text-amber-700' : 'bg-red-100 text-red-700'}`}>{exam.status}</span>
+        <button onClick={() => router.push('/dashboard/cbt')} className="text-sm text-muted hover:text-ink inline-flex items-center gap-1"><ChevronLeft size={16} aria-hidden="true" /> Exams</button>
+        <div className="h-4 w-px bg-line" />
+        <h1 className="text-xl font-semibold text-ink">{exam.title}</h1>
+        <span className={`text-xs px-2 py-0.5 rounded font-semibold ${exam.status === 'published' ? 'bg-blue-100 text-blue-700' : exam.status === 'draft' ? 'bg-gray-100 text-gray-600' : exam.status === 'ongoing' ? 'bg-green-100 text-green-700' : exam.status === 'completed' ? 'bg-amber-100 text-amber-700' : 'bg-red-100 text-red-700'}`}>{exam.status}</span>
       </div>
 
       {/* summary cards */}
@@ -243,34 +243,34 @@ export default function ExamDetailPage() {
           { label: 'Pass Mark', value: `${exam.pass_mark}%` },
           { label: 'Est. Time', value: `${estTime} min` },
         ].map(s => (
-          <div key={s.label} className="bg-white border border-[#DDE5F0] rounded-xl p-3 text-center">
-            <p className="text-lg font-bold text-[#0D2B55]">{s.value}</p>
-            <p className="text-xs text-[#64748B]">{s.label}</p>
+          <div key={s.label} className="bg-surface border border-line rounded p-3 text-center">
+            <p className="text-lg font-semibold text-ink">{s.value}</p>
+            <p className="text-xs text-muted">{s.label}</p>
           </div>
         ))}
       </div>
 
       {/* summary bar */}
-      <div className="text-xs text-[#64748B] mb-4 px-1">
+      <div className="text-xs text-muted mb-4 px-1">
         {qs} questions · {mcqCount} MCQ · {tfCount} True/False · {saCount} Short Answer · Total marks: {totalMarks} · Est. time: {Math.round(estTime)} mins
       </div>
 
       {/* upload panel */}
-      <div className="bg-white border border-[#DDE5F0] rounded-xl p-5 mb-5" ref={dropRef}>
-        <h2 className="text-sm font-bold text-[#0D2B55] mb-3 flex items-center gap-1.5"><FileText size={16} aria-hidden="true" /> Upload Questions from DOCX</h2>
+      <div className="bg-surface border border-line rounded p-5 mb-5" ref={dropRef}>
+        <h2 className="text-sm font-semibold text-ink mb-3 flex items-center gap-1.5"><FileText size={16} aria-hidden="true" /> Upload Questions from DOCX</h2>
         <div
           onDragOver={handleDragOver} onDragLeave={handleDragLeave} onDrop={handleDrop}
           onClick={() => fileInputRef.current?.click()}
-          className={`border-2 border-dashed rounded-xl p-6 text-center cursor-pointer transition-colors ${dragging ? 'border-[#1A7A4A] bg-green-50' : 'border-[#DDE5F0] hover:border-[#1A7A4A] hover:bg-[#F8FAFF]'}`}
+          className={`border-2 border-dashed rounded p-6 text-center cursor-pointer transition-colors ${dragging ? 'border-brand bg-green-50' : 'border-line hover:border-brand hover:bg-page'}`}
         >
           <input ref={fileInputRef} type="file" accept=".docx" className="hidden"
             onChange={e => { const f = e.target.files?.[0]; if (f) { setUploadFile(f); setUploadResult(null); } }} />
           {uploadFile ? (
-            <p className="text-sm text-[#0D2B55] font-medium">{uploadFile.name}</p>
+            <p className="text-sm text-ink font-medium">{uploadFile.name}</p>
           ) : (
             <div>
-              <p className="text-sm text-[#64748B]">Drag & drop a <strong>.docx</strong> file here, or click to browse</p>
-              <p className="text-xs text-[#94A3B8] mt-1">Only .docx format is supported</p>
+              <p className="text-sm text-muted">Drag & drop a <strong>.docx</strong> file here, or click to browse</p>
+              <p className="text-xs text-muted mt-1">Only .docx format is supported</p>
             </div>
           )}
         </div>
@@ -279,19 +279,19 @@ export default function ExamDetailPage() {
           <div className="flex items-center gap-3 mt-3">
             <label className="flex items-center gap-2 cursor-pointer text-xs">
               <input type="checkbox" checked={replaceMode} onChange={e => setReplaceMode(e.target.checked)}
-                className="w-3.5 h-3.5 rounded border-[#DDE5F0] text-[#1A7A4A] focus:ring-[#1A7A4A]" />
+                className="w-3.5 h-3.5 rounded border-line text-brand focus:ring-brand" />
               Replace existing questions
             </label>
             <div className="flex-1" />
             <button onClick={handleUpload} disabled={uploading}
-              className="text-xs px-3 py-1.5 rounded-lg bg-[#1A7A4A] text-white hover:bg-[#14663D] disabled:opacity-50">
+              className="text-xs px-3 py-1.5 rounded bg-brand text-brand-ink hover:opacity-90 disabled:opacity-50">
               {uploading ? 'Uploading…' : 'Upload'}
             </button>
           </div>
         )}
 
         {uploadResult && (
-          <div className={`mt-3 text-xs px-3 py-2 rounded-lg ${uploadResult.ok ? 'bg-green-50 text-green-700 border border-green-200' : 'bg-red-50 text-red-700 border border-red-200'}`}>
+          <div className={`mt-3 text-xs px-3 py-2 rounded ${uploadResult.ok ? 'bg-green-50 text-green-700 border border-green-200' : 'bg-red-50 text-red-700 border border-red-200'}`}>
             {uploadResult.ok
               ? <CheckCircle2 size={16} className="inline align-[-3px] mr-1" aria-hidden="true" />
               : <X size={16} className="inline align-[-3px] mr-1" aria-hidden="true" />}{uploadResult.msg}
@@ -305,7 +305,7 @@ export default function ExamDetailPage() {
           </div>
         )}
 
-        <button onClick={handleDownloadTemplate} className="mt-3 text-xs px-3 py-1.5 rounded-lg border border-[#DDE5F0] hover:bg-[#F0F4FA] inline-flex items-center gap-1.5">
+        <button onClick={handleDownloadTemplate} className="mt-3 text-xs px-3 py-1.5 rounded border border-line hover:bg-surface-2 inline-flex items-center gap-1.5">
           <Download size={16} aria-hidden="true" /> Download Template
         </button>
       </div>
@@ -316,71 +316,71 @@ export default function ExamDetailPage() {
           <div className="flex gap-1">
             {['all', ...Q_TYPES].map(t => (
               <button key={t} onClick={() => setTypeFilter(t)}
-                className={`text-[11px] px-2.5 py-1 rounded-lg font-bold transition-colors ${typeFilter === t ? 'bg-[#0D2B55] text-white' : 'bg-[#F0F4FA] text-[#64748B] hover:bg-[#DDE5F0]'}`}>
+                className={`text-xs px-2.5 py-1 rounded font-semibold transition-colors ${typeFilter === t ? 'bg-brand text-brand-ink' : 'bg-surface-2 text-muted hover:bg-line'}`}>
                 {t === 'all' ? 'All' : t === 'mcq' ? 'MCQ' : t === 'true_false' ? 'True/False' : 'Short Answer'}
               </button>
             ))}
           </div>
-          <div className="h-5 w-px bg-[#DDE5F0]" />
+          <div className="h-5 w-px bg-line" />
           <div className="flex gap-1">
             {['all', ...DIFFICULTIES].map(d => (
               <button key={d} onClick={() => setDiffFilter(d)}
-                className={`text-[11px] px-2.5 py-1 rounded-lg font-bold transition-colors ${diffFilter === d ? 'bg-[#0D2B55] text-white' : 'bg-[#F0F4FA] text-[#64748B] hover:bg-[#DDE5F0]'}`}>
+                className={`text-xs px-2.5 py-1 rounded font-semibold transition-colors ${diffFilter === d ? 'bg-brand text-brand-ink' : 'bg-surface-2 text-muted hover:bg-line'}`}>
                 {d.charAt(0).toUpperCase() + d.slice(1)}
               </button>
             ))}
           </div>
         </div>
         <div className="flex items-center gap-1.5">
-          {qs > 1 && <button onClick={openReorder} className="text-xs px-3 py-1.5 rounded-lg border border-[#DDE5F0] hover:bg-[#F0F4FA]">↕ Reorder</button>}
-          <button onClick={openAdd} className="text-xs px-3 py-1.5 rounded-lg bg-[#1A7A4A] text-white hover:bg-[#14663D]">+ Add Question</button>
+          {qs > 1 && <button onClick={openReorder} className="text-xs px-3 py-1.5 rounded border border-line hover:bg-surface-2">↕ Reorder</button>}
+          <button onClick={openAdd} className="text-xs px-3 py-1.5 rounded bg-brand text-brand-ink hover:opacity-90">+ Add Question</button>
         </div>
       </div>
 
       {/* question list */}
-      <div className="bg-white border border-[#DDE5F0] rounded-xl overflow-hidden">
+      <div className="bg-surface border border-line rounded overflow-hidden">
         {filteredQuestions.length === 0 ? (
-          <div className="p-8 text-center text-sm text-[#64748B]">No questions yet. Upload a .docx file or add manually.</div>
+          <div className="p-8 text-center text-sm text-muted">No questions yet. Upload a .docx file or add manually.</div>
         ) : (
-          <div className="divide-y divide-[#DDE5F0]">
+          <div className="divide-y divide-line">
             {filteredQuestions.map((q, i) => {
               const isExpanded = expanded.has(q.id);
               return (
-                <div key={q.id} className="px-4 py-3 hover:bg-[#F8FAFF]">
+                <div key={q.id} className="px-4 py-3 hover:bg-page">
                   <div className="flex items-start justify-between">
                     <div className="flex-1 min-w-0 mr-4">
                       <div className="flex items-center gap-2">
-                        <span className="text-xs font-bold text-[#0D2B55] shrink-0">Q{i + 1}.</span>
+                        <span className="text-xs font-semibold text-ink shrink-0">Q{i + 1}.</span>
                         <p
                           onClick={() => {
                             const s = new Set(expanded);
                             isExpanded ? s.delete(q.id) : s.add(q.id);
                             setExpanded(s);
                           }}
-                          className={`text-xs text-[#0D2B55] cursor-pointer ${isExpanded ? '' : 'line-clamp-2'}`}
+                          className={`text-xs text-ink cursor-pointer ${isExpanded ? '' : 'line-clamp-2'}`}
                           title={q.body}
                         >{q.body}</p>
                       </div>
                       <div className="flex items-center gap-2 mt-1.5 flex-wrap">
                         {renderBadge(typeLabel[q.question_type] || q.question_type, typeColors[q.question_type] || 'bg-gray-100 text-gray-600')}
                         {renderBadge(q.difficulty, diffColors[q.difficulty] || 'bg-gray-100 text-gray-600')}
-                        <span className="text-xs text-[#64748B]">{q.mark} mark{q.mark > 1 ? 's' : ''}</span>
+                        <span className="text-xs text-muted">{q.mark} mark{q.mark > 1 ? 's' : ''}</span>
                         <span className="text-xs flex items-center gap-0.5 text-green-700 font-medium">
                           <Check size={16} aria-hidden="true" /> {q.correct_answer}
                         </span>
-                        {q.topic && <span className="text-xs text-[#64748B]">Topic: {q.topic}</span>}
+                        {q.topic && <span className="text-xs text-muted">Topic: {q.topic}</span>}
                       </div>
                       {q.question_type === 'mcq' && q.options && (
                         <div className="flex flex-wrap gap-1.5 mt-1">
                           {q.options.map((o, oi) => (
-                            <span key={oi} className={`text-xs px-1.5 py-0.5 rounded ${o === q.correct_answer ? 'bg-green-100 text-green-700 font-bold' : 'bg-[#F0F4FA] text-[#64748B]'}`}>{String.fromCharCode(65 + oi)}. {o}</span>
+                            <span key={oi} className={`text-xs px-1.5 py-0.5 rounded ${o === q.correct_answer ? 'bg-green-100 text-green-700 font-semibold' : 'bg-surface-2 text-muted'}`}>{String.fromCharCode(65 + oi)}. {o}</span>
                           ))}
                         </div>
                       )}
                     </div>
                     <div className="flex gap-1 shrink-0">
-                      <button onClick={() => openEdit(q)} className="text-[11px] px-2 py-1 rounded border border-[#DDE5F0] hover:bg-[#F0F4FA]" aria-label="Edit"><Pencil size={16} aria-hidden="true" /></button>
-                      <button onClick={() => deleteQ(q.id)} className="text-[11px] px-2 py-1 rounded border border-[#FEE2E2] text-[#B91C1C] hover:bg-[#FEE2E2]" aria-label="Delete"><Trash2 size={16} aria-hidden="true" /></button>
+                      <button onClick={() => openEdit(q)} className="text-xs px-2 py-1 rounded border border-line hover:bg-surface-2" aria-label="Edit"><Pencil size={16} aria-hidden="true" /></button>
+                      <button onClick={() => deleteQ(q.id)} className="text-xs px-2 py-1 rounded border border-danger-soft text-danger hover:bg-danger-soft" aria-label="Delete"><Trash2 size={16} aria-hidden="true" /></button>
                     </div>
                   </div>
                 </div>
@@ -393,29 +393,29 @@ export default function ExamDetailPage() {
       {/* reorder modal */}
       {reorderMode && (
         <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center" onClick={() => setReorderMode(false)}>
-          <div className="bg-white rounded-2xl w-[560px] max-w-[95vw] max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+          <div className="bg-surface rounded w-[560px] max-w-[95vw] max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between p-5 pb-0">
-              <h2 className="text-base font-bold text-[#0D2B55]">Reorder Questions</h2>
-              <button onClick={() => setReorderMode(false)} className="text-[#64748B] hover:text-[#0D2B55] text-lg" aria-label="Close"><X size={16} aria-hidden="true" /></button>
+              <h2 className="text-base font-semibold text-ink">Reorder Questions</h2>
+              <button onClick={() => setReorderMode(false)} className="text-muted hover:text-ink text-lg" aria-label="Close"><X size={16} aria-hidden="true" /></button>
             </div>
-            <p className="px-5 text-xs text-[#64748B]">Drag rows to reorder. This sets the default question order for students.</p>
+            <p className="px-5 text-xs text-muted">Drag rows to reorder. This sets the default question order for students.</p>
             <div className="p-5 space-y-1 max-h-[50vh] overflow-y-auto">
               {reorderList.map((q, i) => (
                 <div key={q.id} draggable
                   onDragStart={() => handleReorderDragStart(i)}
                   onDragOver={e => handleReorderDragOver(e, i)}
-                  className={`flex items-center gap-2 p-2 rounded-lg border cursor-grab active:cursor-grabbing text-xs ${dragIdx === i ? 'border-[#1A7A4A] bg-green-50' : 'border-[#DDE5F0] hover:bg-[#F8FAFF]'}`}
+                  className={`flex items-center gap-2 p-2 rounded border cursor-grab active:cursor-grabbing text-xs ${dragIdx === i ? 'border-brand bg-green-50' : 'border-line hover:bg-page'}`}
                 >
-                  <span className="text-[#64748B]">⠿</span>
-                  <span className="font-bold text-[#0D2B55] shrink-0">Q{i + 1}.</span>
-                  <span className="text-[#64748B] truncate">{q.body}</span>
-                  <span className="ml-auto text-xs text-[#64748B] shrink-0">{q.mark}m</span>
+                  <span className="text-muted">⠿</span>
+                  <span className="font-semibold text-ink shrink-0">Q{i + 1}.</span>
+                  <span className="text-muted truncate">{q.body}</span>
+                  <span className="ml-auto text-xs text-muted shrink-0">{q.mark}m</span>
                 </div>
               ))}
             </div>
             <div className="flex justify-end gap-2 p-5 pt-0">
-              <button onClick={() => setReorderMode(false)} className="text-sm px-4 py-2 rounded-lg border border-[#DDE5F0] bg-white hover:bg-[#F0F4FA]">Cancel</button>
-              <button onClick={saveReorder} className="text-sm px-4 py-2 rounded-lg bg-[#1A7A4A] text-white hover:bg-[#14663D]">Save Order</button>
+              <button onClick={() => setReorderMode(false)} className="text-sm px-4 py-2 rounded border border-line bg-surface hover:bg-surface-2">Cancel</button>
+              <button onClick={saveReorder} className="text-sm px-4 py-2 rounded bg-brand text-brand-ink hover:opacity-90">Save Order</button>
             </div>
           </div>
         </div>
@@ -424,59 +424,59 @@ export default function ExamDetailPage() {
       {/* add/edit question modal */}
       {showForm && (
         <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center" onClick={() => setShowForm(false)}>
-          <div className="bg-white rounded-2xl w-[600px] max-w-[95vw] max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+          <div className="bg-surface rounded w-[600px] max-w-[95vw] max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between p-5 pb-0">
-              <h2 className="text-base font-bold text-[#0D2B55]">{editQId ? 'Edit Question' : 'Add Question'}</h2>
-              <button onClick={() => setShowForm(false)} className="text-[#64748B] hover:text-[#0D2B55] text-lg" aria-label="Close"><X size={16} aria-hidden="true" /></button>
+              <h2 className="text-base font-semibold text-ink">{editQId ? 'Edit Question' : 'Add Question'}</h2>
+              <button onClick={() => setShowForm(false)} className="text-muted hover:text-ink text-lg" aria-label="Close"><X size={16} aria-hidden="true" /></button>
             </div>
             <form onSubmit={handleSaveQ} className="p-5 space-y-3.5">
               <div>
-                <label className="block text-[11px] font-bold text-[#64748B] uppercase mb-1">Question body</label>
+                <label className="block text-xs font-semibold text-muted mb-1">Question body</label>
                 <textarea value={qForm.body} onChange={e => setQForm({ ...qForm, body: e.target.value })} required rows={3}
-                  className="w-full px-3 py-2 rounded-lg border border-[#DDE5F0] text-sm outline-none focus:border-[#1A7A4A]" />
+                  className="w-full px-3 py-2 rounded border border-line text-sm outline-none focus:border-brand" />
               </div>
               <div className="grid grid-cols-3 gap-3">
                 <div>
-                  <label className="block text-[11px] font-bold text-[#64748B] uppercase mb-1">Type</label>
+                  <label className="block text-xs font-semibold text-muted mb-1">Type</label>
                   <select value={qForm.question_type} onChange={e => {
                     const t = e.target.value;
                     setQForm({ ...qForm, question_type: t, correct_answer: '' });
                   }}
-                    className="w-full px-3 py-2 rounded-lg border border-[#DDE5F0] text-sm outline-none focus:border-[#1A7A4A] bg-white">
+                    className="w-full px-3 py-2 rounded border border-line text-sm outline-none focus:border-brand bg-surface">
                     {Q_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
                   </select>
                 </div>
                 <div>
-                  <label className="block text-[11px] font-bold text-[#64748B] uppercase mb-1">Difficulty</label>
+                  <label className="block text-xs font-semibold text-muted mb-1">Difficulty</label>
                   <select value={qForm.difficulty} onChange={e => setQForm({ ...qForm, difficulty: e.target.value })}
-                    className="w-full px-3 py-2 rounded-lg border border-[#DDE5F0] text-sm outline-none focus:border-[#1A7A4A] bg-white">
+                    className="w-full px-3 py-2 rounded border border-line text-sm outline-none focus:border-brand bg-surface">
                     {DIFFICULTIES.map(d => <option key={d} value={d}>{d}</option>)}
                   </select>
                 </div>
                 <div>
-                  <label className="block text-[11px] font-bold text-[#64748B] uppercase mb-1">Mark</label>
+                  <label className="block text-xs font-semibold text-muted mb-1">Mark</label>
                   <input type="number" value={qForm.mark} onChange={e => setQForm({ ...qForm, mark: e.target.value })} required min={1}
-                    className="w-full px-3 py-2 rounded-lg border border-[#DDE5F0] text-sm outline-none focus:border-[#1A7A4A]" />
+                    className="w-full px-3 py-2 rounded border border-line text-sm outline-none focus:border-brand" />
                 </div>
               </div>
               <div>
-                <label className="block text-[11px] font-bold text-[#64748B] uppercase mb-1">Topic (optional)</label>
+                <label className="block text-xs font-semibold text-muted mb-1">Topic (optional)</label>
                 <input value={qForm.topic} onChange={e => setQForm({ ...qForm, topic: e.target.value })}
-                  className="w-full px-3 py-2 rounded-lg border border-[#DDE5F0] text-sm outline-none focus:border-[#1A7A4A]" />
+                  className="w-full px-3 py-2 rounded border border-line text-sm outline-none focus:border-brand" />
               </div>
 
               {qForm.question_type === 'mcq' && (
                 <div>
-                  <label className="block text-[11px] font-bold text-[#64748B] uppercase mb-1">Options</label>
+                  <label className="block text-xs font-semibold text-muted mb-1">Options</label>
                   {qForm.options.map((opt, oi) => (
                     <div key={oi} className="flex items-center gap-2 mb-1.5">
-                      <span className="text-xs font-bold text-[#64748B] w-5">{String.fromCharCode(65 + oi)}.</span>
+                      <span className="text-xs font-semibold text-muted w-5">{String.fromCharCode(65 + oi)}.</span>
                       <input value={opt} onChange={e => {
                         const opts = [...qForm.options];
                         opts[oi] = e.target.value;
                         setQForm({ ...qForm, options: opts });
                       }} placeholder={`Option ${String.fromCharCode(65 + oi)}`}
-                        className="flex-1 px-3 py-2 rounded-lg border border-[#DDE5F0] text-sm outline-none focus:border-[#1A7A4A]" />
+                        className="flex-1 px-3 py-2 rounded border border-line text-sm outline-none focus:border-brand" />
                     </div>
                   ))}
                 </div>
@@ -484,9 +484,9 @@ export default function ExamDetailPage() {
 
               {qForm.question_type === 'true_false' && (
                 <div>
-                  <label className="block text-[11px] font-bold text-[#64748B] uppercase mb-1">Correct answer</label>
+                  <label className="block text-xs font-semibold text-muted mb-1">Correct answer</label>
                   <select value={qForm.correct_answer} onChange={e => setQForm({ ...qForm, correct_answer: e.target.value })}
-                    className="w-full px-3 py-2 rounded-lg border border-[#DDE5F0] text-sm outline-none focus:border-[#1A7A4A] bg-white">
+                    className="w-full px-3 py-2 rounded border border-line text-sm outline-none focus:border-brand bg-surface">
                     <option value="">Select</option>
                     <option value="True">True</option>
                     <option value="False">False</option>
@@ -496,10 +496,10 @@ export default function ExamDetailPage() {
 
               {(qForm.question_type === 'mcq' || qForm.question_type === 'short_answer') && (
                 <div>
-                  <label className="block text-[11px] font-bold text-[#64748B] uppercase mb-1">Correct answer</label>
+                  <label className="block text-xs font-semibold text-muted mb-1">Correct answer</label>
                   {qForm.question_type === 'mcq' ? (
                     <select value={qForm.correct_answer} onChange={e => setQForm({ ...qForm, correct_answer: e.target.value })}
-                      className="w-full px-3 py-2 rounded-lg border border-[#DDE5F0] text-sm outline-none focus:border-[#1A7A4A] bg-white">
+                      className="w-full px-3 py-2 rounded border border-line text-sm outline-none focus:border-brand bg-surface">
                       <option value="">Select correct option</option>
                       {qForm.options.filter(o => o.trim()).map((opt, oi) => (
                         <option key={oi} value={opt}>{String.fromCharCode(65 + oi)}. {opt}</option>
@@ -507,15 +507,15 @@ export default function ExamDetailPage() {
                     </select>
                   ) : (
                     <input value={qForm.correct_answer} onChange={e => setQForm({ ...qForm, correct_answer: e.target.value })}
-                      className="w-full px-3 py-2 rounded-lg border border-[#DDE5F0] text-sm outline-none focus:border-[#1A7A4A]" />
+                      className="w-full px-3 py-2 rounded border border-line text-sm outline-none focus:border-brand" />
                   )}
                 </div>
               )}
 
               <div className="flex justify-end gap-2 pt-2">
-                <button type="button" onClick={() => setShowForm(false)} className="text-sm px-4 py-2 rounded-lg border border-[#DDE5F0] bg-white hover:bg-[#F0F4FA]">Cancel</button>
+                <button type="button" onClick={() => setShowForm(false)} className="text-sm px-4 py-2 rounded border border-line bg-surface hover:bg-surface-2">Cancel</button>
                 <button type="submit" disabled={saving}
-                  className="text-sm px-4 py-2 rounded-lg bg-[#1A7A4A] text-white hover:bg-[#14663D] disabled:opacity-50">
+                  className="text-sm px-4 py-2 rounded bg-brand text-brand-ink hover:opacity-90 disabled:opacity-50">
                   {saving ? 'Saving…' : editQId ? 'Update Question' : 'Add Question'}
                 </button>
               </div>

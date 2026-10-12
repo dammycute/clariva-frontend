@@ -73,16 +73,16 @@ export default function ConfirmDialog({ open, title, message, onConfirm, onCance
         aria-modal="true"
         aria-labelledby="confirm-dialog-title"
         aria-describedby="confirm-dialog-message"
-        className="bg-white rounded-2xl w-[380px] max-w-[95vw] p-5"
+        className="bg-surface rounded w-[380px] max-w-[95vw] p-5"
         onClick={e => e.stopPropagation()}
       >
-        <h3 id="confirm-dialog-title" className="text-base font-bold text-[#0D2B55] mb-2">{title}</h3>
-        <p id="confirm-dialog-message" className="text-sm text-[#64748B] mb-5">{message}</p>
+        <h3 id="confirm-dialog-title" className="text-base font-semibold text-ink mb-2">{title}</h3>
+        <p id="confirm-dialog-message" className="text-sm text-muted mb-5">{message}</p>
         <div className="flex justify-end gap-2">
           <button
             onClick={onCancel}
             disabled={loading}
-            className="text-sm px-4 py-2.5 rounded-lg border border-[#DDE5F0] bg-white hover:bg-[#F0F4FA] disabled:opacity-50 cursor-pointer min-h-[40px]"
+            className="text-sm px-4 py-2.5 rounded border border-line bg-surface hover:bg-surface-2 disabled:opacity-50 cursor-pointer min-h-[40px]"
           >
             Cancel
           </button>
@@ -90,7 +90,7 @@ export default function ConfirmDialog({ open, title, message, onConfirm, onCance
             ref={confirmRef}
             onClick={onConfirm}
             disabled={loading}
-            className="text-sm px-4 py-2.5 rounded-lg bg-[#B91C1C] text-white hover:bg-[#991B1B] disabled:opacity-50 cursor-pointer min-h-[40px]"
+            className="text-sm px-4 py-2.5 rounded bg-danger text-white hover:bg-danger disabled:opacity-50 cursor-pointer min-h-[40px]"
           >
             {loading ? 'Deleting…' : confirmLabel}
           </button>

@@ -29,39 +29,39 @@ export default function StudentTimetablePage() {
     })();
   }, []);
 
-  if (loading) return <div className="text-sm text-[#64748B] p-8">Loading timetable…</div>;
+  if (loading) return <div className="text-sm text-muted p-8">Loading timetable…</div>;
 
   return (
     <div>
-      <h1 className="text-xl font-bold text-[#0D2B55] mb-1">My Timetable</h1>
-      <p className="text-xs text-[#64748B] mb-5">{tt ? `${tt.class_name || ''} · ${tt.term} ${tt.academic_year}` : ''}</p>
+      <h1 className="text-xl font-semibold text-ink mb-1">My Timetable</h1>
+      <p className="text-xs text-muted mb-5">{tt ? `${tt.class_name || ''} · ${tt.term} ${tt.academic_year}` : ''}</p>
 
       {!tt ? (
-        <div className="bg-white border border-[#DDE5F0] rounded-xl p-8 text-center text-sm text-[#64748B]">No timetable published for your class.</div>
+        <div className="bg-surface border border-line rounded p-8 text-center text-sm text-muted">No timetable published for your class.</div>
       ) : (
-        <div className="bg-white border border-[#DDE5F0] rounded-xl overflow-x-auto">
+        <div className="bg-surface border border-line rounded overflow-x-auto">
           <table className="w-full text-xs">
             <thead>
-              <tr className="bg-[#F7F9FC]">
-                <th className="px-3 py-2.5 text-[11px] font-bold text-[#64748B] uppercase text-left w-20">Period</th>
-                {DAYS.map(d => <th key={d} className="px-3 py-2.5 text-[11px] font-bold text-[#64748B] uppercase text-center">{d}</th>)}
+              <tr className="bg-page">
+                <th className="px-3 py-2.5 text-xs font-semibold text-muted text-left w-20">Period</th>
+                {DAYS.map(d => <th key={d} className="px-3 py-2.5 text-xs font-semibold text-muted text-center">{d}</th>)}
               </tr>
             </thead>
             <tbody>
               {PERIODS.map(p => (
-                <tr key={p} className="border-t border-[#DDE5F0]">
-                  <td className="px-3 py-2.5 font-bold text-[#0D2B55]">{p}</td>
+                <tr key={p} className="border-t border-line">
+                  <td className="px-3 py-2.5 font-semibold text-ink">{p}</td>
                   {DAYS.map(d => {
                     const slot = tt.slots.find(s => s.day === d && s.period === p);
                     return (
-                      <td key={d} className={`px-3 py-2.5 text-center ${slot ? 'bg-[#E8F0FA]' : 'bg-[#FAFBFC]'}`}>
+                      <td key={d} className={`px-3 py-2.5 text-center ${slot ? 'bg-brand-soft' : 'bg-[#FAFBFC]'}`}>
                         {slot ? (
                           <div>
-                            <div className="font-semibold text-[#0D2B55]">{slot.subject_name || '—'}</div>
-                            <div className="text-xs text-[#64748B]">{slot.teacher_name || ''}{slot.room ? ` · ${slot.room}` : ''}</div>
+                            <div className="font-semibold text-ink">{slot.subject_name || '-'}</div>
+                            <div className="text-xs text-muted">{slot.teacher_name || ''}{slot.room ? ` · ${slot.room}` : ''}</div>
                           </div>
                         ) : (
-                          <span className="text-[#DDE5F0]">—</span>
+                          <span className="text-line">-</span>
                         )}
                       </td>
                     );

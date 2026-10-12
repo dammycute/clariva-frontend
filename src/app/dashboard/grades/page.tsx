@@ -40,20 +40,20 @@ function GradesPageInner() {
     <div>
       <div className="flex items-center justify-between mb-5">
         <div>
-          <h1 className="text-2xl font-bold text-[#0D2B55]">Grades & Report Cards</h1>
-          <p className="text-xs text-[#64748B] mt-0.5">Subjects · Enter scores · WAEC-format report cards</p>
+          <h1 className="text-2xl font-semibold text-ink">Grades & Report Cards</h1>
+          <p className="text-xs text-muted mt-0.5">Subjects · Enter scores · WAEC-format report cards</p>
         </div>
       </div>
 
-      <div role="tablist" aria-label="Grade management sections" className="flex gap-1 mb-5 bg-white border border-[#DDE5F0] rounded-xl p-1 w-fit overflow-x-auto max-w-full">
+      <div role="tablist" aria-label="Grade management sections" className="flex gap-1 mb-5 bg-surface border border-line rounded p-1 w-fit overflow-x-auto max-w-full">
         {TABS.map(t => (
           <button
             key={t.id}
             role="tab"
             aria-selected={tab === t.id}
             onClick={() => go(t.id)}
-            className={`flex items-center gap-2 px-4 py-2.5 text-sm font-semibold rounded-lg transition-colors whitespace-nowrap cursor-pointer min-h-[40px] ${
-              tab === t.id ? 'bg-[#0D2B55] text-white' : 'text-[#64748B] hover:text-[#0D2B55]'
+            className={`flex items-center gap-2 px-4 py-2.5 text-sm font-semibold rounded transition-colors whitespace-nowrap cursor-pointer min-h-[40px] ${
+              tab === t.id ? 'bg-brand text-brand-ink' : 'text-muted hover:text-ink'
             }`}
           >
             <span aria-hidden="true">{t.icon}</span> {t.label}

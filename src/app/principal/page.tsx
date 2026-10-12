@@ -30,8 +30,8 @@ export default function PrincipalDashboard() {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold text-[#1E1B4B]">{school?.name || 'Principal Dashboard'}</h1>
-      <p className="text-xs text-[#64748B] mt-0.5 mb-5">{school?.current_term || '—'} · {school?.current_academic_year || '—'}</p>
+      <h1 className="text-2xl font-semibold text-ink">{school?.name || 'Principal Dashboard'}</h1>
+      <p className="text-xs text-muted mt-0.5 mb-5">{school?.current_term || '-'} · {school?.current_academic_year || '-'}</p>
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         {[
@@ -40,32 +40,32 @@ export default function PrincipalDashboard() {
           { label: 'Classes', value: stats.classes, color: '#D4930A', bg: '#FEF3C7', icon: <School size={16} aria-hidden="true" />, href: '/principal/classes' },
           { label: 'Subjects', value: stats.subjects, color: '#6D28D9', bg: '#EDE9FE', icon: <BookOpen size={16} aria-hidden="true" />, href: '/principal/subjects' },
         ].map(m => (
-          <Link key={m.label} href={m.href} className="bg-white border border-[#DDE5F0] rounded-xl px-4 py-3.5 hover:shadow-sm">
+          <Link key={m.label} href={m.href} className="bg-surface border border-line rounded px-4 py-3.5">
             <div className="flex items-center justify-between mb-1">
-              <p className="text-[11px] font-bold text-[#64748B] uppercase tracking-wider">{m.label}</p>
+              <p className="text-xs font-semibold text-muted">{m.label}</p>
               <span className="inline-flex items-center">{m.icon}</span>
             </div>
-            <p className="text-xl font-bold" style={{ color: m.color }}>{loading ? '…' : m.value}</p>
+            <p className="text-xl font-semibold" style={{ color: m.color }}>{loading ? '…' : m.value}</p>
           </Link>
         ))}
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <Link href="/principal/grades" className="bg-white border border-[#DDE5F0] rounded-xl p-4 hover:shadow-sm">
-          <h3 className="text-sm font-bold text-[#1E1B4B] mb-1 inline-flex items-center gap-1.5"><Pencil size={16} aria-hidden="true" /> Grade Approval</h3>
-          <p className="text-xs text-[#64748B]">Review, approve, or reject teacher-submitted grades</p>
+        <Link href="/principal/grades" className="bg-surface border border-line rounded p-4">
+          <h3 className="text-sm font-semibold text-ink mb-1 inline-flex items-center gap-1.5"><Pencil size={16} aria-hidden="true" /> Grade Approval</h3>
+          <p className="text-xs text-muted">Review, approve, or reject teacher-submitted grades</p>
         </Link>
-        <Link href="/principal/reports" className="bg-white border border-[#DDE5F0] rounded-xl p-4 hover:shadow-sm">
-          <h3 className="text-sm font-bold text-[#1E1B4B] mb-1 inline-flex items-center gap-1.5"><FileText size={16} aria-hidden="true" /> Report Cards</h3>
-          <p className="text-xs text-[#64748B]">Generate termly report cards and release to guardians</p>
+        <Link href="/principal/reports" className="bg-surface border border-line rounded p-4">
+          <h3 className="text-sm font-semibold text-ink mb-1 inline-flex items-center gap-1.5"><FileText size={16} aria-hidden="true" /> Report Cards</h3>
+          <p className="text-xs text-muted">Generate termly report cards and release to guardians</p>
         </Link>
-        <Link href="/principal/cbt" className="bg-white border border-[#DDE5F0] rounded-xl p-4 hover:shadow-sm">
-          <h3 className="text-sm font-bold text-[#1E1B4B] mb-1 inline-flex items-center gap-1.5"><Monitor size={16} aria-hidden="true" /> CBT Exams</h3>
-          <p className="text-xs text-[#64748B]">Overview of all computer-based tests</p>
+        <Link href="/principal/cbt" className="bg-surface border border-line rounded p-4">
+          <h3 className="text-sm font-semibold text-ink mb-1 inline-flex items-center gap-1.5"><Monitor size={16} aria-hidden="true" /> CBT Exams</h3>
+          <p className="text-xs text-muted">Overview of all computer-based tests</p>
         </Link>
-        <Link href="/principal/timetable" className="bg-white border border-[#DDE5F0] rounded-xl p-4 hover:shadow-sm">
-          <h3 className="text-sm font-bold text-[#1E1B4B] mb-1 inline-flex items-center gap-1.5"><Calendar size={16} aria-hidden="true" /> Timetable</h3>
-          <p className="text-xs text-[#64748B]">Manage class schedules and period settings</p>
+        <Link href="/principal/timetable" className="bg-surface border border-line rounded p-4">
+          <h3 className="text-sm font-semibold text-ink mb-1 inline-flex items-center gap-1.5"><Calendar size={16} aria-hidden="true" /> Timetable</h3>
+          <p className="text-xs text-muted">Manage class schedules and period settings</p>
         </Link>
       </div>
     </div>
