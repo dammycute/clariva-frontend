@@ -1,12 +1,18 @@
 'use client';
 
-import { useState, useEffect, useMemo, useRef } from 'react';
+import { useState, useEffect, useMemo, useRef, useId } from 'react';
 import toast from 'react-hot-toast';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { auth, api, request } from '@/lib/api';
+import { auth, api } from '@/lib/api';
+import { Pencil } from 'lucide-react';
+import { AuthShell, FormError } from '@/components/auth-shell';
+import { Button } from '@/components/ui/button';
+import { TextField, PasswordField } from '@/components/ui/text-field';
+import { cn } from '@/lib/utils';
 
 const SCHOOL_TYPES = ['Secondary (JSS & SSS)', 'Primary', 'Nursery', 'Mixed (Primary & Secondary)'] as const;
+const STEP_TITLES = ['School details', 'Administrator', 'Password'];
 
 function calcStrength(pw: string): { label: string; color: string; pct: number } {
   if (!pw) return { label: '', color: '', pct: 0 };
@@ -16,9 +22,92 @@ function calcStrength(pw: string): { label: string; color: string; pct: number }
   if (/[a-z]/.test(pw) && /[A-Z]/.test(pw)) score += 20;
   if (/\d/.test(pw)) score += 20;
   if (/[^a-zA-Z0-9]/.test(pw)) score += 20;
-  if (score < 30) return { label: 'Weak', color: 'bg-red-500', pct: 25 };
-  if (score < 60) return { label: 'Fair', color: 'bg-amber-400', pct: 55 };
-  return { label: 'Strong', color: 'bg-green-500', pct: 100 };
+  if (score < 30) return { label: 'Weak', color: 'bg-danger', pct: 25 };
+  if (score < 60) return { label: 'Fair', color: 'bg-warning', pct: 55 };
+  return { label: 'Strong', color: 'bg-success', pct: 100 };
+}
+
+/** Searchable single-select used for state and LGA. */
+function SearchSelect({
+  label, value, options, placeholder, disabled, error, onSelect,
+}: {
+  label: string;
+  value: string;
+  options: { id: number; name: string }[];
+  placeholder: string;
+  disabled?: boolean;
+  error?: string;
+  onSelect: (name: string) => void;
+}) {
+  const uid = useId();
+  const [open, setOpen] = useState(false);
+  const [query, setQuery] = useState('');
+  const wrapRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (wrapRef.current && !wrapRef.current.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, []);
+
+  const filtered = useMemo(
+    () => options.filter(o => o.name.toLowerCase().includes(query.toLowerCase())),
+    [options, query],
+  );
+
+  return (
+    <div ref={wrapRef} className="relative" onKeyDown={e => { if (e.key === 'Escape') setOpen(false); }}>
+      <span id={`${uid}-label`} className="block text-sm font-medium text-ink mb-1.5">{label}</span>
+      <button
+        type="button"
+        disabled={disabled}
+        aria-haspopup="listbox"
+        aria-expanded={open}
+        aria-labelledby={`${uid}-label`}
+        onClick={() => setOpen(o => !o)}
+        className={cn(
+          'w-full h-11 px-3 rounded border bg-surface text-sm text-left cursor-pointer transition-colors',
+          'focus:border-brand focus:ring-1 focus:ring-brand outline-none disabled:bg-surface-2 disabled:cursor-not-allowed',
+          error ? 'border-danger' : 'border-line',
+          value ? 'text-ink' : 'text-muted/70',
+        )}
+      >
+        {value || placeholder}
+      </button>
+      {open && (
+        <div className="absolute z-20 top-full mt-1 left-0 right-0 bg-surface border border-line rounded shadow-md p-1.5">
+          <input
+            value={query}
+            onChange={e => setQuery(e.target.value)}
+            placeholder={`Search ${label.toLowerCase()}`}
+            aria-label={`Search ${label.toLowerCase()}`}
+            autoFocus
+            className="w-full h-9 px-2.5 rounded border border-line bg-surface text-sm text-ink outline-none focus:border-brand mb-1"
+          />
+          <ul role="listbox" aria-labelledby={`${uid}-label`} className="max-h-52 overflow-y-auto">
+            {filtered.length === 0 && <li className="px-2.5 py-2 text-sm text-muted">No match.</li>}
+            {filtered.map(o => (
+              <li key={o.id} role="option" aria-selected={value === o.name}>
+                <button
+                  type="button"
+                  onClick={() => { onSelect(o.name); setOpen(false); setQuery(''); }}
+                  className={cn(
+                    'w-full text-left px-2.5 py-2 rounded text-sm cursor-pointer hover:bg-surface-2',
+                    value === o.name ? 'bg-brand-soft text-brand font-medium' : 'text-ink',
+                  )}
+                >
+                  {o.name}
+                </button>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+      {error && <p className="text-[13px] text-danger mt-1.5">{error}</p>}
+    </div>
+  );
 }
 
 export default function OnboardPage() {
@@ -32,17 +121,8 @@ export default function OnboardPage() {
   const [states, setStates] = useState<{ id: number; name: string }[]>([]);
   const [lgas, setLgas] = useState<{ id: number; name: string }[]>([]);
 
-  // searchable dropdowns
-  const [stateQuery, setStateQuery] = useState('');
-  const [lgaQuery, setLgaQuery] = useState('');
-  const [stateOpen, setStateOpen] = useState(false);
-  const [lgaOpen, setLgaOpen] = useState(false);
-  const stateRef = useRef<HTMLDivElement>(null);
-  const lgaRef = useRef<HTMLDivElement>(null);
-
   const [password, setPassword] = useState('');
   const [confirmPw, setConfirmPw] = useState('');
-  const [showPw, setShowPw] = useState(false);
   const [agreeTerms, setAgreeTerms] = useState(false);
   const [subdomainEdit, setSubdomainEdit] = useState(false);
   const [subdomainManual, setSubdomainManual] = useState('');
@@ -63,16 +143,6 @@ export default function OnboardPage() {
     if (stateId) api.locations.lgas.list({ state: String(stateId) }).then(d => setLgas(d as { id: number; name: string }[])).catch(() => {});
   }, [form.state, states]);
 
-  // close dropdowns on outside click
-  useEffect(() => {
-    const handler = (e: MouseEvent) => {
-      if (stateRef.current && !stateRef.current.contains(e.target as Node)) setStateOpen(false);
-      if (lgaRef.current && !lgaRef.current.contains(e.target as Node)) setLgaOpen(false);
-    };
-    document.addEventListener('mousedown', handler);
-    return () => document.removeEventListener('mousedown', handler);
-  }, []);
-
   const update = (field: string, value: string) => {
     setForm(prev => ({ ...prev, [field]: value }));
     setFieldErrors(prev => { const n = { ...prev }; delete n[field]; return n; });
@@ -87,42 +157,33 @@ export default function OnboardPage() {
     setFieldErrors(prev => { const n = { ...prev }; delete n[field]; return n; });
   };
 
-  // filtered lists
-  const filteredStates = useMemo(() => {
-    return states.filter(s => s.name.toLowerCase().includes(stateQuery.toLowerCase()));
-  }, [states, stateQuery]);
-
-  const filteredLgas = useMemo(() => {
-    return lgas.filter(l => l.name.toLowerCase().includes(lgaQuery.toLowerCase()));
-  }, [lgas, lgaQuery]);
-
   // validation
   const validateStep1 = () => {
     const errs: Record<string, string> = {};
-    if (!form.schoolName.trim()) errs.schoolName = 'School name is required';
-    if (!form.subdomain.trim()) errs.subdomain = 'Subdomain is required';
-    if (!form.schoolType) errs.schoolType = 'Select a school type';
-    if (!form.state) errs.state = 'Select a state';
-    if (!form.lga) errs.lga = 'Select an LGA';
+    if (!form.schoolName.trim()) errs.schoolName = 'Enter the school name.';
+    if (!form.subdomain.trim()) errs.subdomain = 'Enter a portal address.';
+    if (!form.schoolType) errs.schoolType = 'Choose a school type.';
+    if (!form.state) errs.state = 'Choose a state.';
+    if (!form.lga) errs.lga = 'Choose an LGA.';
     setFieldErrors(errs);
     return Object.keys(errs).length === 0;
   };
 
   const validateStep2 = () => {
     const errs: Record<string, string> = {};
-    if (!form.proprietorName.trim()) errs.proprietorName = 'Full name is required';
-    if (!form.proprietorPhone.trim()) errs.proprietorPhone = 'Phone number is required';
-    else if (!/^0\d{10}$/.test(form.proprietorPhone.replace(/\s/g, ''))) errs.proprietorPhone = 'Enter a valid Nigerian phone number (e.g. 08012345678)';
+    if (!form.proprietorName.trim()) errs.proprietorName = 'Enter your full name.';
+    if (!form.proprietorPhone.trim()) errs.proprietorPhone = 'Enter a phone number.';
+    else if (!/^0\d{10}$/.test(form.proprietorPhone.replace(/\s/g, ''))) errs.proprietorPhone = 'Use an 11-digit Nigerian number, for example 08012345678.';
     setFieldErrors(errs);
     return Object.keys(errs).length === 0;
   };
 
   const validateStep3 = () => {
     const errs: Record<string, string> = {};
-    if (!password) errs.password = 'Password is required';
-    else if (password.length < 6) errs.password = 'Password must be at least 6 characters';
-    if (password !== confirmPw) errs.confirmPw = 'Passwords do not match';
-    if (!agreeTerms) errs.terms = 'You must agree to the terms';
+    if (!password) errs.password = 'Enter a password.';
+    else if (password.length < 6) errs.password = 'Use at least 6 characters.';
+    if (password !== confirmPw) errs.confirmPw = 'The two passwords do not match.';
+    if (!agreeTerms) errs.terms = 'You need to accept the terms to continue.';
     setFieldErrors(errs);
     return Object.keys(errs).length === 0;
   };
@@ -136,40 +197,30 @@ export default function OnboardPage() {
 
     try {
       const email = form.proprietorEmail || `admin@${form.subdomain}.clariva.ng`;
-      const slug = form.subdomain;
 
-      const { user } = await auth.onboard({
+      await auth.onboard({
         email,
         password,
         first_name: form.proprietorName.split(' ')[0] || 'Admin',
         last_name: form.proprietorName.split(' ').slice(1).join(' ') || '',
         phone: form.proprietorPhone,
+        school_name: form.schoolName,
+        school_subdomain: form.subdomain,
+        school_type: form.schoolType || '',
+        school_address: form.address || '',
+        school_state: form.state || '',
+        school_lga: form.lga || '',
       });
-
-      const school = await api.schools.create({
-        name: form.schoolName,
-        subdomain: form.subdomain,
-        address: form.address || null,
-        lga: form.lga || null,
-        state: form.state || null,
-        school_type: form.schoolType || null,
-        proprietor_name: form.proprietorName || null,
-        proprietor_phone: form.proprietorPhone || null,
-        status: 'active',
-        plan: 'trial',
-        trial_ends_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
-      });
-
-      await request('PATCH', '/auth/me/', { school: (school as { id: number }).id });
 
       setSuccess({ portalUrl: `https://${form.subdomain}.clariva.ng` });
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Something went wrong';
       if (msg.toLowerCase().includes('subdomain') || msg.toLowerCase().includes('taken')) {
-        setFieldErrors(prev => ({ ...prev, subdomain: 'This name is taken, try another' }));
+        setFieldErrors(prev => ({ ...prev, subdomain: 'That address is taken. Try another.' }));
         setStep(1);
       } else if (msg.toLowerCase().includes('email') && msg.toLowerCase().includes('exists')) {
-        setFieldErrors(prev => ({ ...prev, proprietorEmail: 'An account with this email exists. Sign in instead →' }));
+        setFieldErrors(prev => ({ ...prev, proprietorEmail: 'An account with this email already exists.' }));
+        setStep(2);
       } else {
         setFieldErrors(prev => ({ ...prev, _general: msg }));
       }
@@ -182,320 +233,202 @@ export default function OnboardPage() {
   // success screen
   if (success) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#0D2B55] to-[#0A1F3D] p-6">
-        <div className="bg-white rounded-2xl p-10 max-w-md w-full text-center">
-          <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <svg className="w-8 h-8 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-            </svg>
-          </div>
-          <h2 className="text-xl font-bold text-[#0D2B55] mb-2">Your portal is ready!</h2>
-          <p className="text-xs text-[#64748B] mb-4">Access your school management portal at:</p>
-          <a href={success.portalUrl} target="_blank" rel="noopener noreferrer"
-            className="block text-sm font-bold text-[#1A7A4A] hover:underline mb-6">{success.portalUrl}</a>
-          <div className="flex flex-col gap-2">
-            <button onClick={() => router.push('/dashboard')}
-              className="w-full py-3 rounded-xl bg-[#1A7A4A] text-white text-sm font-bold hover:bg-[#14663D] cursor-pointer">
-              Go to Dashboard →
-            </button>
-            <button onClick={() => { navigator.clipboard.writeText(success.portalUrl); toast.success('URL copied!'); }}
-              className="w-full py-3 rounded-xl border border-[#DDE5F0] text-sm text-[#0D2B55] hover:bg-[#F0F4FA] cursor-pointer">
-              Share your portal URL
-            </button>
-          </div>
+      <AuthShell sideLink={{ href: '/', label: 'Back to sign in' }}>
+        <h1 className="text-2xl font-semibold text-ink tracking-tight text-balance">Your school portal is ready</h1>
+        <p className="text-sm text-muted mt-1 mb-6">Your portal address is:</p>
+        <p className="font-mono text-sm text-ink break-all border-y border-line py-3 mb-6">{success.portalUrl}</p>
+        <div className="space-y-3">
+          <Button onClick={() => router.push('/dashboard')} className="w-full">Go to dashboard</Button>
+          <Button
+            variant="secondary"
+            onClick={() => { navigator.clipboard.writeText(success.portalUrl); toast.success('Address copied.'); }}
+            className="w-full"
+          >
+            Copy portal address
+          </Button>
         </div>
-      </div>
+      </AuthShell>
     );
   }
 
-  // progress
-  const progressPct = (step / 3) * 100;
+  const preview: [string, string][] = [
+    ['School', form.schoolName],
+    ['Location', form.lga && form.state ? `${form.lga}, ${form.state}` : ''],
+    ['Type', form.schoolType],
+    ['Administrator', form.proprietorName],
+  ];
 
-  // shared input styles
-  const inputCls = 'w-full h-12 px-3.5 rounded-xl border text-sm outline-none transition-colors placeholder:text-[#94A3B8]';
-  const inputNorm = 'border-[#DDE5F0] focus:border-[#1A7A4A]';
-  const inputErr = 'border-red-300 focus:border-red-500 bg-red-50';
+  const aside = (
+    <div>
+      <p className="text-sm text-white/60">Your school portal will be at</p>
+      <p className="font-mono text-sm text-white mt-1 break-all">{portalUrl}</p>
+      <dl className="mt-8 space-y-4">
+        {preview.map(([label, value]) => (
+          <div key={label}>
+            <dt className="text-[13px] text-white/60">{label}</dt>
+            <dd className="text-sm text-white mt-0.5">{value || <span className="text-white/40">Not set yet</span>}</dd>
+          </div>
+        ))}
+      </dl>
+    </div>
+  );
 
   return (
-    <div className="min-h-screen flex bg-white">
-      {/* left panel — preview */}
-      <div className="hidden lg:flex lg:w-[420px] xl:w-[480px] flex-col justify-between p-10 sticky top-0 h-screen bg-[#0D2B55]"
-        style={{
-          backgroundImage: 'radial-gradient(ellipse at 20% 30%, #1A3F6E 0%, transparent 60%), radial-gradient(ellipse at 80% 70%, #0F2D5A 0%, transparent 50%)',
-        }}
-      >
-        <div>
-          <div className="flex items-center gap-3 mb-8">
-            <div className="w-10 h-10 bg-[#1A7A4A] rounded-lg flex items-center justify-center text-white font-bold text-lg">C</div>
-            <span className="font-semibold text-xl text-white">Clariva</span>
-          </div>
+    <AuthShell aside={aside} sideLink={{ href: '/', label: 'Already have an account? Sign in' }} width="max-w-[460px]">
+      <h1 className="text-2xl font-semibold text-ink tracking-tight">Set up your school</h1>
 
-          <p className="text-white/50 text-xs mb-4">Your school portal will be at:</p>
-          <div className="bg-white/10 rounded-xl p-3 mb-6 flex items-center gap-2 text-sm">
-            <svg className="w-4 h-4 text-green-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z" />
-              <path strokeLinecap="round" strokeLinejoin="round" d="M7 12l2 2 5-5" />
-            </svg>
-            <span className="text-white/80 font-mono text-xs truncate">{portalUrl}</span>
-          </div>
-
-          <div className="space-y-3">
-            <div className="text-xs">
-              <span className="text-white/40">School name</span>
-              <p className="text-white font-medium mt-0.5">{form.schoolName || <span className="text-white/30 italic">Not set yet</span>}</p>
-            </div>
-            <div className="text-xs">
-              <span className="text-white/40">Location</span>
-              <p className="text-white font-medium mt-0.5">{form.lga && form.state ? `${form.lga}, ${form.state}` : <span className="text-white/30 italic">Not set yet</span>}</p>
-            </div>
-            <div className="text-xs">
-              <span className="text-white/40">School type</span>
-              <p className="text-white font-medium mt-0.5">{form.schoolType || <span className="text-white/30 italic">Not set yet</span>}</p>
-            </div>
-            <div className="text-xs">
-              <span className="text-white/40">Proprietor</span>
-              <p className="text-white font-medium mt-0.5">{form.proprietorName || <span className="text-white/30 italic">Not set yet</span>}</p>
-            </div>
-          </div>
+      {/* progress: three segments, current step named */}
+      <div className="mt-4 mb-6" role="group" aria-label={`Step ${step} of 3: ${STEP_TITLES[step - 1]}`}>
+        <div className="flex gap-1.5" aria-hidden="true">
+          {[1, 2, 3].map(n => (
+            <div key={n} className={cn('h-1 flex-1 rounded-full transition-colors', n <= step ? 'bg-brand' : 'bg-line')} />
+          ))}
         </div>
-
-        <div className="space-y-2">
-          <p className="text-white/50 text-xs flex items-center gap-1.5">✓ 30-day free trial, no card needed</p>
-          <p className="text-white/50 text-xs flex items-center gap-1.5">✓ Set up in under 3 minutes</p>
-          <p className="text-white/50 text-xs flex items-center gap-1.5">✓ WAEC-compliant from day one</p>
-        </div>
+        <p className="text-[13px] text-muted mt-2">Step {step} of 3: {STEP_TITLES[step - 1]}</p>
       </div>
 
-      {/* right panel — form */}
-      <div className="flex-1 flex items-center justify-center p-6 lg:p-10">
-        <div className="w-full max-w-[480px]">
+      {/* ---- Step 1 ---- */}
+      {step === 1 && (
+        <div className="space-y-4">
+          <TextField id="school-name" label="School name" value={form.schoolName}
+            onChange={e => update('schoolName', e.target.value)} placeholder="e.g. Queens College"
+            error={fieldErrors.schoolName} />
 
-          {/* mobile logo */}
-          <div className="flex items-center gap-3 mb-6 lg:hidden">
-            <div className="w-9 h-9 bg-[#1A7A4A] rounded-lg flex items-center justify-center text-white font-bold text-sm">C</div>
-            <span className="font-semibold text-lg text-[#0D2B55]">Clariva</span>
+          <div>
+            <span className="block text-sm font-medium text-ink mb-1.5">Portal address</span>
+            <div className={cn('flex items-center h-11 px-3 rounded border bg-surface text-sm', fieldErrors.subdomain ? 'border-danger' : 'border-line')}>
+              {subdomainEdit ? (
+                <input
+                  aria-label="Portal address"
+                  value={subdomainManual}
+                  onChange={e => { setSubdomainManual(e.target.value); setField('subdomain', e.target.value); }}
+                  onBlur={() => { if (!subdomainManual) { setSubdomainManual(''); setSubdomainEdit(false); } }}
+                  className="flex-1 min-w-0 outline-none bg-transparent font-mono text-ink" autoFocus
+                />
+              ) : (
+                <span className="flex-1 min-w-0 truncate font-mono text-ink">{form.subdomain || 'your-school'}</span>
+              )}
+              <span className="text-muted text-[13px] shrink-0">.clariva.ng</span>
+              <button type="button" onClick={() => { setSubdomainEdit(true); setSubdomainManual(form.subdomain); }}
+                className="ml-2 p-1 text-muted hover:text-ink cursor-pointer" aria-label="Edit portal address">
+                <Pencil size={14} aria-hidden="true" />
+              </button>
+            </div>
+            {fieldErrors.subdomain && <p className="text-[13px] text-danger mt-1.5">{fieldErrors.subdomain}</p>}
           </div>
 
-          <h1 className="text-xl font-bold text-[#0D2B55] mb-1">Set Up Your School</h1>
-          <p className="text-xs text-[#64748B] mb-5">Your portal will be ready in 2 minutes.</p>
-
-          {/* progress bar */}
-          <div className="mb-6">
-            <div className="flex items-center justify-between text-[11px] text-[#64748B] mb-1.5">
-              <span className="font-bold text-[#0D2B55]">Step {step} of 3</span>
-              <span>{['School Information', 'Admin Information', 'Set Password'][step - 1]}</span>
-            </div>
-            <div className="h-1.5 bg-[#F0F4FA] rounded-full overflow-hidden">
-              <div className="h-full bg-[#1A7A4A] rounded-full transition-all duration-500" style={{ width: `${progressPct}%` }} />
-            </div>
-          </div>
-
-          {/* ---- Step 1 ---- */}
-          {step === 1 && (
-            <div className="space-y-4">
-              <div>
-                <label className="block text-[11px] font-bold text-[#64748B] uppercase mb-1">School name</label>
-                <input value={form.schoolName} onChange={e => update('schoolName', e.target.value)}
-                  placeholder="e.g. Queens College"
-                  className={`${inputCls} ${fieldErrors.schoolName ? inputErr : inputNorm}`} />
-                {fieldErrors.schoolName && <p className="text-red-500 text-[10px] mt-1">{fieldErrors.schoolName}</p>}
-              </div>
-
-              <div>
-                <label className="block text-[11px] font-bold text-[#64748B] uppercase mb-1">Portal subdomain</label>
-                <div className={`flex items-center h-12 px-3.5 rounded-xl border text-sm ${fieldErrors.subdomain ? inputErr : inputNorm}`}>
-                  {subdomainEdit ? (
-                    <input value={subdomainManual} onChange={e => { setSubdomainManual(e.target.value); setField('subdomain', e.target.value); }}
-                      onBlur={() => { if (!subdomainManual) { setSubdomainManual(''); setSubdomainEdit(false); } }}
-                      className="flex-1 outline-none text-sm font-mono" autoFocus />
-                  ) : (
-                    <span className="flex-1 font-mono text-sm">{form.subdomain || 'your-school'}</span>
-                  )}
-                  <span className="text-[#94A3B8] text-xs shrink-0">.clariva.ng</span>
-                  <button onClick={() => { setSubdomainEdit(true); setSubdomainManual(form.subdomain); }} className="ml-2 text-[#94A3B8] hover:text-[#0D2B55] cursor-pointer text-xs">✎</button>
-                </div>
-                {fieldErrors.subdomain && <p className="text-red-500 text-[10px] mt-1">{fieldErrors.subdomain}</p>}
-              </div>
-
-              <div>
-                <label className="block text-[11px] font-bold text-[#64748B] uppercase mb-1">School type</label>
-                <div className="grid grid-cols-2 gap-2">
-                  {SCHOOL_TYPES.map(t => {
-                    const active = form.schoolType === t;
-                    return (
-                      <button key={t} onClick={() => setField('schoolType', t)}
-                        className={`px-3 py-3 rounded-xl border-2 text-xs font-semibold text-left leading-tight transition-all cursor-pointer ${
-                          active ? 'border-[#1A7A4A] bg-green-50 text-[#1A7A4A]' : 'border-[#DDE5F0] text-[#64748B] hover:border-[#94A3B8]'
-                        }`}>{t}</button>
-                    );
-                  })}
-                </div>
-                {fieldErrors.schoolType && <p className="text-red-500 text-[10px] mt-1">{fieldErrors.schoolType}</p>}
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div ref={stateRef} className="relative">
-                  <label className="block text-[11px] font-bold text-[#64748B] uppercase mb-1">State</label>
-                  <div onClick={() => setStateOpen(!stateOpen)}
-                    className={`h-12 px-3.5 rounded-xl border text-sm flex items-center cursor-pointer ${fieldErrors.state ? inputErr : inputNorm}`}>
-                    <span className={form.state ? 'text-[#0D2B55]' : 'text-[#94A3B8]'}>{form.state || 'Select state'}</span>
-                  </div>
-                  {stateOpen && (
-                    <div className="absolute z-10 top-full mt-1 left-0 right-0 bg-white border border-[#DDE5F0] rounded-xl shadow-lg p-1.5 max-h-52 overflow-y-auto">
-                      <input value={stateQuery} onChange={e => setStateQuery(e.target.value)}
-                        placeholder="Search states…"
-                        className="w-full px-3 py-2 rounded-lg border border-[#DDE5F0] text-xs outline-none mb-1" autoFocus />
-                      {filteredStates.map(s => (
-                        <button key={s.id} onClick={() => { setField('state', s.name); setStateOpen(false); setStateQuery(''); setLgaQuery(''); }}
-                          className={`w-full text-left px-3 py-2 rounded-lg text-xs hover:bg-[#F0F4FA] transition-colors cursor-pointer ${form.state === s.name ? 'bg-green-50 text-[#1A7A4A] font-bold' : 'text-[#0D2B55]'}`}>{s.name}</button>
-                      ))}
-                    </div>
-                  )}
-                  {fieldErrors.state && <p className="text-red-500 text-[10px] mt-1">{fieldErrors.state}</p>}
-                </div>
-                <div ref={lgaRef} className="relative">
-                  <label className="block text-[11px] font-bold text-[#64748B] uppercase mb-1">LGA</label>
-                  <div onClick={() => form.state && setLgaOpen(!lgaOpen)}
-                    className={`h-12 px-3.5 rounded-xl border text-sm flex items-center cursor-pointer ${!form.state ? 'bg-[#F0F4FA]' : ''} ${fieldErrors.lga ? inputErr : inputNorm}`}>
-                    <span className={form.lga ? 'text-[#0D2B55]' : 'text-[#94A3B8]'}>{form.lga || (form.state ? 'Select LGA' : 'Select state first')}</span>
-                  </div>
-                  {lgaOpen && (
-                    <div className="absolute z-10 top-full mt-1 left-0 right-0 bg-white border border-[#DDE5F0] rounded-xl shadow-lg p-1.5 max-h-52 overflow-y-auto">
-                      <input value={lgaQuery} onChange={e => setLgaQuery(e.target.value)}
-                        placeholder="Search LGAs…"
-                        className="w-full px-3 py-2 rounded-lg border border-[#DDE5F0] text-xs outline-none mb-1" autoFocus />
-                      {filteredLgas.map(l => (
-                        <button key={l.id} onClick={() => { setField('lga', l.name); setLgaOpen(false); setLgaQuery(''); }}
-                          className={`w-full text-left px-3 py-2 rounded-lg text-xs hover:bg-[#F0F4FA] transition-colors cursor-pointer ${form.lga === l.name ? 'bg-green-50 text-[#1A7A4A] font-bold' : 'text-[#0D2B55]'}`}>{l.name}</button>
-                      ))}
-                    </div>
-                  )}
-                  {fieldErrors.lga && <p className="text-red-500 text-[10px] mt-1">{fieldErrors.lga}</p>}
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-[11px] font-bold text-[#64748B] uppercase mb-1">Address <span className="font-normal normal-case text-[#94A3B8]">Optional</span></label>
-                <input value={form.address} onChange={e => setField('address', e.target.value)}
-                  placeholder="e.g. 123 Broad Street"
-                  className={`${inputCls} ${inputNorm}`} />
-              </div>
-
-              <div className="flex justify-end pt-2">
-                <button onClick={handleContinue1}
-                  className="px-6 py-2.5 rounded-xl bg-[#1A7A4A] text-white text-sm font-bold hover:bg-[#14663D] transition-colors cursor-pointer">Continue →</button>
-              </div>
-            </div>
-          )}
-
-          {/* ---- Step 2 ---- */}
-          {step === 2 && (
-            <div className="space-y-4">
-              <button onClick={() => setStep(1)} className="text-xs text-[#64748B] hover:text-[#0D2B55] mb-1 cursor-pointer">← Back</button>
-              <div>
-                <label className="block text-[11px] font-bold text-[#64748B] uppercase mb-1">Full name</label>
-                <input value={form.proprietorName} onChange={e => setField('proprietorName', e.target.value)}
-                  placeholder="e.g. Dr. Adebayo Ola"
-                  className={`${inputCls} ${fieldErrors.proprietorName ? inputErr : inputNorm}`} />
-                {fieldErrors.proprietorName && <p className="text-red-500 text-[10px] mt-1">{fieldErrors.proprietorName}</p>}
-              </div>
-              <div>
-                <label className="block text-[11px] font-bold text-[#64748B] uppercase mb-1">Phone number</label>
-                <input value={form.proprietorPhone} onChange={e => setField('proprietorPhone', e.target.value)}
-                  placeholder="08012345678"
-                  className={`${inputCls} ${fieldErrors.proprietorPhone ? inputErr : inputNorm}`} />
-                {fieldErrors.proprietorPhone && <p className="text-red-500 text-[10px] mt-1">{fieldErrors.proprietorPhone}</p>}
-              </div>
-              <div>
-                <label className="block text-[11px] font-bold text-[#64748B] uppercase mb-1">Email <span className="font-normal normal-case text-[#94A3B8]">Optional, for password recovery</span></label>
-                <input type="email" value={form.proprietorEmail} onChange={e => setField('proprietorEmail', e.target.value)}
-                  placeholder="admin@school.com"
-                  className={`${inputCls} ${fieldErrors.proprietorEmail ? inputErr : inputNorm}`} />
-                {fieldErrors.proprietorEmail && (
-                  <p className="text-red-500 text-[10px] mt-1">
-                    {fieldErrors.proprietorEmail.includes('→') ? (
-                      <>{fieldErrors.proprietorEmail.replace('→', '')}<Link href="/" className="underline">Sign in instead →</Link></>
-                    ) : fieldErrors.proprietorEmail}
-                  </p>
-                )}
-              </div>
-              <p className="text-[10px] text-[#94A3B8] -mt-1">This person will be the school administrator</p>
-              <div className="flex justify-end pt-2">
-                <button onClick={handleContinue2}
-                  className="px-6 py-2.5 rounded-xl bg-[#1A7A4A] text-white text-sm font-bold hover:bg-[#14663D] transition-colors cursor-pointer">Continue →</button>
-              </div>
-            </div>
-          )}
-
-          {/* ---- Step 3 ---- */}
-          {step === 3 && (
-            <div className="space-y-4">
-              <button onClick={() => setStep(2)} className="text-xs text-[#64748B] hover:text-[#0D2B55] mb-1 cursor-pointer">← Back</button>
-
-              {/* summary card */}
-              <div className="bg-[#F8FAFF] border border-[#DDE5F0] rounded-xl p-4 grid grid-cols-2 gap-x-4 gap-y-2.5 text-xs">
-                <div><span className="text-[#64748B]">School</span><p className="font-semibold text-[#0D2B55] mt-0.5">{form.schoolName}</p></div>
-                <div><span className="text-[#64748B]">Type</span><p className="font-semibold text-[#0D2B55] mt-0.5">{form.schoolType}</p></div>
-                <div><span className="text-[#64748B]">Location</span><p className="font-semibold text-[#0D2B55] mt-0.5">{form.lga}, {form.state}</p></div>
-                <div><span className="text-[#64748B]">Proprietor</span><p className="font-semibold text-[#0D2B55] mt-0.5">{form.proprietorName}</p></div>
-                <div className="col-span-2"><span className="text-[#64748B]">Portal</span><p className="font-semibold text-[#0D2B55] mt-0.5 font-mono text-sm">{portalUrl}</p></div>
-              </div>
-
-              <div>
-                <label className="block text-[11px] font-bold text-[#64748B] uppercase mb-1">Password</label>
-                <div className={`flex items-center h-12 px-3.5 rounded-xl border text-sm ${fieldErrors.password ? inputErr : inputNorm}`}>
-                  <input type={showPw ? 'text' : 'password'} value={password} onChange={e => setPassword(e.target.value)}
-                    placeholder="At least 6 characters"
-                    className="flex-1 outline-none text-sm" />
-                  <button onClick={() => setShowPw(!showPw)} className="text-[#94A3B8] hover:text-[#0D2B55] text-xs cursor-pointer shrink-0">{showPw ? 'Hide' : 'Show'}</button>
-                </div>
-                {fieldErrors.password && <p className="text-red-500 text-[10px] mt-1">{fieldErrors.password}</p>}
-                {password && (
-                  <div className="mt-1.5">
-                    <div className="h-1 bg-[#F0F4FA] rounded-full overflow-hidden">
-                      <div className={`h-full rounded-full transition-all ${calcStrength(password).color}`} style={{ width: `${calcStrength(password).pct}%` }} />
-                    </div>
-                    <p className="text-[10px] text-[#64748B] mt-0.5">{calcStrength(password).label}</p>
-                  </div>
-                )}
-              </div>
-
-              <div>
-                <label className="block text-[11px] font-bold text-[#64748B] uppercase mb-1">Confirm password</label>
-                <input type="password" value={confirmPw} onChange={e => setConfirmPw(e.target.value)}
-                  placeholder="Re-enter password"
-                  className={`${inputCls} ${fieldErrors.confirmPw ? inputErr : inputNorm}`} />
-                {fieldErrors.confirmPw && <p className="text-red-500 text-[10px] mt-1">{fieldErrors.confirmPw}</p>}
-              </div>
-
-              <div>
-                <label className="flex items-start gap-2 cursor-pointer">
-                  <input type="checkbox" checked={agreeTerms} onChange={e => setAgreeTerms(e.target.checked)}
-                    className="mt-0.5 w-4 h-4 rounded border-[#DDE5F0] text-[#1A7A4A] focus:ring-[#1A7A4A]" />
-                  <span className="text-xs text-[#64748B]">I agree to Clariva&apos;s <Link href="/terms" className="text-[#1A7A4A] hover:underline">terms of service</Link></span>
+          <fieldset>
+            <legend className="block text-sm font-medium text-ink mb-1.5">School type</legend>
+            <div className="grid grid-cols-2 gap-2">
+              {SCHOOL_TYPES.map(t => (
+                <label key={t} className={cn(
+                  'flex items-center min-h-11 px-3 py-2 rounded border text-sm cursor-pointer transition-colors has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-brand',
+                  form.schoolType === t ? 'border-brand bg-brand-soft text-brand font-medium' : 'border-line text-ink hover:bg-surface-2',
+                )}>
+                  <input type="radio" name="school-type" value={t} checked={form.schoolType === t}
+                    onChange={() => setField('schoolType', t)} className="sr-only" />
+                  {t}
                 </label>
-                {fieldErrors.terms && <p className="text-red-500 text-[10px] mt-1">{fieldErrors.terms}</p>}
-              </div>
-
-              {fieldErrors._general && <p className="text-red-500 text-xs bg-red-50 border border-red-200 rounded-lg px-3 py-2">{fieldErrors._general}</p>}
-
-              <div className="flex justify-end pt-2">
-                <button onClick={handleSubmit} disabled={loading}
-                  className="px-6 py-2.5 rounded-xl bg-[#1A7A4A] text-white text-sm font-bold hover:bg-[#14663D] disabled:opacity-50 transition-colors cursor-pointer flex items-center gap-2">
-                  {loading ? <>⏳ Setting up your portal...</> : 'Create My School Portal →'}
-                </button>
-              </div>
+              ))}
             </div>
-          )}
+            {fieldErrors.schoolType && <p className="text-[13px] text-danger mt-1.5">{fieldErrors.schoolType}</p>}
+          </fieldset>
 
-          {/* footer link */}
-          <div className="mt-6 pt-4 border-t border-[#DDE5F0]">
-            <p className="text-xs text-[#64748B] text-center">
-              Already have an account? <Link href="/" className="text-[#1A7A4A] font-semibold hover:underline">Sign in →</Link>
-            </p>
+          <div className="grid grid-cols-2 gap-3">
+            <SearchSelect label="State" value={form.state} options={states} placeholder="Select state"
+              error={fieldErrors.state}
+              onSelect={name => { setField('state', name); setField('lga', ''); }} />
+            <SearchSelect label="LGA" value={form.lga} options={lgas}
+              placeholder={form.state ? 'Select LGA' : 'Choose a state first'}
+              disabled={!form.state} error={fieldErrors.lga}
+              onSelect={name => setField('lga', name)} />
+          </div>
+
+          <TextField id="school-address" label="Address (optional)" value={form.address}
+            onChange={e => setField('address', e.target.value)} placeholder="e.g. 123 Broad Street" />
+
+          <div className="flex justify-end pt-2">
+            <Button onClick={handleContinue1} className="px-6">Continue</Button>
           </div>
         </div>
-      </div>
-    </div>
+      )}
+
+      {/* ---- Step 2 ---- */}
+      {step === 2 && (
+        <div className="space-y-4">
+          <TextField id="admin-name" label="Full name" value={form.proprietorName}
+            onChange={e => setField('proprietorName', e.target.value)} placeholder="e.g. Dr. Adebayo Ola"
+            hint="This person will be the school administrator." error={fieldErrors.proprietorName} />
+          <TextField id="admin-phone" label="Phone number" type="tel" value={form.proprietorPhone}
+            onChange={e => setField('proprietorPhone', e.target.value)} placeholder="08012345678"
+            error={fieldErrors.proprietorPhone} />
+          <div>
+            <TextField id="admin-email" label="Email (optional)" type="email" value={form.proprietorEmail}
+              onChange={e => setField('proprietorEmail', e.target.value)} placeholder="admin@school.com"
+              hint="Used for password recovery." error={fieldErrors.proprietorEmail} />
+            {fieldErrors.proprietorEmail && (
+              <p className="text-[13px] mt-1">
+                <Link href="/" className="text-ink underline underline-offset-2">Sign in instead</Link>
+              </p>
+            )}
+          </div>
+          <div className="flex items-center justify-between pt-2">
+            <Button variant="ghost" onClick={() => setStep(1)} className="px-0">Back</Button>
+            <Button onClick={handleContinue2} className="px-6">Continue</Button>
+          </div>
+        </div>
+      )}
+
+      {/* ---- Step 3 ---- */}
+      {step === 3 && (
+        <div className="space-y-4">
+          <dl className="grid grid-cols-2 gap-x-4 gap-y-3 border-y border-line py-4 text-sm">
+            <div><dt className="text-[13px] text-muted">School</dt><dd className="text-ink mt-0.5">{form.schoolName}</dd></div>
+            <div><dt className="text-[13px] text-muted">Type</dt><dd className="text-ink mt-0.5">{form.schoolType}</dd></div>
+            <div><dt className="text-[13px] text-muted">Location</dt><dd className="text-ink mt-0.5">{form.lga}, {form.state}</dd></div>
+            <div><dt className="text-[13px] text-muted">Administrator</dt><dd className="text-ink mt-0.5">{form.proprietorName}</dd></div>
+            <div className="col-span-2"><dt className="text-[13px] text-muted">Portal</dt><dd className="text-ink mt-0.5 font-mono break-all">{portalUrl}</dd></div>
+          </dl>
+
+          <div>
+            <PasswordField id="onboard-password" label="Password" autoComplete="new-password" value={password}
+              onChange={e => setPassword(e.target.value)} placeholder="At least 6 characters" error={fieldErrors.password} />
+            {password && (
+              <div className="mt-2" aria-live="polite">
+                <div className="h-1 bg-line rounded-full overflow-hidden">
+                  <div className={cn('h-full rounded-full transition-[width]', calcStrength(password).color)} style={{ width: `${calcStrength(password).pct}%` }} />
+                </div>
+                <p className="text-[13px] text-muted mt-1">Strength: {calcStrength(password).label}</p>
+              </div>
+            )}
+          </div>
+
+          <PasswordField id="onboard-confirm" label="Confirm password" autoComplete="new-password" value={confirmPw}
+            onChange={e => setConfirmPw(e.target.value)} error={fieldErrors.confirmPw} />
+
+          <div>
+            <label className="flex items-start gap-2.5 cursor-pointer min-h-6">
+              <input type="checkbox" checked={agreeTerms} onChange={e => { setAgreeTerms(e.target.checked); setFieldErrors(p => { const n = { ...p }; delete n.terms; return n; }); }}
+                className="mt-0.5 w-4 h-4 accent-brand" />
+              <span className="text-sm text-ink">I accept Clariva&apos;s <Link href="/terms" className="underline underline-offset-2">terms of service</Link>.</span>
+            </label>
+            {fieldErrors.terms && <p className="text-[13px] text-danger mt-1.5">{fieldErrors.terms}</p>}
+          </div>
+
+          <FormError>{fieldErrors._general}</FormError>
+
+          <div className="flex items-center justify-between pt-2">
+            <Button variant="ghost" onClick={() => setStep(2)} className="px-0">Back</Button>
+            <Button onClick={handleSubmit} disabled={loading} className="px-6">
+              {loading ? 'Creating your portal…' : 'Create school portal'}
+            </Button>
+          </div>
+        </div>
+      )}
+
+      <p className="text-[13px] text-muted mt-8 lg:hidden">
+        Already have an account? <Link href="/" className="text-ink underline underline-offset-2">Sign in</Link>
+      </p>
+    </AuthShell>
   );
 }

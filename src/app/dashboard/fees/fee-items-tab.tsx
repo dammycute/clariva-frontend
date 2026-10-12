@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { api } from '@/lib/api';
 import ConfirmDialog from '@/components/confirm-dialog';
+import { Pencil, Trash2, X, ChevronDown, ChevronRight } from 'lucide-react';
 
 const YEAR_GROUPS = ['JSS1', 'JSS2', 'JSS3', 'SS1', 'SS2', 'SS3'];
 const CATEGORY_GROUPS = ['JSS', 'SS'];
@@ -21,7 +22,7 @@ function feeClassLabel(item: FeeItem, classes: Class[]): string {
     const label = (item.year_group.length <= 3) ? 'All Classes' : 'All Arms';
     return `${item.year_group} (${label})`;
   }
-  if (item.class_group) return classes.find(c => c.id === item.class_group)?.name || '—';
+  if (item.class_group) return classes.find(c => c.id === item.class_group)?.name || '-';
   if (item.pricing_tiers && Object.keys(item.pricing_tiers).length > 0) return 'Tiered (All Classes)';
   return 'All Classes';
 }
@@ -92,20 +93,20 @@ export default function FeeItemsTab({ onRefresh }: { onRefresh: () => void }) {
   return (
     <div>
       <div className="flex items-center justify-between mb-4">
-        <p className="text-xs text-[#64748B]">{items.length} fee items configured</p>
+        <p className="text-xs text-muted">{items.length} fee items configured</p>
         <div className="flex gap-2">
-          <button onClick={() => setShowBulk(true)} className="text-sm px-3.5 py-2 rounded-lg border border-[#1A7A4A] text-[#1A7A4A] hover:bg-[#F0FBF4]">Bulk Create</button>
-          <button onClick={openAdd} className="text-sm px-3.5 py-2 rounded-lg bg-[#1A7A4A] text-white hover:bg-[#14663D]">+ Add Fee Item</button>
+          <button onClick={() => setShowBulk(true)} className="text-sm px-3.5 py-2 rounded border border-brand text-brand hover:bg-[#F0FBF4]">Bulk Create</button>
+          <button onClick={openAdd} className="text-sm px-3.5 py-2 rounded bg-brand text-brand-ink hover:opacity-90">+ Add Fee Item</button>
         </div>
       </div>
 
-      <div className="bg-white border border-[#DDE5F0] rounded-xl overflow-x-auto">
-        {loading ? <div className="p-8 text-center text-sm text-[#64748B]">Loading fee items…</div>
-        : items.length === 0 ? <div className="p-8 text-center text-sm text-[#64748B]">No fee items yet.</div>
+      <div className="bg-surface border border-line rounded overflow-x-auto">
+        {loading ? <div className="p-8 text-center text-sm text-muted">Loading fee items…</div>
+        : items.length === 0 ? <div className="p-8 text-center text-sm text-muted">No fee items yet.</div>
         : (
           <table className="w-full text-xs">
             <thead>
-              <tr className="text-[11px] font-bold tracking-wider text-[#64748B] uppercase bg-[#F7F9FC]">
+              <tr className="text-xs font-semibold text-muted bg-page">
                 <th className="text-left px-4 py-3 w-8"></th>
                 <th className="text-left px-4 py-3">Item</th>
                 <th className="text-left px-4 py-3">Amount</th>
@@ -122,36 +123,36 @@ export default function FeeItemsTab({ onRefresh }: { onRefresh: () => void }) {
                 const hasTiers = i.pricing_tiers && Object.keys(i.pricing_tiers).length > 0;
                 return (
                   <>
-                    <tr key={i.id} className="hover:bg-[#F8FAFF] border-t border-[#DDE5F0]">
+                    <tr key={i.id} className="hover:bg-page border-t border-line">
                       <td className="px-4 py-3">
                         {hasTiers && (
-                          <button onClick={() => setExpandedTiers(prev => { const n = new Set(prev); n.has(i.id) ? n.delete(i.id) : n.add(i.id); return n; })} className="text-[#64748B] hover:text-[#0D2B55] text-xs">
-                            {isExpanded ? '▼' : '▶'}
+                          <button onClick={() => setExpandedTiers(prev => { const n = new Set(prev); n.has(i.id) ? n.delete(i.id) : n.add(i.id); return n; })} className="text-muted hover:text-ink text-xs" aria-label={isExpanded ? 'Collapse' : 'Expand'}>
+                            {isExpanded ? <ChevronDown size={16} aria-hidden="true" /> : <ChevronRight size={16} aria-hidden="true" />}
                           </button>
                         )}
                       </td>
                       <td className="px-4 py-3 font-semibold">{i.name}</td>
                       <td className="px-4 py-3">₦{Number(i.amount).toLocaleString()}</td>
-                      <td className="px-4 py-3 text-[#64748B]">{i.class_name}</td>
-                      <td className="px-4 py-3">{i.term || '—'}</td>
-                      <td className="px-4 py-3">{i.academic_year || '—'}</td>
-                      <td className="px-4 py-3"><span className={`px-2 py-0.5 rounded text-[10px] font-bold ${i.is_mandatory ? 'bg-[#FEF3C7] text-[#D4930A]' : 'bg-[#F7F9FC] text-[#64748B]'}`}>{i.is_mandatory ? 'Yes' : 'No'}</span></td>
+                      <td className="px-4 py-3 text-muted">{i.class_name}</td>
+                      <td className="px-4 py-3">{i.term || '-'}</td>
+                      <td className="px-4 py-3">{i.academic_year || '-'}</td>
+                      <td className="px-4 py-3"><span className={`px-2 py-0.5 rounded text-xs font-semibold ${i.is_mandatory ? 'bg-warning/10 text-warning' : 'bg-page text-muted'}`}>{i.is_mandatory ? 'Yes' : 'No'}</span></td>
                       <td className="px-4 py-3 text-right">
                         <div className="flex gap-1 justify-end">
-                          <button onClick={() => openEdit(i)} className="text-xs px-2 py-1 rounded-lg border border-[#DDE5F0] bg-white hover:bg-[#F0F4FA]">✏️</button>
-                      <button onClick={() => setConfirmDelete(i.id)} className="text-xs px-2 py-1 rounded-lg border border-[#FEE2E2] bg-white text-[#B91C1C] hover:bg-[#FEE2E2]">🗑</button>
+                          <button onClick={() => openEdit(i)} className="text-xs px-2 py-1 rounded border border-line bg-surface hover:bg-surface-2" aria-label="Edit"><Pencil size={16} aria-hidden="true" /></button>
+                      <button onClick={() => setConfirmDelete(i.id)} className="text-xs px-2 py-1 rounded border border-danger-soft bg-surface text-danger hover:bg-danger-soft" aria-label="Delete"><Trash2 size={16} aria-hidden="true" /></button>
                     </div>
                   </td>
                 </tr>
                 {isExpanded && hasTiers && (
-                  <tr key={`tiers-${i.id}`} className="bg-[#F7F9FC]">
+                  <tr key={`tiers-${i.id}`} className="bg-page">
                     <td colSpan={8} className="px-4 py-3">
-                      <div className="text-[11px] font-bold text-[#64748B] uppercase mb-2">Year Group Pricing</div>
+                      <div className="text-xs font-semibold text-muted mb-2">Year Group Pricing</div>
                       <div className="flex flex-wrap gap-3">
                         {Object.entries(i.pricing_tiers!).map(([yg, val]) => (
-                          <div key={yg} className="bg-white border border-[#DDE5F0] rounded-lg px-3 py-2 min-w-[120px]">
-                            <div className="text-[10px] text-[#64748B] uppercase">{yg}</div>
-                            <div className="text-sm font-bold text-[#0D2B55]">₦{Number(val).toLocaleString()}</div>
+                          <div key={yg} className="bg-surface border border-line rounded px-3 py-2 min-w-[120px]">
+                            <div className="text-xs text-muted">{yg}</div>
+                            <div className="text-sm font-semibold text-ink">₦{Number(val).toLocaleString()}</div>
                           </div>
                         ))}
                       </div>
@@ -167,57 +168,57 @@ export default function FeeItemsTab({ onRefresh }: { onRefresh: () => void }) {
 
       {showModal && (
         <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center" onClick={() => setShowModal(false)}>
-          <div className="bg-white rounded-2xl w-[480px] max-w-[95vw]" onClick={e => e.stopPropagation()}>
+          <div className="bg-surface rounded w-[480px] max-w-[95vw]" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between p-5 pb-0">
-              <h2 className="text-base font-bold text-[#0D2B55]">{editingId ? 'Edit Fee Item' : 'Add Fee Item'}</h2>
-              <button onClick={() => setShowModal(false)} className="text-[#64748B] hover:text-[#0D2B55] text-lg">✕</button>
+              <h2 className="text-base font-semibold text-ink">{editingId ? 'Edit Fee Item' : 'Add Fee Item'}</h2>
+              <button onClick={() => setShowModal(false)} className="text-muted hover:text-ink text-lg" aria-label="Close"><X size={16} aria-hidden="true" /></button>
             </div>
             <form onSubmit={handleSubmit} className="p-5 space-y-3.5">
               <div>
-                <label className="block text-[11px] font-bold text-[#64748B] uppercase mb-1">Fee name</label>
+                <label className="block text-xs font-semibold text-muted mb-1">Fee name</label>
                 <input value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} required
-                  className="w-full px-3 py-2 rounded-lg border border-[#DDE5F0] text-sm outline-none focus:border-[#1A7A4A]" />
+                  className="w-full px-3 py-2 rounded border border-line text-sm outline-none focus:border-brand" />
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-[11px] font-bold text-[#64748B] uppercase mb-1">Amount (₦)</label>
+                  <label className="block text-xs font-semibold text-muted mb-1">Amount (₦)</label>
                   <input type="number" value={form.amount} onChange={e => setForm({ ...form, amount: e.target.value })} required min="0"
-                    className="w-full px-3 py-2 rounded-lg border border-[#DDE5F0] text-sm outline-none focus:border-[#1A7A4A]" />
+                    className="w-full px-3 py-2 rounded border border-line text-sm outline-none focus:border-brand" />
                 </div>
                 <div>
-                  <label className="block text-[11px] font-bold text-[#64748B] uppercase mb-1">Applies to</label>
+                  <label className="block text-xs font-semibold text-muted mb-1">Applies to</label>
                   <select value={form.class_group || form.year_group ? (form.year_group ? `yg:${form.year_group}` : form.class_group) : ''}
                     onChange={e => {
                       const v = e.target.value;
                       if (v.startsWith('yg:')) setForm({ ...form, year_group: v.slice(3), arm: '', class_group: '' });
                       else setForm({ ...form, class_group: v, year_group: '', arm: '' });
                     }}
-                    className="w-full px-3 py-2 rounded-lg border border-[#DDE5F0] text-sm outline-none focus:border-[#1A7A4A] bg-white">
+                    className="w-full px-3 py-2 rounded border border-line text-sm outline-none focus:border-brand bg-surface">
                     <option value="">All Classes</option>
-                    <option disabled className="text-[#64748B] bg-[#F7F9FC]">— Categories —</option>
+                    <option disabled className="text-muted bg-page">- Categories -</option>
                     {CATEGORY_GROUPS.map(cg => (
                       <option key={cg} value={`yg:${cg}`}>{cg} (All Classes)</option>
                     ))}
-                    <option disabled className="text-[#64748B] bg-[#F7F9FC]">— Year Groups —</option>
+                    <option disabled className="text-muted bg-page">- Year Groups -</option>
                     {YEAR_GROUPS.map(yg => (
                       <option key={yg} value={`yg:${yg}`}>{yg} (All Arms)</option>
                     ))}
-                    <option disabled className="text-[#64748B] bg-[#F7F9FC]">— Specific Classes —</option>
+                    <option disabled className="text-muted bg-page">- Specific Classes -</option>
                     {classes.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
                   </select>
                   {form.year_group && !form.class_group && (
                     <div className="mt-2">
-                      <label className="block text-[11px] font-bold text-[#64748B] uppercase mb-1">Arm (optional)</label>
+                      <label className="block text-xs font-semibold text-muted mb-1">Arm (optional)</label>
                       <select value={form.arm} onChange={e => setForm({ ...form, arm: e.target.value })}
-                        className="w-full px-3 py-2 rounded-lg border border-[#DDE5F0] text-sm outline-none focus:border-[#1A7A4A] bg-white">
+                        className="w-full px-3 py-2 rounded border border-line text-sm outline-none focus:border-brand bg-surface">
                         <option value="">All Arms</option>
                         {ARMS.map(a => <option key={a} value={a}>Arm {a}</option>)}
                       </select>
                     </div>
                   )}
                   <div className="mt-2">
-                    <label className="flex items-center gap-1.5 text-[11px] font-bold text-[#64748B] uppercase cursor-pointer" onClick={() => setForm({ ...form, pricing_tiers: form.pricing_tiers ? '' : '{}' })}>
-                      <span className={`text-xs transition-transform ${form.pricing_tiers ? 'rotate-90' : ''}`}>▶</span>
+                    <label className="flex items-center gap-1.5 text-xs font-semibold text-muted cursor-pointer" onClick={() => setForm({ ...form, pricing_tiers: form.pricing_tiers ? '' : '{}' })}>
+                      <span className={`text-xs transition-transform ${form.pricing_tiers ? 'rotate-90' : ''}`}><ChevronRight size={16} aria-hidden="true" /></span>
                       Pricing per Year Group (expandable)
                     </label>
                     {form.pricing_tiers && (
@@ -227,7 +228,7 @@ export default function FeeItemsTab({ onRefresh }: { onRefresh: () => void }) {
                           try { const p = JSON.parse(form.pricing_tiers); cur = p[yg] !== undefined ? String(p[yg]) : ''; } catch {}
                           return (
                             <div key={yg}>
-                              <label className="text-[10px] text-[#64748B] uppercase block mb-0.5">{yg}</label>
+                              <label className="text-xs text-muted block mb-0.5">{yg}</label>
                               <input type="number" min="0" placeholder="₦" value={cur}
                                 onChange={e => {
                                   let p: Record<string, number | undefined> = {};
@@ -236,7 +237,7 @@ export default function FeeItemsTab({ onRefresh }: { onRefresh: () => void }) {
                                   if (next[yg] === undefined) delete next[yg];
                                   setForm({ ...form, pricing_tiers: JSON.stringify(next) });
                                 }}
-                                className="w-full px-2 py-1.5 rounded border border-[#DDE5F0] text-sm outline-none focus:border-[#1A7A4A]" />
+                                className="w-full px-2 py-1.5 rounded border border-line text-sm outline-none focus:border-brand" />
                             </div>
                           );
                         })}
@@ -247,27 +248,27 @@ export default function FeeItemsTab({ onRefresh }: { onRefresh: () => void }) {
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-[11px] font-bold text-[#64748B] uppercase mb-1">Term</label>
+                  <label className="block text-xs font-semibold text-muted mb-1">Term</label>
                   <select value={form.term} onChange={e => setForm({ ...form, term: e.target.value })}
-                    className="w-full px-3 py-2 rounded-lg border border-[#DDE5F0] text-sm outline-none focus:border-[#1A7A4A] bg-white">
+                    className="w-full px-3 py-2 rounded border border-line text-sm outline-none focus:border-brand bg-surface">
                     <option value="">All Terms</option>
                     {TERMS.map(t => <option key={t} value={t}>{t}</option>)}
                   </select>
                 </div>
                 <div>
-                  <label className="block text-[11px] font-bold text-[#64748B] uppercase mb-1">Academic year</label>
+                  <label className="block text-xs font-semibold text-muted mb-1">Academic year</label>
                   <input value={form.academic_year} onChange={e => setForm({ ...form, academic_year: e.target.value })}
-                    className="w-full px-3 py-2 rounded-lg border border-[#DDE5F0] text-sm outline-none focus:border-[#1A7A4A]" />
+                    className="w-full px-3 py-2 rounded border border-line text-sm outline-none focus:border-brand" />
                 </div>
               </div>
               <div className="flex items-center gap-2">
                 <input type="checkbox" id="mandatory" checked={form.is_mandatory} onChange={e => setForm({ ...form, is_mandatory: e.target.checked })}
-                  className="w-4 h-4 rounded border-[#DDE5F0] text-[#1A7A4A] focus:ring-[#1A7A4A]" />
-                <label htmlFor="mandatory" className="text-sm text-[#0D2B55]">Mandatory fee</label>
+                  className="w-4 h-4 rounded border-line text-brand focus:ring-brand" />
+                <label htmlFor="mandatory" className="text-sm text-ink">Mandatory fee</label>
               </div>
               <div className="flex justify-end gap-2 pt-2">
-                <button type="button" onClick={() => setShowModal(false)} className="text-sm px-4 py-2 rounded-lg border border-[#DDE5F0] bg-white hover:bg-[#F0F4FA]">Cancel</button>
-                <button type="submit" className="text-sm px-4 py-2 rounded-lg bg-[#1A7A4A] text-white hover:bg-[#14663D]">{editingId ? 'Save Changes' : 'Add Fee Item'}</button>
+                <button type="button" onClick={() => setShowModal(false)} className="text-sm px-4 py-2 rounded border border-line bg-surface hover:bg-surface-2">Cancel</button>
+                <button type="submit" className="text-sm px-4 py-2 rounded bg-brand text-brand-ink hover:opacity-90">{editingId ? 'Save Changes' : 'Add Fee Item'}</button>
               </div>
             </form>
           </div>
@@ -338,42 +339,42 @@ function BulkCreateModal({ classes, onClose, onDone }: { classes: Class[]; onClo
 
   return (
     <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center" onClick={onClose}>
-      <div className="bg-white rounded-2xl w-[90vw] max-w-[900px] max-h-[90vh] overflow-hidden flex flex-col" onClick={e => e.stopPropagation()}>
+      <div className="bg-surface rounded w-[90vw] max-w-[900px] max-h-[90vh] overflow-hidden flex flex-col" onClick={e => e.stopPropagation()}>
         <div className="flex items-center justify-between p-5 pb-0">
-          <h2 className="text-base font-bold text-[#0D2B55]">Bulk Create Fees</h2>
-          <button onClick={onClose} className="text-[#64748B] hover:text-[#0D2B55] text-lg">✕</button>
+          <h2 className="text-base font-semibold text-ink">Bulk Create Fees</h2>
+          <button onClick={onClose} className="text-muted hover:text-ink text-lg" aria-label="Close"><X size={16} aria-hidden="true" /></button>
         </div>
         <form onSubmit={handleSubmit} className="p-5 space-y-3.5 flex-1 overflow-auto">
           <div className="overflow-x-auto">
             <table className="w-full text-xs border-collapse">
               <thead>
-                <tr className="bg-[#F7F9FC]">
-                  <th className="sticky left-0 bg-[#F7F9FC] z-10 text-left px-3 py-2.5 text-[11px] font-bold text-[#64748B] uppercase min-w-[140px]">Fee Name</th>
-                  <th className="text-left px-3 py-2.5 text-[11px] font-bold text-[#1A7A4A] uppercase min-w-[100px]">All Classes</th>
+                <tr className="bg-page">
+                  <th className="sticky left-0 bg-page z-10 text-left px-3 py-2.5 text-xs font-semibold text-muted min-w-[140px]">Fee Name</th>
+                  <th className="text-left px-3 py-2.5 text-xs font-semibold text-brand min-w-[100px]">All Classes</th>
                   {columns.filter(c => c !== '__all__').map(col => (
-                    <th key={col} className="text-left px-3 py-2.5 text-[11px] font-bold text-[#0D2B55] uppercase min-w-[100px]">{col}</th>
+                    <th key={col} className="text-left px-3 py-2.5 text-xs font-semibold text-ink min-w-[100px]">{col}</th>
                   ))}
                   <th className="w-10" />
                 </tr>
               </thead>
               <tbody>
                 {rows.map((row, ri) => (
-                  <tr key={ri} className="border-t border-[#DDE5F0]">
-                    <td className="sticky left-0 bg-white z-10 px-3 py-2">
+                  <tr key={ri} className="border-t border-line">
+                    <td className="sticky left-0 bg-surface z-10 px-3 py-2">
                       <input value={row.name} onChange={e => { const n = [...rows]; n[ri] = { ...n[ri], name: e.target.value }; setRows(n); }}
                         placeholder="Fee name" required
-                        className="w-full px-2 py-1.5 rounded border border-[#DDE5F0] text-sm outline-none focus:border-[#1A7A4A]" />
+                        className="w-full px-2 py-1.5 rounded border border-line text-sm outline-none focus:border-brand" />
                     </td>
                     {columns.map(colKey => (
                       <td key={colKey} className="px-3 py-2">
                         <input type="number" min="0" placeholder="₦" value={row.amounts[colKey] || ''}
                           onChange={e => setCell(ri, colKey, e.target.value)}
-                          className="w-full px-2 py-1.5 rounded border border-[#DDE5F0] text-sm outline-none focus:border-[#1A7A4A]" />
+                          className="w-full px-2 py-1.5 rounded border border-line text-sm outline-none focus:border-brand" />
                       </td>
                     ))}
                     <td className="px-2 py-2">
                       {rows.length > 1 && (
-                        <button type="button" onClick={() => removeRow(ri)} className="text-[#B91C1C] text-sm hover:text-red-700">✕</button>
+                        <button type="button" onClick={() => removeRow(ri)} aria-label="Remove row" className="text-danger text-sm hover:text-red-700"><X size={16} aria-hidden="true" /></button>
                       )}
                     </td>
                   </tr>
@@ -381,31 +382,31 @@ function BulkCreateModal({ classes, onClose, onDone }: { classes: Class[]; onClo
               </tbody>
             </table>
           </div>
-          <button type="button" onClick={addRow} className="text-sm text-[#1A7A4A] hover:underline">+ Add another fee type</button>
+          <button type="button" onClick={addRow} className="text-sm text-brand hover:underline">+ Add another fee type</button>
           <div className="flex items-center gap-4 pt-2">
             <div>
-              <label className="block text-[11px] font-bold text-[#64748B] uppercase mb-1">Term</label>
+              <label className="block text-xs font-semibold text-muted mb-1">Term</label>
               <select value={rows[0]?.term || '1st Term'} onChange={e => setRows(rows.map(r => ({ ...r, term: e.target.value })))}
-                className="px-3 py-2 rounded-lg border border-[#DDE5F0] text-sm outline-none focus:border-[#1A7A4A] bg-white">
+                className="px-3 py-2 rounded border border-line text-sm outline-none focus:border-brand bg-surface">
                 {TERMS.map(t => <option key={t} value={t}>{t}</option>)}
               </select>
             </div>
             <div>
-              <label className="block text-[11px] font-bold text-[#64748B] uppercase mb-1">Academic year</label>
+              <label className="block text-xs font-semibold text-muted mb-1">Academic year</label>
               <input value={rows[0]?.academic_year || '2025/2026'} onChange={e => setRows(rows.map(r => ({ ...r, academic_year: e.target.value })))}
-                className="px-3 py-2 rounded-lg border border-[#DDE5F0] text-sm outline-none focus:border-[#1A7A4A]" />
+                className="px-3 py-2 rounded border border-line text-sm outline-none focus:border-brand" />
             </div>
             <div className="flex items-center gap-2 pt-4">
               <input type="checkbox" id="bulk-mandatory" checked={rows[0]?.is_mandatory ?? true}
                 onChange={e => setRows(rows.map(r => ({ ...r, is_mandatory: e.target.checked })))}
-                className="w-4 h-4 rounded border-[#DDE5F0] text-[#1A7A4A] focus:ring-[#1A7A4A]" />
-              <label htmlFor="bulk-mandatory" className="text-sm text-[#0D2B55]">Mandatory</label>
+                className="w-4 h-4 rounded border-line text-brand focus:ring-brand" />
+              <label htmlFor="bulk-mandatory" className="text-sm text-ink">Mandatory</label>
             </div>
           </div>
-          {error && <p className="text-[11px] text-[#B91C1C]">{error}</p>}
-          <div className="flex justify-end gap-2 pt-2 border-t border-[#DDE5F0]">
-            <button type="button" onClick={onClose} className="text-sm px-4 py-2 rounded-lg border border-[#DDE5F0] bg-white hover:bg-[#F0F4FA]">Cancel</button>
-            <button type="submit" disabled={submitting} className="text-sm px-4 py-2 rounded-lg bg-[#1A7A4A] text-white hover:bg-[#14663D] disabled:opacity-50">
+          {error && <p className="text-xs text-danger">{error}</p>}
+          <div className="flex justify-end gap-2 pt-2 border-t border-line">
+            <button type="button" onClick={onClose} className="text-sm px-4 py-2 rounded border border-line bg-surface hover:bg-surface-2">Cancel</button>
+            <button type="submit" disabled={submitting} className="text-sm px-4 py-2 rounded bg-brand text-brand-ink hover:opacity-90 disabled:opacity-50">
               {submitting ? 'Creating…' : `Create ${rows.reduce((sum, r) => sum + Object.values(r.amounts).filter(v => Number(v) > 0).length, 0)} Fees`}
             </button>
           </div>

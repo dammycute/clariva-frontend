@@ -9,12 +9,12 @@ interface User {
 }
 
 const ROLE_COLORS: Record<string, string> = {
-  super_admin: 'bg-[#FEE2E2] text-[#B91C1C]',
-  school_admin: 'bg-[#E8F0FA] text-[#0D2B55]',
-  admin_officer: 'bg-[#E8F0FA] text-[#0D2B55]',
-  principal: 'bg-[#F3E8FF] text-[#7C3AED]',
-  teacher: 'bg-[#DCFCE7] text-[#1A7A4A]',
-  bursary: 'bg-[#FEF3C7] text-[#D4930A]',
+  super_admin: 'bg-danger-soft text-danger',
+  school_admin: 'bg-brand-soft text-ink',
+  admin_officer: 'bg-brand-soft text-ink',
+  principal: 'bg-brand-soft text-brand',
+  teacher: 'bg-success/10 text-success',
+  bursary: 'bg-warning/10 text-warning',
   student: 'bg-[#E0F2FE] text-[#0369A1]',
   parent: 'bg-[#FFF7ED] text-[#C2410C]',
 };
@@ -50,19 +50,19 @@ export default function SuperAdminUsers() {
   return (
     <div>
       <div className="mb-5">
-        <h1 className="text-2xl font-bold text-[#0D2B55]">Users</h1>
-        <p className="text-xs text-[#64748B] mt-0.5">{users.length} total users across all schools</p>
+        <h1 className="text-2xl font-semibold text-ink">Users</h1>
+        <p className="text-xs text-muted mt-0.5">{users.length} total users across all schools</p>
       </div>
 
       <div className="flex gap-2 mb-4 flex-wrap">
         <button onClick={() => setRoleFilter('all')}
-          className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
-            roleFilter === 'all' ? 'bg-[#0D2B55] text-white' : 'bg-[#F0F4FA] text-[#64748B] hover:bg-[#E8F0FA]'
+          className={`px-3 py-1.5 rounded text-xs font-medium transition-colors ${
+            roleFilter === 'all' ? 'bg-brand text-brand-ink' : 'bg-surface-2 text-muted hover:bg-brand-soft'
           }`}>All ({users.length})</button>
         {Object.entries(roleCounts).sort(([,a],[,b]) => b - a).map(([role, count]) => (
           <button key={role} onClick={() => setRoleFilter(role)}
-            className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
-              roleFilter === role ? 'bg-[#0D2B55] text-white' : 'bg-[#F0F4FA] text-[#64748B] hover:bg-[#E8F0FA]'
+            className={`px-3 py-1.5 rounded text-xs font-medium transition-colors ${
+              roleFilter === role ? 'bg-brand text-brand-ink' : 'bg-surface-2 text-muted hover:bg-brand-soft'
             }`}>{role.replace('_', ' ')} ({count})</button>
         ))}
       </div>
@@ -70,32 +70,32 @@ export default function SuperAdminUsers() {
       <div className="mb-4">
         <input type="text" placeholder="Search by name, email, or username..."
           value={search} onChange={e => setSearch(e.target.value)}
-          className="w-full max-w-md px-3 py-2 rounded-lg border border-[#DDE5F0] text-sm focus:outline-none focus:ring-2 focus:ring-[#1A7A4A] focus:border-transparent" />
+          className="w-full max-w-md px-3 py-2 rounded border border-line text-sm focus:outline-none focus:ring-2 focus:ring-brand focus:border-transparent" />
       </div>
 
       {loading ? (
-        <div className="space-y-3">{Array.from({ length: 8 }).map((_, i) => <div key={i} className="h-12 bg-white rounded-xl animate-pulse" />)}</div>
+        <div className="space-y-3">{Array.from({ length: 8 }).map((_, i) => <div key={i} className="h-12 bg-surface rounded animate-pulse" />)}</div>
       ) : filtered.length === 0 ? (
-        <div className="bg-white border border-[#DDE5F0] rounded-xl p-8 text-center text-sm text-[#64748B]">No users found.</div>
+        <div className="bg-surface border border-line rounded p-8 text-center text-sm text-muted">No users found.</div>
       ) : (
-        <div className="bg-white border border-[#DDE5F0] rounded-xl overflow-hidden">
-          <div className="divide-y divide-[#DDE5F0]">
+        <div className="bg-surface border border-line rounded overflow-hidden">
+          <div className="divide-y divide-line">
             {filtered.map(u => (
               <div key={u.id} className="px-4 py-2.5 flex items-center justify-between">
                 <div className="flex items-center gap-3 min-w-0">
-                  <div className="w-8 h-8 rounded-full bg-[#0D2B55] text-white text-xs font-bold flex items-center justify-center shrink-0">
+                  <div className="w-8 h-8 rounded-full bg-brand text-brand-ink text-xs font-semibold flex items-center justify-center shrink-0">
                     {u.first_name?.[0]}{u.last_name?.[0]}
                   </div>
                   <div className="min-w-0">
-                    <p className="text-xs font-semibold text-[#0D2B55] truncate">{u.first_name} {u.last_name}</p>
-                    <p className="text-[10px] text-[#64748B] truncate">{u.email}</p>
+                    <p className="text-xs font-semibold text-ink truncate">{u.first_name} {u.last_name}</p>
+                    <p className="text-xs text-muted truncate">{u.email}</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-2 ml-4 shrink-0">
-                  <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${ROLE_COLORS[u.role] || 'bg-[#F0F4FA] text-[#64748B]'}`}>
+                  <span className={`px-2 py-0.5 rounded text-xs font-semibold ${ROLE_COLORS[u.role] || 'bg-surface-2 text-muted'}`}>
                     {u.role.replace('_', ' ')}
                   </span>
-                  <span className={`w-2 h-2 rounded-full ${u.is_active ? 'bg-[#1A7A4A]' : 'bg-[#B91C1C]'}`} />
+                  <span className={`w-2 h-2 rounded-full ${u.is_active ? 'bg-brand' : 'bg-danger'}`} />
                 </div>
               </div>
             ))}

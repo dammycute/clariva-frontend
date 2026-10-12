@@ -210,14 +210,14 @@ export default function TimetablePage() {
     <div>
       <div className="flex items-center justify-between mb-5">
         <div>
-          <h1 className="text-2xl font-bold text-[#0D2B55]">Timetable</h1>
-          <p className="text-xs text-[#64748B] mt-0.5">Class schedule with drag-to-assign</p>
+          <h1 className="text-2xl font-semibold text-ink">Timetable</h1>
+          <p className="text-xs text-muted mt-0.5">Class schedule with drag-to-assign</p>
         </div>
       </div>
 
       <div className="flex items-center gap-3 mb-4 flex-wrap">
         <select value={selectedClass} onChange={e => setSelectedClass(e.target.value)}
-          className="text-sm border border-[#DDE5F0] rounded-lg px-3 py-2 bg-white text-[#0D2B55] outline-none">
+          className="text-sm border border-line rounded px-3 py-2 bg-surface text-ink outline-none">
           <option value="">Select class</option>
           {[...new Set(clsList.map(c => c.year_group))].sort().map(yg => (
             <optgroup key={yg} label={yg || 'Other'}>
@@ -228,28 +228,28 @@ export default function TimetablePage() {
           ))}
         </select>
         <select value={term} onChange={e => setTerm(e.target.value)}
-          className="text-sm border border-[#DDE5F0] rounded-lg px-3 py-2 bg-white text-[#0D2B55] outline-none">
+          className="text-sm border border-line rounded px-3 py-2 bg-surface text-ink outline-none">
           {TERMS.map(t => <option key={t} value={t}>{t}</option>)}
         </select>
         <input value={academicYear} onChange={e => setAcademicYear(e.target.value)}
-          className="text-sm border border-[#DDE5F0] rounded-lg px-3 py-2 bg-white text-[#0D2B55] outline-none w-[120px]" />
+          className="text-sm border border-line rounded px-3 py-2 bg-surface text-ink outline-none w-[120px]" />
         {selectedClass && (
           <>
             <button onClick={handleSave} disabled={saving}
-              className="text-sm px-4 py-2 rounded-lg bg-[#1A7A4A] text-white hover:bg-[#14663D] disabled:opacity-50">
+              className="text-sm px-4 py-2 rounded bg-brand text-brand-ink hover:opacity-90 disabled:opacity-50">
               {saving ? 'Saving...' : 'Save Timetable'}
             </button>
             <button onClick={() => setConfirmClear(true)}
-              className="text-sm px-3 py-2 rounded-lg border border-[#B91C1C] text-[#B91C1C] hover:bg-[#FEE2E2]">
+              className="text-sm px-3 py-2 rounded border border-danger text-danger hover:bg-danger-soft">
               Clear All Slots
             </button>
             <button onClick={() => setShowSettings(!showSettings)}
-              className="text-sm px-3 py-2 rounded-lg border border-[#DDE5F0] bg-white text-[#0D2B55] hover:bg-[#F0F4FA]">
+              className="text-sm px-3 py-2 rounded border border-line bg-surface text-ink hover:bg-surface-2">
               Period Settings
             </button>
             {currentTT && (
               <button onClick={togglePublish}
-                className={`text-sm px-4 py-2 rounded-lg border ${currentTT.is_published ? 'bg-[#FEF3C7] text-[#D4930A] border-[#FDE68A]' : 'bg-white text-[#64748B] border-[#DDE5F0] hover:bg-[#F0F4FA]'}`}>
+                className={`text-sm px-4 py-2 rounded border ${currentTT.is_published ? 'bg-warning/10 text-warning border-[#FDE68A]' : 'bg-surface text-muted border-line hover:bg-surface-2'}`}>
                 {currentTT.is_published ? 'Published' : 'Publish'}
               </button>
             )}
@@ -258,70 +258,70 @@ export default function TimetablePage() {
       </div>
 
       {message && (
-        <div className={`px-4 py-2 rounded-lg text-xs mb-3 ${message.includes('Saved') || message.includes('published') ? 'bg-[#D1FAE5] text-[#065F46]' : 'bg-[#FEE2E2] text-[#B91C1C]'}`}>
+        <div className={`px-4 py-2 rounded text-xs mb-3 ${message.includes('Saved') || message.includes('published') ? 'bg-success/10 text-success' : 'bg-danger-soft text-danger'}`}>
           {message}
         </div>
       )}
 
       {/* Period Settings Panel */}
       {showSettings && (
-        <div className="bg-white border border-[#DDE5F0] rounded-xl p-4 mb-4">
-          <h3 className="text-sm font-bold text-[#0D2B55] mb-3">Period Settings</h3>
+        <div className="bg-surface border border-line rounded p-4 mb-4">
+          <h3 className="text-sm font-semibold text-ink mb-3">Period Settings</h3>
           <div className="flex items-center gap-4 flex-wrap">
             <div>
-              <label className="block text-[10px] text-[#64748B] uppercase tracking-wider mb-1">Start Time</label>
+              <label className="block text-xs text-muted mb-1">Start Time</label>
               <input type="time" value={startTime} onChange={e => setStartTime(e.target.value)}
-                className="text-sm border border-[#DDE5F0] rounded-lg px-3 py-2 bg-white text-[#0D2B55] outline-none" />
+                className="text-sm border border-line rounded px-3 py-2 bg-surface text-ink outline-none" />
             </div>
             <div>
-              <label className="block text-[10px] text-[#64748B] uppercase tracking-wider mb-1">Period Duration</label>
+              <label className="block text-xs text-muted mb-1">Period Duration</label>
               <input type="number" min="10" max="120" value={periodDuration} onChange={e => setPeriodDuration(parseInt(e.target.value) || 40)}
-                className="text-sm border border-[#DDE5F0] rounded-lg px-3 py-2 bg-white text-[#0D2B55] outline-none w-[100px]" />
+                className="text-sm border border-line rounded px-3 py-2 bg-surface text-ink outline-none w-[100px]" />
             </div>
             <div>
-              <label className="block text-[10px] text-[#64748B] uppercase tracking-wider mb-1">Periods per Day</label>
+              <label className="block text-xs text-muted mb-1">Periods per Day</label>
               <input type="number" min="4" max="12" value={periodCount} onChange={e => setPeriodCount(parseInt(e.target.value) || 8)}
-                className="text-sm border border-[#DDE5F0] rounded-lg px-3 py-2 bg-white text-[#0D2B55] outline-none w-[80px]" />
+                className="text-sm border border-line rounded px-3 py-2 bg-surface text-ink outline-none w-[80px]" />
             </div>
             <div>
-              <label className="block text-[10px] text-[#64748B] uppercase tracking-wider mb-1">Short Break After Period</label>
+              <label className="block text-xs text-muted mb-1">Short Break After Period</label>
               <select value={shortAfter} onChange={e => setShortAfter(parseInt(e.target.value))}
-                className="text-sm border border-[#DDE5F0] rounded-lg px-3 py-2 bg-white text-[#0D2B55] outline-none">
+                className="text-sm border border-line rounded px-3 py-2 bg-surface text-ink outline-none">
                 <option value={0}>No short break</option>
                 {periods.map(p => <option key={p} value={p}>After Period {p}</option>)}
               </select>
             </div>
             {shortAfter > 0 && (
               <div>
-                <label className="block text-[10px] text-[#64748B] uppercase tracking-wider mb-1">Short Break Duration</label>
+                <label className="block text-xs text-muted mb-1">Short Break Duration</label>
                 <input type="number" min="1" max="60" value={shortDur} onChange={e => setShortDur(parseInt(e.target.value) || 10)}
-                  className="text-sm border border-[#DDE5F0] rounded-lg px-3 py-2 bg-white text-[#0D2B55] outline-none w-[80px]" />
+                  className="text-sm border border-line rounded px-3 py-2 bg-surface text-ink outline-none w-[80px]" />
               </div>
             )}
             <div>
-              <label className="block text-[10px] text-[#64748B] uppercase tracking-wider mb-1">Long Break After Period</label>
+              <label className="block text-xs text-muted mb-1">Long Break After Period</label>
               <select value={longAfter} onChange={e => setLongAfter(parseInt(e.target.value))}
-                className="text-sm border border-[#DDE5F0] rounded-lg px-3 py-2 bg-white text-[#0D2B55] outline-none">
+                className="text-sm border border-line rounded px-3 py-2 bg-surface text-ink outline-none">
                 <option value={0}>No long break</option>
                 {periods.map(p => <option key={p} value={p}>After Period {p}</option>)}
               </select>
             </div>
             {longAfter > 0 && (
               <div>
-                <label className="block text-[10px] text-[#64748B] uppercase tracking-wider mb-1">Long Break Duration</label>
+                <label className="block text-xs text-muted mb-1">Long Break Duration</label>
                 <input type="number" min="1" max="120" value={longDur} onChange={e => setLongDur(parseInt(e.target.value) || 0)}
-                  className="text-sm border border-[#DDE5F0] rounded-lg px-3 py-2 bg-white text-[#0D2B55] outline-none w-[80px]" />
+                  className="text-sm border border-line rounded px-3 py-2 bg-surface text-ink outline-none w-[80px]" />
               </div>
             )}
           </div>
-          <div className="flex gap-6 mt-3 text-[10px] text-[#64748B]">
+          <div className="flex gap-6 mt-3 text-xs text-muted">
             {shortAfter > 0 && shortDur > 0 && (
-              <span>Short break: <strong className="text-[#0D2B55]">{shortDur} min</strong> (after P{shortAfter})</span>
+              <span>Short break: <strong className="text-ink">{shortDur} min</strong> (after P{shortAfter})</span>
             )}
             {longAfter > 0 && longDur > 0 && (
-              <span>Long break: <strong className="text-[#1A7A4A]">{longDur} min</strong> (after P{longAfter})</span>
+              <span>Long break: <strong className="text-brand">{longDur} min</strong> (after P{longAfter})</span>
             )}
-            <span>Close time: <strong className="text-[#0D2B55]">
+            <span>Close time: <strong className="text-ink">
               {periodTimes.length > 0 ? periodTimes[periodTimes.length - 1].end : '-'}
             </strong></span>
           </div>
@@ -338,8 +338,8 @@ export default function TimetablePage() {
                 draggable
                 onDragStart={e => e.dataTransfer.setData('subject', JSON.stringify({ id: s.id, name: s.name }))}
                 onClick={() => setSelectedSubject(isSelected ? null : { id: s.id, name: s.name })}
-                className={`px-2.5 py-1 text-[11px] rounded-lg border cursor-pointer select-none transition-colors ${
-                  isSelected ? 'bg-[#1A7A4A] text-white border-[#1A7A4A]' : 'bg-white border-[#DDE5F0] hover:border-[#1A7A4A]'
+                className={`px-2.5 py-1 text-xs rounded border cursor-pointer select-none transition-colors ${
+                  isSelected ? 'bg-brand text-brand-ink border-brand' : 'bg-surface border-line hover:border-brand'
                 }`}>
                 {s.name}
               </div>
@@ -350,24 +350,24 @@ export default function TimetablePage() {
 
       {/* Click-to-assign indicator */}
       {selectedSubject && (
-        <div className="flex items-center gap-2 mb-3 px-3 py-1.5 bg-[#D1FAE5] border border-[#6EE7B7] rounded-lg text-xs text-[#065F46]">
+        <div className="flex items-center gap-2 mb-3 px-3 py-1.5 bg-success/10 border border-[#6EE7B7] rounded text-xs text-success">
           <span>Tap any empty cell to assign: <strong>{selectedSubject.name}</strong></span>
-          <button onClick={() => setSelectedSubject(null)} className="ml-auto text-[#065F46] hover:text-[#B91C1C] font-bold">&times;</button>
+          <button onClick={() => setSelectedSubject(null)} className="ml-auto text-success hover:text-danger font-semibold">&times;</button>
         </div>
       )}
 
-      <div className="bg-white border border-[#DDE5F0] rounded-xl overflow-hidden">
-        {loading ? <div className="p-8 text-center text-sm text-[#64748B]">Loading...</div>
+      <div className="bg-surface border border-line rounded overflow-hidden">
+        {loading ? <div className="p-8 text-center text-sm text-muted">Loading...</div>
         : !selectedClass ? (
-          <div className="p-8 text-center text-sm text-[#64748B]">Select a class to build the timetable.</div>
+          <div className="p-8 text-center text-sm text-muted">Select a class to build the timetable.</div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-xs border-collapse">
               <thead>
                 <tr>
-                  <th className="sticky left-0 bg-[#F7F9FC] border-r border-b border-[#DDE5F0] px-2 py-2 text-[11px] font-bold text-[#64748B] uppercase w-16">Period</th>
+                  <th className="sticky left-0 bg-page border-r border-b border-line px-2 py-2 text-xs font-semibold text-muted w-16">Period</th>
                   {DAYS.map((day) => (
-                    <th key={day} className="border-b border-r border-[#DDE5F0] px-2 py-2 text-[11px] font-bold text-[#64748B] uppercase bg-[#F7F9FC]">{day}</th>
+                    <th key={day} className="border-b border-r border-line px-2 py-2 text-xs font-semibold text-muted bg-page">{day}</th>
                   ))}
                 </tr>
               </thead>
@@ -376,9 +376,9 @@ export default function TimetablePage() {
                   const pt = periodTimes[period - 1];
                   return (
                     <tr key={period}>
-                      <td className="sticky left-0 bg-white border-r border-b border-[#DDE5F0] px-2 py-1 text-center font-bold text-[#64748B]">
+                      <td className="sticky left-0 bg-surface border-r border-b border-line px-2 py-1 text-center font-semibold text-muted">
                         <div>{period}</div>
-                        <div className="text-[9px] text-[#94A3B8]">{pt ? `${pt.start}\u2013${pt.end}` : '-'}</div>
+                        <div className="text-xs text-muted">{pt ? `${pt.start}\u2013${pt.end}` : '-'}</div>
                       </td>
                       {DAYS.map((_, day) => {
                         const key = slotKey(day, period);
@@ -403,21 +403,21 @@ export default function TimetablePage() {
                                 setEditCell(isEditCell ? null : key);
                               }
                             }}
-                            className={`border-r border-b border-[#DDE5F0] p-1.5 min-h-[60px] align-top transition-colors ${
-                              selectedSubject && !slot?.subject ? 'bg-[#F0FDF4] cursor-pointer hover:bg-[#DCFCE7]' : 'bg-white'
+                            className={`border-r border-b border-line p-1.5 min-h-[60px] align-top transition-colors ${
+                              selectedSubject && !slot?.subject ? 'bg-[#F0FDF4] cursor-pointer hover:bg-success/10' : 'bg-surface'
                             }`}>
                             {slot?.subject ? (
                               <div className="space-y-1">
                                 <div className="flex items-start justify-between gap-1">
-                                  <span className="font-semibold text-[#0D2B55] leading-tight">{slot.subject_name}</span>
+                                  <span className="font-semibold text-ink leading-tight">{slot.subject_name}</span>
                                   <button onClick={e => { e.stopPropagation(); const newSlots = { ...slots }; delete newSlots[key]; setSlots(newSlots); setEditCell(null); }}
-                                    className="text-[#B91C1C] hover:text-[#991B1B] text-[10px] leading-none" aria-label="Remove">&times;</button>
+                                    className="text-danger hover:text-danger text-xs leading-none" aria-label="Remove">&times;</button>
                                 </div>
                                 {isEditCell ? (
                                   <div className="space-y-1">
                                     <select value={slot.teacher || ''} onChange={e => setSlot(day, period, { teacher: e.target.value || null })}
                                       onClick={e => e.stopPropagation()}
-                                      className="w-full text-[10px] px-1 py-0.5 rounded border border-[#DDE5F0] bg-white outline-none">
+                                      className="w-full text-xs px-1 py-0.5 rounded border border-line bg-surface outline-none">
                                       <option value="">No teacher</option>
                                       {staffList.map(st => (
                                         <option key={st.id} value={st.id}>{st.full_name}</option>
@@ -425,17 +425,17 @@ export default function TimetablePage() {
                                     </select>
                                     <input value={slot.room || ''} onChange={e => setSlot(day, period, { room: e.target.value })}
                                       placeholder="Room" onClick={e => e.stopPropagation()}
-                                      className="w-full text-[10px] px-1 py-0.5 rounded border border-[#DDE5F0] outline-none" />
+                                      className="w-full text-xs px-1 py-0.5 rounded border border-line outline-none" />
                                     <button onClick={e => { e.stopPropagation(); setEditCell(null); }}
-                                      className="text-[10px] text-[#1A7A4A] font-semibold">Done</button>
+                                      className="text-xs text-brand font-semibold">Done</button>
                                   </div>
                                 ) : null}
                                 {clashes.length > 0 && (
-                                  <p className="text-[9px] text-[#B91C1C]">Clash: {clashes.join(', ')}</p>
+                                  <p className="text-xs text-danger">Clash: {clashes.join(', ')}</p>
                                 )}
                               </div>
                             ) : (
-                              <div className="text-[10px] text-[#CBD5E1] text-center py-2">
+                              <div className="text-xs text-[#CBD5E1] text-center py-2">
                                 {selectedSubject ? `+ ${selectedSubject.name}` : 'Drop subject here'}
                               </div>
                             )}

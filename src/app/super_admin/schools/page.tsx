@@ -30,39 +30,39 @@ export default function SuperAdminSchools() {
     <div>
       <div className="flex items-center justify-between mb-5">
         <div>
-          <h1 className="text-2xl font-bold text-[#0D2B55]">Schools</h1>
-          <p className="text-xs text-[#64748B] mt-0.5">{schools.length} total · {schools.filter(s => s.status === 'active').length} active</p>
+          <h1 className="text-2xl font-semibold text-ink">Schools</h1>
+          <p className="text-xs text-muted mt-0.5">{schools.length} total · {schools.filter(s => s.status === 'active').length} active</p>
         </div>
         <div className="flex gap-2">
           {['all', 'active', 'suspended'].map(f => (
             <button key={f} onClick={() => setFilter(f)}
-              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
-                filter === f ? 'bg-[#0D2B55] text-white' : 'bg-[#F0F4FA] text-[#64748B] hover:bg-[#E8F0FA]'
+              className={`px-3 py-1.5 rounded text-xs font-medium transition-colors ${
+                filter === f ? 'bg-brand text-brand-ink' : 'bg-surface-2 text-muted hover:bg-brand-soft'
               }`}>{f === 'all' ? 'All' : f.charAt(0).toUpperCase() + f.slice(1)}</button>
           ))}
         </div>
       </div>
 
       {loading ? (
-        <div className="space-y-3">{Array.from({ length: 5 }).map((_, i) => <div key={i} className="h-16 bg-white rounded-xl animate-pulse" />)}</div>
+        <div className="space-y-3">{Array.from({ length: 5 }).map((_, i) => <div key={i} className="h-16 bg-surface rounded animate-pulse" />)}</div>
       ) : filtered.length === 0 ? (
-        <div className="bg-white border border-[#DDE5F0] rounded-xl p-8 text-center text-sm text-[#64748B]">No schools found.</div>
+        <div className="bg-surface border border-line rounded p-8 text-center text-sm text-muted">No schools found.</div>
       ) : (
-        <div className="bg-white border border-[#DDE5F0] rounded-xl overflow-hidden">
-          <div className="divide-y divide-[#DDE5F0]">
+        <div className="bg-surface border border-line rounded overflow-hidden">
+          <div className="divide-y divide-line">
             {filtered.map(s => (
               <div key={s.id} className="px-4 py-3 flex items-center justify-between hover:bg-[#F8FAFC] transition-colors">
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-semibold text-[#0D2B55] truncate">{s.name}</p>
-                  <p className="text-[11px] text-[#64748B]">{s.subdomain}.clariva.ng · {s.plan} · {s.current_academic_year}</p>
+                  <p className="text-sm font-semibold text-ink truncate">{s.name}</p>
+                  <p className="text-xs text-muted">{s.subdomain}.clariva.ng · {s.plan} · {s.current_academic_year}</p>
                 </div>
                 <div className="flex items-center gap-3 ml-4">
                   <div className="text-right">
-                    <p className="text-[11px] text-[#64748B]">{s.state || '—'}</p>
-                    <p className="text-[10px] text-[#64748B]">{s.school_type || '—'}</p>
+                    <p className="text-xs text-muted">{s.state || '-'}</p>
+                    <p className="text-xs text-muted">{s.school_type || '-'}</p>
                   </div>
-                  <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold whitespace-nowrap ${
-                    s.status === 'active' ? 'bg-[#DCFCE7] text-[#1A7A4A]' : 'bg-[#FEE2E2] text-[#B91C1C]'
+                  <span className={`px-2 py-0.5 rounded text-xs font-semibold whitespace-nowrap ${
+                    s.status === 'active' ? 'bg-success/10 text-success' : 'bg-danger-soft text-danger'
                   }`}>{s.status}</span>
                 </div>
               </div>

@@ -5,6 +5,7 @@ import toast from 'react-hot-toast';
 import { api, auth } from '@/lib/api';
 import { downloadCsv } from '@/lib/csv';
 import Link from 'next/link';
+import { Search, Download, Upload, ChevronUp, Eye, Pencil, X, Check } from 'lucide-react';
 
 interface Student { id: string; admission_no: string; first_name: string; last_name: string; gender: string | null; class_group: string | null; guardian_name: string | null; guardian_phone: string | null; student_status: string; class_name?: string; }
 interface Class { id: string; name: string; }
@@ -119,13 +120,13 @@ export default function StudentsTab() {
   return (
     <div>
       <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center gap-2.5 bg-white border border-[#DDE5F0] rounded-xl px-3.5 py-2.5 flex-1 max-w-lg">
-          <span className="text-sm">🔍</span>
+        <div className="flex items-center gap-2.5 bg-surface border border-line rounded px-3.5 py-2.5 flex-1 max-w-lg">
+          <span className="text-sm" aria-hidden="true"><Search size={16} /></span>
           <input type="text" placeholder="Search by name, admission number…" value={search}
             onChange={e => setSearch(e.target.value)}
-            className="flex-1 border-none bg-transparent text-sm text-[#0D2B55] outline-none placeholder:text-[#64748B]" />
+            className="flex-1 border-none bg-transparent text-sm text-ink outline-none placeholder:text-muted" />
           <select value={filterClass} onChange={e => setFilterClass(e.target.value)}
-            className="text-sm border border-[#DDE5F0] rounded-lg px-2.5 py-1.5 bg-white text-[#64748B] outline-none">
+            className="text-sm border border-line rounded px-2.5 py-1.5 bg-surface text-muted outline-none">
             <option value="">All classes</option>
             {classes.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
           </select>
@@ -135,29 +136,29 @@ export default function StudentsTab() {
             const h = ['full_name', 'admission_no', 'gender', 'class', 'guardian_name', 'guardian_phone', 'status'];
             const r = filtered.map(s => [fullName(s), s.admission_no, s.gender || '', s.class_name || '', s.guardian_name || '', s.guardian_phone || '', s.student_status]);
             downloadCsv('students.csv', h, r);
-          }} className="text-sm px-3.5 py-2 rounded-lg border border-[#DDE5F0] text-[#64748B] hover:bg-[#F0F4FA]">⬇ Export CSV</button>
-          <button onClick={() => { setImportCsv(''); setImportResult(null); setShowImport(true); }} className="text-sm px-3.5 py-2 rounded-lg border border-[#DDE5F0] text-[#64748B] hover:bg-[#F0F4FA]">📄 Import CSV</button>
-          <button onClick={() => setShowPromote(true)} className="text-sm px-3.5 py-2 rounded-lg border border-[#0D2B55] text-[#0D2B55] hover:bg-[#F0F4FA]">⬆ Promote</button>
-          <button onClick={openAdd} className="text-sm px-3.5 py-2 rounded-lg bg-[#1A7A4A] text-white hover:bg-[#14663D]">+ Add Student</button>
+          }} className="text-sm px-3.5 py-2 rounded border border-line text-muted hover:bg-surface-2 inline-flex items-center gap-1.5"><Download size={16} aria-hidden="true" /> Export CSV</button>
+          <button onClick={() => { setImportCsv(''); setImportResult(null); setShowImport(true); }} className="text-sm px-3.5 py-2 rounded border border-line text-muted hover:bg-surface-2 inline-flex items-center gap-1.5"><Upload size={16} aria-hidden="true" /> Import CSV</button>
+          <button onClick={() => setShowPromote(true)} className="text-sm px-3.5 py-2 rounded border border-brand text-ink hover:bg-surface-2 inline-flex items-center gap-1.5"><ChevronUp size={16} aria-hidden="true" /> Promote</button>
+          <button onClick={openAdd} className="text-sm px-3.5 py-2 rounded bg-brand text-brand-ink hover:opacity-90">+ Add Student</button>
         </div>
       </div>
 
       {error && (
-        <div className="bg-[#FEE2E2] border border-[#FCA5A5] text-[#B91C1C] rounded-xl p-6 text-center mb-4">
+        <div className="bg-danger-soft border border-danger/30 text-danger rounded p-6 text-center mb-4">
           <p className="text-sm mb-3">{error}</p>
-          <button onClick={loadData} className="text-sm px-4 py-2 rounded-lg bg-[#B91C1C] text-white hover:bg-[#991B1B]">Try Again</button>
+          <button onClick={loadData} className="text-sm px-4 py-2 rounded bg-danger text-white hover:bg-danger">Try Again</button>
         </div>
       )}
 
-      <div className="bg-white border border-[#DDE5F0] rounded-xl overflow-x-auto">
+      <div className="bg-surface border border-line rounded overflow-x-auto">
         {loading ? (
-          <div className="p-8 text-center text-sm text-[#64748B]">Loading students…</div>
+          <div className="p-8 text-center text-sm text-muted">Loading students…</div>
         ) : filtered.length === 0 ? (
-          <div className="p-8 text-center text-sm text-[#64748B]">{students.length === 0 ? 'No students yet. Add your first student →' : 'No students match your search.'}</div>
+          <div className="p-8 text-center text-sm text-muted">{students.length === 0 ? 'No students yet. Add your first student' : 'No students match your search.'}</div>
         ) : (
           <table className="w-full text-xs">
             <thead>
-              <tr className="text-[11px] font-bold tracking-wider text-[#64748B] uppercase bg-[#F7F9FC]">
+              <tr className="text-xs font-semibold text-muted bg-page">
                 <th className="text-left px-4 py-3">Student</th>
                 <th className="text-left px-4 py-3">Adm. No.</th>
                 <th className="text-left px-4 py-3">Class</th>
@@ -172,26 +173,26 @@ export default function StudentsTab() {
                 const name = fullName(s);
                 const c = getColorFromName(name);
                 return (
-                  <tr key={s.id} className="hover:bg-[#F8FAFF] border-t border-[#DDE5F0]">
+                  <tr key={s.id} className="hover:bg-page border-t border-line">
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-2.5">
-                        <div className="w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-bold shrink-0" style={{ background: c.bg, color: c.text }}>{getInitials(name)}</div>
+                        <div className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-semibold shrink-0" style={{ background: c.bg, color: c.text }}>{getInitials(name)}</div>
                         {name}
                       </div>
                     </td>
-                    <td className="px-4 py-3 text-[#64748B]">{s.admission_no || '—'}</td>
-                    <td className="px-4 py-3">{s.class_name || '—'}</td>
-                    <td className="px-4 py-3">{s.guardian_name || '—'}</td>
-                    <td className="px-4 py-3">{s.guardian_phone || '—'}</td>
+                    <td className="px-4 py-3 text-muted">{s.admission_no || '-'}</td>
+                    <td className="px-4 py-3">{s.class_name || '-'}</td>
+                    <td className="px-4 py-3">{s.guardian_name || '-'}</td>
+                    <td className="px-4 py-3">{s.guardian_phone || '-'}</td>
                     <td className="px-4 py-3">
-                      <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold ${
-                        s.student_status === 'active' ? 'bg-[#DCFCE7] text-[#1A7A4A]' : 'bg-[#FEE2E2] text-[#B91C1C]'
+                      <span className={`px-2.5 py-0.5 rounded text-xs font-semibold ${
+                        s.student_status === 'active' ? 'bg-success/10 text-success' : 'bg-danger-soft text-danger'
                       }`}>{s.student_status}</span>
                     </td>
                     <td className="px-4 py-3 text-right">
                       <div className="flex gap-1 justify-end">
-                        <Link href={`/dashboard/students/${s.id}`} className="text-xs px-2.5 py-1 rounded-lg border border-[#DDE5F0] bg-white hover:bg-[#F0F4FA]">👁 View</Link>
-                        <button onClick={() => openEdit(s)} className="text-xs px-2.5 py-1 rounded-lg border border-[#DDE5F0] bg-white hover:bg-[#F0F4FA]">✏️</button>
+                        <Link href={`/dashboard/students/${s.id}`} className="text-xs px-2.5 py-1 rounded border border-line bg-surface hover:bg-surface-2 inline-flex items-center gap-1"><Eye size={16} aria-hidden="true" /> View</Link>
+                        <button onClick={() => openEdit(s)} aria-label="Edit" className="text-xs px-2.5 py-1 rounded border border-line bg-surface hover:bg-surface-2"><Pencil size={16} aria-hidden="true" /></button>
                       </div>
                     </td>
                   </tr>
@@ -204,40 +205,40 @@ export default function StudentsTab() {
 
       {showImport && (
         <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center" onClick={() => setShowImport(false)}>
-          <div className="bg-white rounded-2xl w-[560px] max-w-[95vw]" onClick={e => e.stopPropagation()}>
+          <div className="bg-surface rounded w-[560px] max-w-[95vw]" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between p-5 pb-0">
-              <h2 className="text-base font-bold text-[#0D2B55]">Import Students from CSV</h2>
-              <button onClick={() => setShowImport(false)} className="text-[#64748B] hover:text-[#0D2B55] text-lg">✕</button>
+              <h2 className="text-base font-semibold text-ink">Import Students from CSV</h2>
+              <button onClick={() => setShowImport(false)} className="text-muted hover:text-ink text-lg" aria-label="Close"><X size={16} aria-hidden="true" /></button>
             </div>
             <div className="p-5 space-y-3.5">
               {importResult ? (
                 <div>
-                  <p className="text-sm font-bold text-[#1A7A4A]">✓ {importResult.created} students imported.</p>
+                  <p className="text-sm font-semibold text-brand inline-flex items-center gap-1"><Check size={16} aria-hidden="true" /> {importResult.created} students imported.</p>
                   {importResult.errors.length > 0 && (
-                    <div className="mt-2 bg-[#FEE2E2] rounded-lg p-3 max-h-[200px] overflow-y-auto">
-                      {importResult.errors.map((e, i) => <p key={i} className="text-xs text-[#B91C1C]">{e}</p>)}
+                    <div className="mt-2 bg-danger-soft rounded p-3 max-h-[200px] overflow-y-auto">
+                      {importResult.errors.map((e, i) => <p key={i} className="text-xs text-danger">{e}</p>)}
                     </div>
                   )}
-                  <button onClick={() => setShowImport(false)} className="mt-4 w-full text-sm px-4 py-2.5 rounded-lg bg-[#1A7A4A] text-white hover:bg-[#14663D]">Done</button>
+                  <button onClick={() => setShowImport(false)} className="mt-4 w-full text-sm px-4 py-2.5 rounded bg-brand text-brand-ink hover:opacity-90">Done</button>
                 </div>
               ) : (
                 <>
                   <div>
-                    <label className="block text-[11px] font-bold text-[#64748B] uppercase mb-1">Assign to class (optional)</label>
+                    <label className="block text-xs font-semibold text-muted mb-1">Assign to class (optional)</label>
                     <select value={importClass} onChange={e => setImportClass(e.target.value)}
-                      className="w-full px-3 py-2 rounded-lg border border-[#DDE5F0] text-sm outline-none focus:border-[#1A7A4A] bg-white">
+                      className="w-full px-3 py-2 rounded border border-line text-sm outline-none focus:border-brand bg-surface">
                       <option value="">No class</option>
                       {classes.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
                     </select>
                   </div>
                   <div>
-                    <label className="block text-[11px] font-bold text-[#64748B] uppercase mb-1">CSV data</label>
+                    <label className="block text-xs font-semibold text-muted mb-1">CSV data</label>
                     <textarea value={importCsv} onChange={e => setImportCsv(e.target.value)} rows={8} placeholder={'first_name,last_name,admission_no,gender,guardian_name,guardian_phone\nJohn,Doe,JH123,Male,Jane Doe,08012345678'}
-                      className="w-full px-3 py-2 rounded-lg border border-[#DDE5F0] text-sm outline-none focus:border-[#1A7A4A] font-mono" />
-                    <p className="text-[10px] text-[#64748B] mt-1">Required: <strong>first_name</strong>. Optional: last_name, admission_no, gender, guardian_name, guardian_phone, guardian_email</p>
+                      className="w-full px-3 py-2 rounded border border-line text-sm outline-none focus:border-brand font-mono" />
+                    <p className="text-xs text-muted mt-1">Required: <strong>first_name</strong>. Optional: last_name, admission_no, gender, guardian_name, guardian_phone, guardian_email</p>
                   </div>
                   <div className="flex justify-end gap-2 pt-2">
-                    <button onClick={() => setShowImport(false)} className="text-sm px-4 py-2 rounded-lg border border-[#DDE5F0] bg-white hover:bg-[#F0F4FA]">Cancel</button>
+                    <button onClick={() => setShowImport(false)} className="text-sm px-4 py-2 rounded border border-line bg-surface hover:bg-surface-2">Cancel</button>
                     <button onClick={async () => {
                       if (!importCsv.trim()) return;
                       setImporting(true);
@@ -254,7 +255,7 @@ export default function StudentsTab() {
                       } catch { toast.error('Import failed'); }
                       finally { setImporting(false); }
                     }} disabled={!importCsv.trim() || importing}
-                      className="text-sm px-4 py-2 rounded-lg bg-[#1A7A4A] text-white hover:bg-[#14663D] disabled:opacity-50">
+                      className="text-sm px-4 py-2 rounded bg-brand text-brand-ink hover:opacity-90 disabled:opacity-50">
                       {importing ? 'Importing…' : 'Import Students'}
                     </button>
                   </div>
@@ -267,35 +268,35 @@ export default function StudentsTab() {
 
       {showPromote && (
         <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center" onClick={() => setShowPromote(false)}>
-          <div className="bg-white rounded-2xl w-[460px] max-w-[95vw]" onClick={e => e.stopPropagation()}>
+          <div className="bg-surface rounded w-[460px] max-w-[95vw]" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between p-5 pb-0">
-              <h2 className="text-base font-bold text-[#0D2B55]">Promote Students</h2>
-              <button onClick={() => setShowPromote(false)} className="text-[#64748B] hover:text-[#0D2B55] text-lg">✕</button>
+              <h2 className="text-base font-semibold text-ink">Promote Students</h2>
+              <button onClick={() => setShowPromote(false)} className="text-muted hover:text-ink text-lg" aria-label="Close"><X size={16} aria-hidden="true" /></button>
             </div>
             <div className="p-5 space-y-3.5">
               <div>
-                <label className="block text-[11px] font-bold text-[#64748B] uppercase mb-1">From class</label>
+                <label className="block text-xs font-semibold text-muted mb-1">From class</label>
                 <select value={promoteSource} onChange={e => setPromoteSource(e.target.value)}
-                  className="w-full px-3 py-2 rounded-lg border border-[#DDE5F0] text-sm outline-none focus:border-[#1A7A4A] bg-white">
+                  className="w-full px-3 py-2 rounded border border-line text-sm outline-none focus:border-brand bg-surface">
                   <option value="">Select source class</option>
                   {classes.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
                 </select>
               </div>
               <div>
-                <label className="block text-[11px] font-bold text-[#64748B] uppercase mb-1">To class</label>
+                <label className="block text-xs font-semibold text-muted mb-1">To class</label>
                 <select value={promoteTarget} onChange={e => setPromoteTarget(e.target.value)}
-                  className="w-full px-3 py-2 rounded-lg border border-[#DDE5F0] text-sm outline-none focus:border-[#1A7A4A] bg-white">
+                  className="w-full px-3 py-2 rounded border border-line text-sm outline-none focus:border-brand bg-surface">
                   <option value="">Select target class</option>
                   {classes.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
                 </select>
               </div>
               {promoteSource && promoteTarget && (
-                <p className="text-xs text-[#64748B]">
+                <p className="text-xs text-muted">
                   {students.filter(s => String(s.class_group) === promoteSource && s.student_status === 'active').length} active students will be promoted.
                 </p>
               )}
               <div className="flex justify-end gap-2 pt-2">
-                <button type="button" onClick={() => setShowPromote(false)} className="text-sm px-4 py-2 rounded-lg border border-[#DDE5F0] bg-white hover:bg-[#F0F4FA]">Cancel</button>
+                <button type="button" onClick={() => setShowPromote(false)} className="text-sm px-4 py-2 rounded border border-line bg-surface hover:bg-surface-2">Cancel</button>
                 <button onClick={async () => {
                   if (!promoteSource || !promoteTarget) return;
                   setPromoting(true);
@@ -313,7 +314,7 @@ export default function StudentsTab() {
                   } catch { toast.error('Promotion failed'); }
                   finally { setPromoting(false); }
                 }} disabled={!promoteSource || !promoteTarget || promoting}
-                  className="text-sm px-4 py-2 rounded-lg bg-[#0D2B55] text-white hover:bg-[#0A1F3D] disabled:opacity-50">
+                  className="text-sm px-4 py-2 rounded bg-brand text-brand-ink hover:bg-brand disabled:opacity-50">
                   {promoting ? 'Promoting…' : `Promote to ${classes.find(c => c.id === promoteTarget)?.name || ''}`}
                 </button>
               </div>
@@ -324,41 +325,41 @@ export default function StudentsTab() {
 
       {showModal && (
         <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center" onClick={() => setShowModal(false)}>
-          <div className="bg-white rounded-2xl w-[520px] max-w-[95vw] max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+          <div className="bg-surface rounded w-[520px] max-w-[95vw] max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between p-5 pb-0">
-              <h2 className="text-base font-bold text-[#0D2B55]">{editingId ? 'Edit Student' : 'Add New Student'}</h2>
-              <button onClick={() => setShowModal(false)} className="text-[#64748B] hover:text-[#0D2B55] text-lg">✕</button>
+              <h2 className="text-base font-semibold text-ink">{editingId ? 'Edit Student' : 'Add New Student'}</h2>
+              <button onClick={() => setShowModal(false)} className="text-muted hover:text-ink text-lg" aria-label="Close"><X size={16} aria-hidden="true" /></button>
             </div>
             <form onSubmit={handleSubmit} className="p-5 space-y-3.5">
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-[11px] font-bold text-[#64748B] uppercase mb-1">First name</label>
+                  <label className="block text-xs font-semibold text-muted mb-1">First name</label>
                   <input value={form.first_name} onChange={e => setForm({ ...form, first_name: e.target.value })} required
-                    className="w-full px-3 py-2 rounded-lg border border-[#DDE5F0] text-sm outline-none focus:border-[#1A7A4A]" />
+                    className="w-full px-3 py-2 rounded border border-line text-sm outline-none focus:border-brand" />
                 </div>
                 <div>
-                  <label className="block text-[11px] font-bold text-[#64748B] uppercase mb-1">Last name</label>
+                  <label className="block text-xs font-semibold text-muted mb-1">Last name</label>
                   <input value={form.last_name} onChange={e => setForm({ ...form, last_name: e.target.value })} required
-                    className="w-full px-3 py-2 rounded-lg border border-[#DDE5F0] text-sm outline-none focus:border-[#1A7A4A]" />
+                    className="w-full px-3 py-2 rounded border border-line text-sm outline-none focus:border-brand" />
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-[11px] font-bold text-[#64748B] uppercase mb-1">Gender</label>
+                  <label className="block text-xs font-semibold text-muted mb-1">Gender</label>
                   <select value={form.gender} onChange={e => setForm({ ...form, gender: e.target.value })}
-                    className="w-full px-3 py-2 rounded-lg border border-[#DDE5F0] text-sm outline-none focus:border-[#1A7A4A] bg-white">
+                    className="w-full px-3 py-2 rounded border border-line text-sm outline-none focus:border-brand bg-surface">
                     <option value="">Select</option><option>Female</option><option>Male</option>
                   </select>
                 </div>
                 <div>
-                  <label className="block text-[11px] font-bold text-[#64748B] uppercase mb-1">Date of birth</label>
+                  <label className="block text-xs font-semibold text-muted mb-1">Date of birth</label>
                   <input type="date" value={form.date_of_birth} onChange={e => setForm({ ...form, date_of_birth: e.target.value })}
-                    className="w-full px-3 py-2 rounded-lg border border-[#DDE5F0] text-sm outline-none focus:border-[#1A7A4A]" />
+                    className="w-full px-3 py-2 rounded border border-line text-sm outline-none focus:border-brand" />
                 </div>
                 <div>
-                  <label className="block text-[11px] font-bold text-[#64748B] uppercase mb-1">Class</label>
+                  <label className="block text-xs font-semibold text-muted mb-1">Class</label>
                   <select value={form.class_group} onChange={e => setForm({ ...form, class_group: e.target.value })}
-                    className="w-full px-3 py-2 rounded-lg border border-[#DDE5F0] text-sm outline-none focus:border-[#1A7A4A] bg-white">
+                    className="w-full px-3 py-2 rounded border border-line text-sm outline-none focus:border-brand bg-surface">
                     <option value="">Select class</option>
                     {classes.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
                   </select>
@@ -366,45 +367,45 @@ export default function StudentsTab() {
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-[11px] font-bold text-[#64748B] uppercase mb-1">State of origin</label>
+                  <label className="block text-xs font-semibold text-muted mb-1">State of origin</label>
                   <select value={form.state_of_origin} onChange={e => setForm({ ...form, state_of_origin: e.target.value })}
-                    className="w-full px-3 py-2 rounded-lg border border-[#DDE5F0] text-sm outline-none focus:border-[#1A7A4A] bg-white">
+                    className="w-full px-3 py-2 rounded border border-line text-sm outline-none focus:border-brand bg-surface">
                     <option value="">Select state</option>
                     {states.map(s => <option key={s.id} value={s.name}>{s.name}</option>)}
                   </select>
                 </div>
                 <div>
-                  <label className="block text-[11px] font-bold text-[#64748B] uppercase mb-1">LGA of origin</label>
+                  <label className="block text-xs font-semibold text-muted mb-1">LGA of origin</label>
                   <select value={form.lga_of_origin} onChange={e => setForm({ ...form, lga_of_origin: e.target.value })}
-                    className="w-full px-3 py-2 rounded-lg border border-[#DDE5F0] text-sm outline-none focus:border-[#1A7A4A] bg-white">
+                    className="w-full px-3 py-2 rounded border border-line text-sm outline-none focus:border-brand bg-surface">
                     <option value="">Select LGA</option>
                     {lgas.map(l => <option key={l.id} value={l.name}>{l.name}</option>)}
                   </select>
                 </div>
               </div>
-              <div className="border-t border-[#DDE5F0] pt-3.5">
-                <p className="text-[11px] font-bold text-[#64748B] uppercase mb-3">Guardian Information</p>
+              <div className="border-t border-line pt-3.5">
+                <p className="text-xs font-semibold text-muted mb-3">Guardian Information</p>
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="block text-[11px] font-bold text-[#64748B] uppercase mb-1">Name</label>
+                    <label className="block text-xs font-semibold text-muted mb-1">Name</label>
                     <input value={form.guardian_name} onChange={e => setForm({ ...form, guardian_name: e.target.value })}
-                      className="w-full px-3 py-2 rounded-lg border border-[#DDE5F0] text-sm outline-none focus:border-[#1A7A4A]" />
+                      className="w-full px-3 py-2 rounded border border-line text-sm outline-none focus:border-brand" />
                   </div>
                   <div>
-                    <label className="block text-[11px] font-bold text-[#64748B] uppercase mb-1">Phone</label>
+                    <label className="block text-xs font-semibold text-muted mb-1">Phone</label>
                     <input value={form.guardian_phone} onChange={e => setForm({ ...form, guardian_phone: e.target.value })}
-                      className="w-full px-3 py-2 rounded-lg border border-[#DDE5F0] text-sm outline-none focus:border-[#1A7A4A]" />
+                      className="w-full px-3 py-2 rounded border border-line text-sm outline-none focus:border-brand" />
                   </div>
                 </div>
                 <div className="mt-3">
-                  <label className="block text-[11px] font-bold text-[#64748B] uppercase mb-1">Guardian email</label>
+                  <label className="block text-xs font-semibold text-muted mb-1">Guardian email</label>
                   <input type="email" value={form.guardian_email} onChange={e => setForm({ ...form, guardian_email: e.target.value })}
-                    className="w-full px-3 py-2 rounded-lg border border-[#DDE5F0] text-sm outline-none focus:border-[#1A7A4A]" />
+                    className="w-full px-3 py-2 rounded border border-line text-sm outline-none focus:border-brand" />
                 </div>
               </div>
               <div className="flex justify-end gap-2 pt-2">
-                <button type="button" onClick={() => setShowModal(false)} className="text-sm px-4 py-2 rounded-lg border border-[#DDE5F0] bg-white hover:bg-[#F0F4FA]">Cancel</button>
-                <button type="submit" disabled={saving} className="text-sm px-4 py-2 rounded-lg bg-[#1A7A4A] text-white hover:bg-[#14663D] disabled:opacity-50">
+                <button type="button" onClick={() => setShowModal(false)} className="text-sm px-4 py-2 rounded border border-line bg-surface hover:bg-surface-2">Cancel</button>
+                <button type="submit" disabled={saving} className="text-sm px-4 py-2 rounded bg-brand text-brand-ink hover:opacity-90 disabled:opacity-50">
                   {saving ? 'Saving…' : editingId ? 'Save Changes' : 'Add Student'}
                 </button>
               </div>

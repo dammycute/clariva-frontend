@@ -1,6 +1,7 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { api, auth } from '@/lib/api';
+import { Check, X } from 'lucide-react';
 
 interface Grade { id: string; student: string; student_name: string; subject: string; subject_name: string; scores: Record<string, number>; total: number | null; grade: string | null; results_status: string; }
 interface Subject { id: string; name: string; year_group: string | null; }
@@ -88,61 +89,61 @@ export default function PrincipalGradesPage() {
   return (
     <div>
       <div className="flex items-center justify-between mb-5">
-        <div><h1 className="text-xl font-bold text-[#1E1B4B]">Grade Approval</h1><p className="text-xs text-[#64748B] mt-0.5">Review and approve teacher-submitted grades</p></div>
+        <div><h1 className="text-xl font-semibold text-ink">Grade Approval</h1><p className="text-xs text-muted mt-0.5">Review and approve teacher-submitted grades</p></div>
       </div>
 
       <div className="flex items-center gap-3 mb-4 flex-wrap">
-        <select value={selectedClass} onChange={e => { setSelectedClass(e.target.value); setSelectedSubject(''); }} className="text-sm border border-[#DDE5F0] rounded-lg px-3 py-2 bg-white outline-none">
+        <select value={selectedClass} onChange={e => { setSelectedClass(e.target.value); setSelectedSubject(''); }} className="text-sm border border-line rounded px-3 py-2 bg-surface outline-none">
           <option value="">Select class</option>
           {clsList.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
         </select>
-        {ygSubjects.length > 0 && <select value={selectedSubject} onChange={e => setSelectedSubject(e.target.value)} className="text-sm border border-[#DDE5F0] rounded-lg px-3 py-2 bg-white outline-none">
+        {ygSubjects.length > 0 && <select value={selectedSubject} onChange={e => setSelectedSubject(e.target.value)} className="text-sm border border-line rounded px-3 py-2 bg-surface outline-none">
           <option value="">Select subject</option>
           {ygSubjects.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
         </select>}
-        <select value={term} onChange={e => setTerm(e.target.value)} className="text-sm border border-[#DDE5F0] rounded-lg px-3 py-2 bg-white outline-none">
+        <select value={term} onChange={e => setTerm(e.target.value)} className="text-sm border border-line rounded px-3 py-2 bg-surface outline-none">
           <option>1st Term</option><option>2nd Term</option><option>3rd Term</option>
         </select>
-        <input value={academicYear} onChange={e => setAcademicYear(e.target.value)} className="text-sm border border-[#DDE5F0] rounded-lg px-3 py-2 bg-white outline-none w-[120px]" />
+        <input value={academicYear} onChange={e => setAcademicYear(e.target.value)} className="text-sm border border-line rounded px-3 py-2 bg-surface outline-none w-[120px]" />
       </div>
 
-      {message && <div className={`px-4 py-2 rounded-lg text-xs mb-3 ${message.includes('Approved') || message.includes('Rejected') ? 'bg-[#D1FAE5] text-[#065F46]' : 'bg-[#FEE2E2] text-[#B91C1C]'}`}>{message}</div>}
+      {message && <div className={`px-4 py-2 rounded text-xs mb-3 ${message.includes('Approved') || message.includes('Rejected') ? 'bg-success/10 text-success' : 'bg-danger-soft text-danger'}`}>{message}</div>}
 
       <div className="flex items-center gap-2 mb-4">
-        <div className="flex gap-1 bg-white border border-[#DDE5F0] rounded-lg p-1">
+        <div className="flex gap-1 bg-surface border border-line rounded p-1">
           {STATUS_TABS.map(st => (
-            <button key={st} onClick={() => setStatusFilter(st)} className={`px-3 py-1.5 text-xs font-semibold rounded-md transition-colors ${statusFilter === st ? 'bg-[#4C1D95] text-white' : 'text-[#64748B] hover:text-[#1E1B4B]'}`}>
+            <button key={st} onClick={() => setStatusFilter(st)} className={`px-3 py-1.5 text-xs font-semibold rounded transition-colors ${statusFilter === st ? 'bg-brand text-brand-ink' : 'text-muted hover:text-ink'}`}>
               {st.charAt(0).toUpperCase() + st.slice(1)}
             </button>
           ))}
         </div>
         {selectedSubject && statusFilter === 'submitted' && (
           <div className="flex gap-2 ml-auto">
-            <button onClick={handleApprove} className="text-sm px-4 py-1.5 rounded-lg bg-[#1A7A4A] text-white hover:bg-[#14663D]">✓ Approve All</button>
-            <button onClick={handleReject} className="text-sm px-4 py-1.5 rounded-lg bg-[#B91C1C] text-white hover:bg-[#991B1B]">✗ Reject All</button>
+            <button onClick={handleApprove} className="text-sm px-4 py-1.5 rounded bg-brand text-brand-ink hover:opacity-90 inline-flex items-center gap-1.5"><Check size={16} aria-hidden="true" /> Approve All</button>
+            <button onClick={handleReject} className="text-sm px-4 py-1.5 rounded bg-danger text-white hover:bg-danger inline-flex items-center gap-1.5"><X size={16} aria-hidden="true" /> Reject All</button>
           </div>
         )}
       </div>
 
-      <div className="bg-white border border-[#DDE5F0] rounded-xl overflow-x-auto">
-        {loading ? <div className="p-8 text-center text-sm text-[#64748B]">Loading…</div>
-        : !selectedSubject ? <div className="p-8 text-center text-sm text-[#64748B]">Select a class and subject.</div>
-        : filtered.length === 0 ? <div className="p-8 text-center text-sm text-[#64748B]">No {statusFilter} grades.</div>
+      <div className="bg-surface border border-line rounded overflow-x-auto">
+        {loading ? <div className="p-8 text-center text-sm text-muted">Loading…</div>
+        : !selectedSubject ? <div className="p-8 text-center text-sm text-muted">Select a class and subject.</div>
+        : filtered.length === 0 ? <div className="p-8 text-center text-sm text-muted">No {statusFilter} grades.</div>
         : <table className="w-full text-xs">
-            <thead><tr className="text-[11px] font-bold text-[#64748B] uppercase bg-[#F7F9FC]">
+            <thead><tr className="text-xs font-semibold text-muted bg-page">
               <th className="text-left px-4 py-3">Student</th>
               {components.map(c => <th key={c.key} className="text-center px-2 py-3">{c.label}</th>)}
               <th className="text-center px-2 py-3">Total</th><th className="text-center px-2 py-3">Grade</th>
               <th className="text-center px-2 py-3">Status</th>
             </tr></thead>
             <tbody>{filtered.map(g => (
-              <tr key={g.id} className="hover:bg-[#F8FAFF] border-t border-[#DDE5F0]">
+              <tr key={g.id} className="hover:bg-page border-t border-line">
                 <td className="px-4 py-2 font-semibold">{g.student_name}</td>
-                {components.map(c => <td key={c.key} className="px-2 py-2 text-center">{g.scores?.[c.key] ?? '—'}</td>)}
-                <td className="px-2 py-2 text-center font-bold">{g.total ?? '—'}</td>
-                <td className="px-2 py-2 text-center"><span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${g.grade === 'F9' ? 'bg-[#FEE2E2] text-[#B91C1C]' : g.grade === 'A1' ? 'bg-[#D1FAE5] text-[#065F46]' : 'bg-[#FEF3C7] text-[#D4930A]'}`}>{g.grade || '—'}</span></td>
+                {components.map(c => <td key={c.key} className="px-2 py-2 text-center">{g.scores?.[c.key] ?? '-'}</td>)}
+                <td className="px-2 py-2 text-center font-semibold">{g.total ?? '-'}</td>
+                <td className="px-2 py-2 text-center"><span className={`px-2 py-0.5 rounded text-xs font-semibold ${g.grade === 'F9' ? 'bg-danger-soft text-danger' : g.grade === 'A1' ? 'bg-success/10 text-success' : 'bg-warning/10 text-warning'}`}>{g.grade || '-'}</span></td>
                 <td className="px-2 py-2 text-center">
-                  <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${g.results_status === 'approved' ? 'bg-[#D1FAE5] text-[#065F46]' : g.results_status === 'rejected' ? 'bg-[#FEE2E2] text-[#B91C1C]' : g.results_status === 'submitted' ? 'bg-[#FEF3C7] text-[#D4930A]' : 'bg-[#E8F0FA] text-[#64748B]'}`}>{g.results_status}</span>
+                  <span className={`px-2 py-0.5 rounded text-xs font-semibold ${g.results_status === 'approved' ? 'bg-success/10 text-success' : g.results_status === 'rejected' ? 'bg-danger-soft text-danger' : g.results_status === 'submitted' ? 'bg-warning/10 text-warning' : 'bg-brand-soft text-muted'}`}>{g.results_status}</span>
                 </td>
               </tr>
             ))}</tbody>

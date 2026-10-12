@@ -2,6 +2,48 @@ import toast from 'react-hot-toast';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
 
+export class ApiError extends Error {
+  status: number;
+  fields: Record<string, string[]>;
+  constructor(message: string, status: number, fields: Record<string, string[]> = {}) {
+    super(message);
+    this.name = 'ApiError';
+    this.status = status;
+    this.fields = fields;
+  }
+}
+
+const FIELD_LABELS: Record<string, string> = {
+  username: 'Username',
+  email: 'Email',
+  user_email: 'Email',
+  user_phone: 'Phone',
+  phone: 'Phone',
+  first_name: 'First name',
+  last_name: 'Last name',
+  staff_role: 'Role',
+  role: 'Role',
+  qualification: 'Qualification',
+  date_joined: 'Date joined',
+  subjects: 'Subjects',
+  school: 'School',
+  password: 'Password',
+  name: 'Name',
+  csv: 'CSV file',
+};
+
+function toMessages(val: unknown): string[] {
+  if (val == null) return [];
+  if (typeof val === 'string') return [val];
+  if (Array.isArray(val)) return val.flatMap(v => toMessages(v));
+  if (typeof val === 'object') {
+    return Object.entries(val as Record<string, unknown>).flatMap(([k, v]) =>
+      toMessages(v).map(m => `${k}: ${m}`),
+    );
+  }
+  return [String(val)];
+}
+
 function getToken(): string | null {
   if (typeof window === 'undefined') return null;
   // Read from cookie only — no localStorage for access tokens
@@ -13,7 +55,7 @@ function setCookie(name: string, value: string) {
   // Secure flags: HttpOnly cannot be set from JS, but server should set it.
   // SameSite=Strict prevents CSRF. Secure requires HTTPS in production.
   const isSecure = window.location.protocol === 'https:';
-  document.cookie = `${name}=${value}; path=/; max-age=${7 * 24 * 60 * 60}; SameSite=Strict${isSecure ? '; Secure' : ''}`;
+  document.cookie = `${name}=${value}; path=/; max-age=${2 * 60 * 60}; SameSite=Strict${isSecure ? '; Secure' : ''}`;
 }
 function deleteCookie(name: string) {
   document.cookie = `${name}=; path=/; max-age=0`;
@@ -83,21 +125,29 @@ async function request<T = unknown>(
 
   if (!res.ok) {
     const err = await res.json().catch(() => ({ detail: res.statusText }));
-    const firstKey = Object.keys(err)[0];
-    let msg: string;
-    if (!firstKey) {
-      msg = err.detail || 'Request failed';
-    } else {
-      const val = err[firstKey];
-      let firstMsg = Array.isArray(val) ? val[0] : val;
-      if (firstMsg && typeof firstMsg === 'object') {
-        const subKey = Object.keys(firstMsg)[0];
-        firstMsg = subKey ? `${subKey}: ${firstMsg[subKey]?.[0] || JSON.stringify(firstMsg[subKey])}` : JSON.stringify(firstMsg);
+    const fields: Record<string, string[]> = {};
+    let fallback = '';
+    for (const [key, val] of Object.entries(err as Record<string, unknown>)) {
+      const msgs = toMessages(val);
+      if (key === 'detail') {
+        fallback = msgs.join(' ');
+        continue;
       }
-      msg = typeof firstMsg === 'string' ? firstMsg : JSON.stringify(firstMsg);
+      if (key === 'non_field_errors') {
+        fallback = fallback || msgs.join(' ');
+        continue;
+      }
+      if (msgs.length) fields[key] = msgs;
     }
+    const shown = Object.entries(fields)
+      .slice(0, 3)
+      .map(([k, v]) => `${FIELD_LABELS[k] || k}: ${v[0]}`);
+    const extra = Object.keys(fields).length - shown.length;
+    let msg = shown.join(' · ');
+    if (extra > 0) msg += ` (+${extra} more)`;
+    if (!msg) msg = fallback || 'Request failed';
     toast.error(msg);
-    throw new Error(msg);
+    throw new ApiError(msg, res.status, fields);
   }
 
   if (res.status === 204) return undefined as T;
@@ -128,7 +178,12 @@ export const auth = {
   async me() {
     return request<{ id: number; email: string; first_name: string; last_name: string; phone: string | null; role: string; school_id: number | null }>('GET', '/auth/me/');
   },
-  logout() { clearTokens(); },
+  logout() {
+    const refresh = typeof window !== 'undefined' ? sessionStorage.getItem('refresh_token') : null;
+    // Best-effort server-side revoke; local state is cleared regardless.
+    if (refresh) void request('POST', '/auth/logout/', { refresh }).catch(() => undefined);
+    clearTokens();
+  },
   getToken,
   getRole: () => typeof window !== 'undefined' ? sessionStorage.getItem('user_role') : null,
 };
@@ -207,8 +262,8 @@ export const api = {
   grades: createApi('/grades/'),
   subjects: createApi('/exams/subjects/'),
   studentSubjects: createApi('/exams/student-subjects/'),
-  timetables: createApi('/exams/timetables/'),
-  reportCards: createApi('/exams/report-cards/'),
+  timetables: createApi('/timetable/timetables/'),
+  reportCards: createApi('/results/report-cards/'),
   exams: {
     ...examsBase,
     uploadQuestions: (examId: string | number, file: File, replace: boolean): Promise<{ created: number; warnings: string[]; errors: string[]; replaced: boolean }> => {

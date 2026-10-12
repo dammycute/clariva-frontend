@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { api } from '@/lib/api';
 import ConfirmDialog from '@/components/confirm-dialog';
+import { Check, X } from 'lucide-react';
 
 interface Subject { id: string; name: string; code: string; year_group: string | null; class_name: string | null; teacher: string | null; teacher_name: string | null; is_core: boolean; }
 interface Staff { id: string; full_name: string; }
@@ -93,23 +94,23 @@ export default function SubjectsTab({ onRefresh }: { onRefresh: () => void }) {
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2.5">
           <select value={filterYg} onChange={e => setFilterYg(e.target.value)}
-            className="text-sm border border-[#DDE5F0] rounded-lg px-3 py-2 bg-white text-[#64748B] outline-none">
+            className="text-sm border border-line rounded px-3 py-2 bg-surface text-muted outline-none">
             <option value="">All year groups</option>
             {YEAR_GROUPS.map(yg => <option key={yg} value={yg}>{yg}</option>)}
           </select>
-          <p className="text-xs text-[#64748B]">{filtered.length} subject{filtered.length !== 1 ? 's' : ''}</p>
+          <p className="text-xs text-muted">{filtered.length} subject{filtered.length !== 1 ? 's' : ''}</p>
         </div>
-        <button onClick={openAdd} className="text-sm px-4 py-2 rounded-lg bg-[#1A7A4A] text-white hover:bg-[#14663D]">+ Add Subject</button>
+        <button onClick={openAdd} className="text-sm px-4 py-2 rounded bg-brand text-brand-ink hover:opacity-90">+ Add Subject</button>
       </div>
 
-      <div className="bg-white border border-[#DDE5F0] rounded-xl overflow-x-auto">
-        {loading ? <div className="p-8 text-center text-sm text-[#64748B]">Loading subjects…</div>
+      <div className="bg-surface border border-line rounded overflow-x-auto">
+        {loading ? <div className="p-8 text-center text-sm text-muted">Loading subjects…</div>
         : filtered.length === 0 ? (
-          <div className="p-8 text-center text-sm text-[#64748B]">{filterYg ? 'No subjects for this year group.' : 'No subjects yet. Run "seed_subjects" or add manually.'}</div>
+          <div className="p-8 text-center text-sm text-muted">{filterYg ? 'No subjects for this year group.' : 'No subjects yet. Run "seed_subjects" or add manually.'}</div>
         ) : (
           <table className="w-full text-xs">
             <thead>
-              <tr className="text-[11px] font-bold tracking-wider text-[#64748B] uppercase bg-[#F7F9FC]">
+              <tr className="text-xs font-semibold text-muted bg-page">
                 <th className="text-left px-4 py-3">Subject</th><th className="text-left px-4 py-3">Code</th>
                 <th className="text-left px-4 py-3">Year Group</th><th className="text-left px-4 py-3">Teacher</th>
                 <th className="text-left px-4 py-3">Core</th><th className="text-left px-4 py-3">Actions</th>
@@ -117,15 +118,15 @@ export default function SubjectsTab({ onRefresh }: { onRefresh: () => void }) {
             </thead>
             <tbody>
               {filtered.map(s => (
-                <tr key={s.id} className="hover:bg-[#F8FAFF] border-t border-[#DDE5F0]">
+                <tr key={s.id} className="hover:bg-page border-t border-line">
                   <td className="px-4 py-3 font-semibold">{s.name}</td>
-                  <td className="px-4 py-3 text-[#64748B]">{s.code || '—'}</td>
+                  <td className="px-4 py-3 text-muted">{s.code || '-'}</td>
                   <td className="px-4 py-3">{s.class_name || 'All'}</td>
-                  <td className="px-4 py-3">{s.teacher_name || '—'}</td>
-                  <td className="px-4 py-3">{s.is_core ? <span className="text-[#1A7A4A]">✓</span> : '—'}</td>
+                  <td className="px-4 py-3">{s.teacher_name || '-'}</td>
+                  <td className="px-4 py-3">{s.is_core ? <span className="text-brand" aria-label="Core subject"><Check size={16} aria-hidden="true" /></span> : '-'}</td>
                   <td className="px-4 py-3">
-                    <button onClick={() => openEdit(s)} className="text-[11px] text-[#1A7A4A] hover:underline mr-2">Edit</button>
-                    <button onClick={() => setConfirmDelete(s.id)} className="text-[11px] text-[#B91C1C] hover:underline">Delete</button>
+                    <button onClick={() => openEdit(s)} className="text-xs text-brand hover:underline mr-2">Edit</button>
+                    <button onClick={() => setConfirmDelete(s.id)} className="text-xs text-danger hover:underline">Delete</button>
                   </td>
                 </tr>
               ))}
@@ -138,49 +139,49 @@ export default function SubjectsTab({ onRefresh }: { onRefresh: () => void }) {
 
       {showForm && (
         <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center" onClick={() => setShowForm(false)}>
-          <div className="bg-white rounded-2xl w-[480px] max-w-[95vw]" onClick={e => e.stopPropagation()}>
+          <div className="bg-surface rounded w-[480px] max-w-[95vw]" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between p-5 pb-0">
-              <h2 className="text-base font-bold text-[#0D2B55]">{editId ? 'Edit Subject' : 'Add Subject'}</h2>
-              <button onClick={() => setShowForm(false)} className="text-[#64748B] hover:text-[#0D2B55] text-lg">✕</button>
+              <h2 className="text-base font-semibold text-ink">{editId ? 'Edit Subject' : 'Add Subject'}</h2>
+              <button onClick={() => setShowForm(false)} className="text-muted hover:text-ink text-lg" aria-label="Close"><X size={16} aria-hidden="true" /></button>
             </div>
             <form onSubmit={handleSave} className="p-5 space-y-3.5">
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-[11px] font-bold text-[#64748B] uppercase mb-1">Name</label>
+                  <label className="block text-xs font-semibold text-muted mb-1">Name</label>
                   <input value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} required
-                    className="w-full px-3 py-2 rounded-lg border border-[#DDE5F0] text-sm outline-none focus:border-[#1A7A4A]" />
+                    className="w-full px-3 py-2 rounded border border-line text-sm outline-none focus:border-brand" />
                 </div>
                 <div>
-                  <label className="block text-[11px] font-bold text-[#64748B] uppercase mb-1">Code</label>
+                  <label className="block text-xs font-semibold text-muted mb-1">Code</label>
                   <input value={form.code} onChange={e => setForm({ ...form, code: e.target.value })}
-                    className="w-full px-3 py-2 rounded-lg border border-[#DDE5F0] text-sm outline-none focus:border-[#1A7A4A]" />
+                    className="w-full px-3 py-2 rounded border border-line text-sm outline-none focus:border-brand" />
                 </div>
               </div>
               <div>
-                <label className="block text-[11px] font-bold text-[#64748B] uppercase mb-1">Year Group</label>
+                <label className="block text-xs font-semibold text-muted mb-1">Year Group</label>
                 <select value={form.year_group} onChange={e => setForm({ ...form, year_group: e.target.value })} required
-                  className="w-full px-3 py-2 rounded-lg border border-[#DDE5F0] text-sm outline-none focus:border-[#1A7A4A] bg-white">
+                  className="w-full px-3 py-2 rounded border border-line text-sm outline-none focus:border-brand bg-surface">
                   <option value="">Select year group</option>
                   {YEAR_GROUPS.map(yg => <option key={yg} value={yg}>{yg}</option>)}
                 </select>
               </div>
               <div>
-                <label className="block text-[11px] font-bold text-[#64748B] uppercase mb-1">Teacher</label>
+                <label className="block text-xs font-semibold text-muted mb-1">Teacher</label>
                 <select value={form.teacher} onChange={e => setForm({ ...form, teacher: e.target.value })}
-                  className="w-full px-3 py-2 rounded-lg border border-[#DDE5F0] text-sm outline-none focus:border-[#1A7A4A] bg-white">
+                  className="w-full px-3 py-2 rounded border border-line text-sm outline-none focus:border-brand bg-surface">
                   <option value="">Not assigned</option>
                   {staffList.map(st => <option key={st.id} value={st.id}>{st.full_name}</option>)}
                 </select>
               </div>
               <label className="flex items-center gap-2 cursor-pointer">
                 <input type="checkbox" checked={form.is_core} onChange={e => setForm({ ...form, is_core: e.target.checked })}
-                  className="w-4 h-4 rounded border-[#DDE5F0] text-[#1A7A4A] focus:ring-[#1A7A4A]" />
-                <span className="text-sm text-[#0D2B55]">Core subject</span>
+                  className="w-4 h-4 rounded border-line text-brand focus:ring-brand" />
+                <span className="text-sm text-ink">Core subject</span>
               </label>
-              {error && <p className="text-[11px] text-[#B91C1C]">{error}</p>}
+              {error && <p className="text-xs text-danger">{error}</p>}
               <div className="flex justify-end gap-2 pt-2">
-                <button type="button" onClick={() => setShowForm(false)} className="text-sm px-4 py-2 rounded-lg border border-[#DDE5F0] bg-white hover:bg-[#F0F4FA]">Cancel</button>
-                <button type="submit" disabled={saving} className="text-sm px-4 py-2 rounded-lg bg-[#1A7A4A] text-white hover:bg-[#14663D] disabled:opacity-50">
+                <button type="button" onClick={() => setShowForm(false)} className="text-sm px-4 py-2 rounded border border-line bg-surface hover:bg-surface-2">Cancel</button>
+                <button type="submit" disabled={saving} className="text-sm px-4 py-2 rounded bg-brand text-brand-ink hover:opacity-90 disabled:opacity-50">
                   {saving ? 'Saving…' : editId ? 'Update Subject' : 'Add Subject'}
                 </button>
               </div>

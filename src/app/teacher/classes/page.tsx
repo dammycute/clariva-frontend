@@ -25,39 +25,39 @@ export default function TeacherClassesPage() {
     })();
   }, []);
 
-  if (loading) return <div className="text-sm text-[#64748B] p-8">Loading classes…</div>;
+  if (loading) return <div className="text-sm text-muted p-8">Loading classes…</div>;
 
   return (
     <div>
-      <h1 className="text-xl font-bold text-[#0D2B55] mb-1">My Classes</h1>
-      <p className="text-xs text-[#64748B] mb-5">{classes.length} class{classes.length !== 1 ? 'es' : ''} assigned to you</p>
+      <h1 className="text-xl font-semibold text-ink mb-1">My Classes</h1>
+      <p className="text-xs text-muted mb-5">{classes.length} class{classes.length !== 1 ? 'es' : ''} assigned to you</p>
 
       {classes.length === 0 ? (
-        <div className="bg-white border border-[#DDE5F0] rounded-xl p-8 text-center text-sm text-[#64748B]">No classes assigned.</div>
+        <div className="bg-surface border border-line rounded p-8 text-center text-sm text-muted">No classes assigned.</div>
       ) : (
         <div className="grid gap-4">
           {classes.map(c => {
             const students = studentsMap[c.id] || [];
             const active = students.filter(s => s.student_status === 'active');
             return (
-              <div key={c.id} className="bg-white border border-[#DDE5F0] rounded-xl overflow-hidden">
-                <div className="px-4 py-3 border-b border-[#DDE5F0] bg-[#F8FAFF] flex items-center justify-between">
+              <div key={c.id} className="bg-surface border border-line rounded overflow-hidden">
+                <div className="px-4 py-3 border-b border-line bg-page flex items-center justify-between">
                   <div>
-                    <h2 className="text-sm font-bold text-[#0D2B55]">{c.name}</h2>
-                    <p className="text-[10px] text-[#64748B]">{c.year_group || '—'} · {c.academic_year || '—'}</p>
+                    <h2 className="text-sm font-semibold text-ink">{c.name}</h2>
+                    <p className="text-xs text-muted">{c.year_group || '-'} · {c.academic_year || '-'}</p>
                   </div>
-                  <span className="text-xs text-[#64748B]">{active.length} active students</span>
+                  <span className="text-xs text-muted">{active.length} active students</span>
                 </div>
-                <div className={`divide-y divide-[#DDE5F0] ${classes.length === 1 ? '' : 'max-h-48 overflow-y-auto'}`}>
+                <div className={`divide-y divide-line ${classes.length === 1 ? '' : 'max-h-48 overflow-y-auto'}`}>
                   {students.length === 0 ? (
-                    <div className="px-4 py-3 text-xs text-[#64748B]">No students.</div>
+                    <div className="px-4 py-3 text-xs text-muted">No students.</div>
                   ) : (
                     students.map(s => (
-                      <div key={s.id} className="px-4 py-2 flex items-center justify-between text-xs hover:bg-[#F8FAFF]">
-                        <span className="font-semibold text-[#0D2B55]">{s.first_name} {s.last_name}</span>
+                      <div key={s.id} className="px-4 py-2 flex items-center justify-between text-xs hover:bg-page">
+                        <span className="font-semibold text-ink">{s.first_name} {s.last_name}</span>
                         <div className="flex items-center gap-2">
-                          <span className="text-[#64748B]">{s.admission_no}</span>
-                          <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold ${s.student_status === 'active' ? 'bg-[#DCFCE7] text-[#1A7A4A]' : 'bg-[#FEE2E2] text-[#B91C1C]'}`}>{s.student_status}</span>
+                          <span className="text-muted">{s.admission_no}</span>
+                          <span className={`px-1.5 py-0.5 rounded text-xs font-semibold ${s.student_status === 'active' ? 'bg-success/10 text-success' : 'bg-danger-soft text-danger'}`}>{s.student_status}</span>
                         </div>
                       </div>
                     ))

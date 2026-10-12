@@ -13,12 +13,12 @@ const YEAR_GROUPS = ['JSS1', 'JSS2', 'JSS3', 'SS1', 'SS2', 'SS3'];
 const TERMS = ['1st Term', '2nd Term', '3rd Term'];
 
 function calcGrade(total: number, maxPossible: number, boundaries: { name: string; min_pct: number }[]): string {
-  if (maxPossible === 0 || boundaries.length === 0) return '—';
+  if (maxPossible === 0 || boundaries.length === 0) return '-';
   const pct = (total / maxPossible) * 100;
   for (const g of [...boundaries].sort((a, b) => b.min_pct - a.min_pct)) {
     if (pct >= g.min_pct) return g.name;
   }
-  return boundaries[boundaries.length - 1]?.name || '—';
+  return boundaries[boundaries.length - 1]?.name || '-';
 }
 
 const fullName = (s: { first_name: string; last_name: string }) => `${s.first_name} ${s.last_name}`.trim();
@@ -158,7 +158,7 @@ export default function GradeEntryTab({ onRefresh }: { onRefresh: () => void }) 
     <div>
       <div className="flex items-center gap-3 mb-4 flex-wrap">
         <select value={selectedClass} onChange={e => { setSelectedClass(e.target.value); setSelectedSubject(''); }}
-          className="text-sm border border-[#DDE5F0] rounded-lg px-3 py-2 bg-white text-[#0D2B55] outline-none">
+          className="text-sm border border-line rounded px-3 py-2 bg-surface text-ink outline-none">
           <option value="">Select class</option>
           {YEAR_GROUPS.map(yg => (
             <optgroup key={yg} label={yg}>
@@ -170,62 +170,62 @@ export default function GradeEntryTab({ onRefresh }: { onRefresh: () => void }) 
         </select>
         {ygSubjects.length > 0 && (
           <select value={selectedSubject} onChange={e => setSelectedSubject(e.target.value)}
-            className="text-sm border border-[#DDE5F0] rounded-lg px-3 py-2 bg-white text-[#0D2B55] outline-none">
+            className="text-sm border border-line rounded px-3 py-2 bg-surface text-ink outline-none">
             <option value="">Select subject</option>
             {ygSubjects.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
           </select>
         )}
         <select value={term} onChange={e => setTerm(e.target.value)}
-          className="text-sm border border-[#DDE5F0] rounded-lg px-3 py-2 bg-white text-[#0D2B55] outline-none">
+          className="text-sm border border-line rounded px-3 py-2 bg-surface text-ink outline-none">
           {TERMS.map(t => <option key={t} value={t}>{t}</option>)}
         </select>
         <input value={academicYear} onChange={e => setAcademicYear(e.target.value)}
-          className="text-sm border border-[#DDE5F0] rounded-lg px-3 py-2 bg-white text-[#0D2B55] outline-none w-[130px]" />
+          className="text-sm border border-line rounded px-3 py-2 bg-surface text-ink outline-none w-[130px]" />
         {selectedSubject && (
           <button onClick={handleSave} disabled={saving || classStudents.length === 0}
-            className="text-sm px-4 py-2 rounded-lg bg-[#1A7A4A] text-white hover:bg-[#14663D] disabled:opacity-50">
+            className="text-sm px-4 py-2 rounded bg-brand text-brand-ink hover:opacity-90 disabled:opacity-50">
             {saving ? 'Saving…' : 'Save Grades'}
           </button>
         )}
       </div>
 
       {message && (
-        <div className={`px-4 py-2 rounded-lg text-xs mb-3 ${message.includes('Saved') ? 'bg-[#D1FAE5] text-[#065F46]' : 'bg-[#FEE2E2] text-[#B91C1C]'}`}>
+        <div className={`px-4 py-2 rounded text-xs mb-3 ${message.includes('Saved') ? 'bg-success/10 text-success' : 'bg-danger-soft text-danger'}`}>
           {message}
         </div>
       )}
 
       {grading && activeComponents.length > 0 && (
-        <div className="flex flex-wrap gap-3 mb-3 text-[10px] text-[#64748B]">
+        <div className="flex flex-wrap gap-3 mb-3 text-xs text-muted">
           {activeComponents.map(comp => (
-            <span key={comp.key}>{comp.label}: <strong className="text-[#0D2B55]">/{comp.max}</strong></span>
+            <span key={comp.key}>{comp.label}: <strong className="text-ink">/{comp.max}</strong></span>
           ))}
-          <span>Total: <strong className="text-[#0D2B55]">/{totalMaxPossible}</strong></span>
+          <span>Total: <strong className="text-ink">/{totalMaxPossible}</strong></span>
         </div>
       )}
 
       {error && (
-        <div className="bg-[#FEE2E2] border border-[#FCA5A5] text-[#B91C1C] rounded-xl p-6 text-center mb-4">
+        <div className="bg-danger-soft border border-danger/30 text-danger rounded p-6 text-center mb-4">
           <p className="text-sm mb-3">{error}</p>
-          <button onClick={loadAll} className="text-sm px-4 py-2 rounded-lg bg-[#B91C1C] text-white hover:bg-[#991B1B]">Try Again</button>
+          <button onClick={loadAll} className="text-sm px-4 py-2 rounded bg-danger text-white hover:bg-danger">Try Again</button>
         </div>
       )}
 
-      <div className="bg-white border border-[#DDE5F0] rounded-xl overflow-x-auto">
-        {loading ? <div className="p-8 text-center text-sm text-[#64748B]">Loading…</div>
+      <div className="bg-surface border border-line rounded overflow-x-auto">
+        {loading ? <div className="p-8 text-center text-sm text-muted">Loading…</div>
         : !selectedClass ? (
-          <div className="p-8 text-center text-sm text-[#64748B]">Select a class and subject to enter grades.</div>
+          <div className="p-8 text-center text-sm text-muted">Select a class and subject to enter grades.</div>
         ) : !selectedSubject ? (
-          <div className="p-8 text-center text-sm text-[#64748B]">{ygSubjects.length === 0 ? 'No subjects for this year group.' : 'Select a subject.'}</div>
+          <div className="p-8 text-center text-sm text-muted">{ygSubjects.length === 0 ? 'No subjects for this year group.' : 'Select a subject.'}</div>
         ) : (
           <table className="w-full text-xs">
             <thead>
-              <tr className="text-[11px] font-bold tracking-wider text-[#64748B] uppercase bg-[#F7F9FC]">
+              <tr className="text-xs font-semibold text-muted bg-page">
                 <th className="text-left px-4 py-3">#</th><th className="text-left px-4 py-3">Student</th>
                 {activeComponents.map(comp => (
-                  <th key={comp.key} className="text-center px-2 py-3">{comp.label}<br/><span className="text-[10px] font-normal">({comp.max})</span></th>
+                  <th key={comp.key} className="text-center px-2 py-3">{comp.label}<br/><span className="text-xs font-normal">({comp.max})</span></th>
                 ))}
-                <th className="text-center px-2 py-3">Total<br/><span className="text-[10px] font-normal">({totalMaxPossible})</span></th>
+                <th className="text-center px-2 py-3">Total<br/><span className="text-xs font-normal">({totalMaxPossible})</span></th>
                 <th className="text-center px-2 py-3">Grade</th>
               </tr>
             </thead>
@@ -235,22 +235,22 @@ export default function GradeEntryTab({ onRefresh }: { onRefresh: () => void }) 
                 const gradeLetter = getGradeValue(student.id);
                 const s = scores[student.id] || {};
                 return (
-                  <tr key={student.id} className="hover:bg-[#F8FAFF] border-t border-[#DDE5F0]">
-                    <td className="px-4 py-2 text-[#64748B]">{idx + 1}</td>
+                  <tr key={student.id} className="hover:bg-page border-t border-line">
+                    <td className="px-4 py-2 text-muted">{idx + 1}</td>
                     <td className="px-4 py-2 font-semibold">{fullName(student)}</td>
                     {activeComponents.map(comp => (
                       <td key={comp.key} className="px-2 py-2">
                         <input type="number" min="0" max={comp.max} value={s[comp.key] || ''} onChange={e => updateScore(student.id, comp.key, e.target.value)}
-                          className="w-full px-2 py-1.5 rounded border border-[#DDE5F0] text-center text-sm outline-none focus:border-[#1A7A4A]" />
+                          className="w-full px-2 py-1.5 rounded border border-line text-center text-sm outline-none focus:border-brand" />
                       </td>
                     ))}
-                    <td className="px-2 py-2 text-center font-bold">{total > 0 ? total : '—'}</td>
+                    <td className="px-2 py-2 text-center font-semibold">{total > 0 ? total : '-'}</td>
                     <td className="px-2 py-2 text-center">
                       {total > 0 && (
-                        <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                          gradeLetter === 'F9' || gradeLetter === 'F' ? 'bg-[#FEE2E2] text-[#B91C1C]' :
-                          gradeLetter === 'A1' || gradeLetter === 'A' ? 'bg-[#D1FAE5] text-[#065F46]' :
-                          'bg-[#FEF3C7] text-[#D4930A]'
+                        <span className={`px-2 py-0.5 rounded text-xs font-semibold ${
+                          gradeLetter === 'F9' || gradeLetter === 'F' ? 'bg-danger-soft text-danger' :
+                          gradeLetter === 'A1' || gradeLetter === 'A' ? 'bg-success/10 text-success' :
+                          'bg-warning/10 text-warning'
                         }`}>{gradeLetter}</span>
                       )}
                     </td>

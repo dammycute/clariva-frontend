@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { api, auth } from '@/lib/api';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { CheckCircle2, Pencil, Calendar, School } from 'lucide-react';
 
 export default function TeacherDashboard() {
   const router = useRouter();
@@ -50,45 +51,45 @@ export default function TeacherDashboard() {
 
   return (
     <div>
-      <h1 className="text-xl font-bold text-[#0D2B55] mb-1">Teacher Dashboard</h1>
-      <p className="text-xs text-[#64748B] mb-5">Welcome back! Here&apos;s your overview.</p>
+      <h1 className="text-xl font-semibold text-ink mb-1">Teacher Dashboard</h1>
+      <p className="text-xs text-muted mb-5">Welcome back! Here&apos;s your overview.</p>
 
       <div className="grid grid-cols-3 gap-4 mb-6">
-        <div className="bg-white border border-[#DDE5F0] rounded-xl p-4">
-          <p className="text-[11px] font-bold text-[#64748B] uppercase">My Classes</p>
-          <p className="text-2xl font-bold text-[#0D2B55]">{loading ? '…' : stats.classes}</p>
+        <div className="bg-surface border border-line rounded p-4">
+          <p className="text-xs font-semibold text-muted">My Classes</p>
+          <p className="text-2xl font-semibold text-ink">{loading ? '…' : stats.classes}</p>
         </div>
-        <div className="bg-white border border-[#DDE5F0] rounded-xl p-4">
-          <p className="text-[11px] font-bold text-[#64748B] uppercase">My Students</p>
-          <p className="text-2xl font-bold text-[#0D2B55]">{loading ? '…' : stats.students}</p>
+        <div className="bg-surface border border-line rounded p-4">
+          <p className="text-xs font-semibold text-muted">My Students</p>
+          <p className="text-2xl font-semibold text-ink">{loading ? '…' : stats.students}</p>
         </div>
-        <div className="bg-white border border-[#DDE5F0] rounded-xl p-4">
-          <p className="text-[11px] font-bold text-[#64748B] uppercase">My Subjects</p>
-          <p className="text-2xl font-bold text-[#0D2B55]">{loading ? '…' : stats.subjects}</p>
+        <div className="bg-surface border border-line rounded p-4">
+          <p className="text-xs font-semibold text-muted">My Subjects</p>
+          <p className="text-2xl font-semibold text-ink">{loading ? '…' : stats.subjects}</p>
         </div>
       </div>
 
       <div className="grid grid-cols-2 gap-4 mb-6">
-        <div className="bg-white border border-[#DDE5F0] rounded-xl p-4">
-          <p className="text-[11px] font-bold text-[#64748B] uppercase">Exam Sessions</p>
-          <p className="text-2xl font-bold text-[#0D2B55]">{loading ? '…' : stats.examSessions}</p>
+        <div className="bg-surface border border-line rounded p-4">
+          <p className="text-xs font-semibold text-muted">Exam Sessions</p>
+          <p className="text-2xl font-semibold text-ink">{loading ? '…' : stats.examSessions}</p>
         </div>
-        <div className="bg-white border border-[#DDE5F0] rounded-xl p-4">
-          <p className="text-[11px] font-bold text-[#64748B] uppercase">Avg Score</p>
-          <p className="text-2xl font-bold text-[#1A7A4A]">{loading ? '…' : `${stats.avgScore}%`}</p>
+        <div className="bg-surface border border-line rounded p-4">
+          <p className="text-xs font-semibold text-muted">Avg Score</p>
+          <p className="text-2xl font-semibold text-brand">{loading ? '…' : `${stats.avgScore}%`}</p>
         </div>
       </div>
 
       <div className="grid grid-cols-2 gap-3">
         {[
-          { label: 'Mark Attendance', href: '/teacher/attendance', icon: '✅' },
-          { label: 'Enter Grades', href: '/teacher/grades', icon: '📝' },
-          { label: 'View Timetable', href: '/teacher/timetable', icon: '📅' },
-          { label: 'My Classes', href: '/teacher/classes', icon: '🏫' },
+          { label: 'Mark Attendance', href: '/teacher/attendance', icon: <CheckCircle2 size={16} aria-hidden="true" /> },
+          { label: 'Enter Grades', href: '/teacher/grades', icon: <Pencil size={16} aria-hidden="true" /> },
+          { label: 'View Timetable', href: '/teacher/timetable', icon: <Calendar size={16} aria-hidden="true" /> },
+          { label: 'My Classes', href: '/teacher/classes', icon: <School size={16} aria-hidden="true" /> },
         ].map(a => (
           <Link key={a.href} href={a.href}
-            className="flex items-center gap-3 px-4 py-3.5 bg-white border border-[#DDE5F0] rounded-xl text-sm text-[#0D2B55] hover:bg-[#F0F4FA] transition-colors">
-            <span className="text-lg">{a.icon}</span> {a.label}
+            className="flex items-center gap-3 px-4 py-3.5 bg-surface border border-line rounded text-sm text-ink hover:bg-surface-2 transition-colors">
+            <span className="inline-flex items-center">{a.icon}</span> {a.label}
           </Link>
         ))}
       </div>

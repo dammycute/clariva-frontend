@@ -4,6 +4,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import toast from 'react-hot-toast';
 import { useParams, useRouter } from 'next/navigation';
 import { api } from '@/lib/api';
+import { Monitor, PartyPopper, Frown, Map, X, Flag, ChevronLeft, Loader2, AlertTriangle, CheckCircle2 } from 'lucide-react';
 
 interface Exam {
   id: string; title: string; subject_name?: string;
@@ -90,7 +91,7 @@ export default function TakeExamPage() {
     finally { setStarting(false); }
   }, [id, exam]);
 
-  // timer tick — single interval, reads/writes ref
+  // timer tick - single interval, reads/writes ref
   useEffect(() => {
     if (screen !== 'exam' || submitting) return;
     timerRef.current = setInterval(() => {
@@ -107,7 +108,7 @@ export default function TakeExamPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [screen, submitting]);
 
-  // tab switch detection — show warning and end exam on first switch
+  // tab switch detection - show warning and end exam on first switch
   useEffect(() => {
     if (screen !== 'exam') return;
     let wasHidden = false;
@@ -189,41 +190,41 @@ export default function TakeExamPage() {
   if (screen === 'start') {
     return (
       <div className="max-w-lg mx-auto mt-8">
-        <div className="bg-white border border-[#DDE5F0] rounded-2xl p-6">
+        <div className="bg-surface border border-line rounded p-6">
           <div className="text-center mb-6">
-            <div className="text-5xl mb-3">💻</div>
-            <h1 className="text-xl font-bold text-[#0D2B55]">{exam?.title || 'Loading…'}</h1>
-            {exam?.subject_name && <p className="text-xs text-[#64748B] mt-1">{exam.subject_name}</p>}
+            <div className="text-5xl mb-3" aria-hidden="true"><Monitor size={24} /></div>
+            <h1 className="text-xl font-semibold text-ink">{exam?.title || 'Loading…'}</h1>
+            {exam?.subject_name && <p className="text-xs text-muted mt-1">{exam.subject_name}</p>}
           </div>
           <div className="grid grid-cols-2 gap-3 mb-5">
-            <div className="bg-[#F0F4FA] rounded-xl p-3 text-center">
-              <p className="text-lg font-bold text-[#0D2B55]">{exam?.question_count || 0}</p>
-              <p className="text-[10px] text-[#64748B]">Questions</p>
+            <div className="bg-surface-2 rounded p-3 text-center">
+              <p className="text-lg font-semibold text-ink">{exam?.question_count || 0}</p>
+              <p className="text-xs text-muted">Questions</p>
             </div>
-            <div className="bg-[#F0F4FA] rounded-xl p-3 text-center">
-              <p className="text-lg font-bold text-[#0D2B55]">{exam?.duration_mins || 0} min</p>
-              <p className="text-[10px] text-[#64748B]">Time Allowed</p>
+            <div className="bg-surface-2 rounded p-3 text-center">
+              <p className="text-lg font-semibold text-ink">{exam?.duration_mins || 0} min</p>
+              <p className="text-xs text-muted">Time Allowed</p>
             </div>
-            <div className="bg-[#F0F4FA] rounded-xl p-3 text-center">
-              <p className="text-lg font-bold text-[#0D2B55]">{exam?.question_count || 0}</p>
-              <p className="text-[10px] text-[#64748B]">Total Marks</p>
+            <div className="bg-surface-2 rounded p-3 text-center">
+              <p className="text-lg font-semibold text-ink">{exam?.question_count || 0}</p>
+              <p className="text-xs text-muted">Total Marks</p>
             </div>
-            <div className="bg-[#F0F4FA] rounded-xl p-3 text-center">
-              <p className="text-lg font-bold text-[#0D2B55]">{exam?.pass_mark || 0}%</p>
-              <p className="text-[10px] text-[#64748B]">Pass Mark</p>
+            <div className="bg-surface-2 rounded p-3 text-center">
+              <p className="text-lg font-semibold text-ink">{exam?.pass_mark || 0}%</p>
+              <p className="text-xs text-muted">Pass Mark</p>
             </div>
           </div>
           {exam?.instructions && (
             <div className="mb-5">
-              <p className="text-[11px] font-bold text-[#64748B] uppercase mb-1">Instructions</p>
-              <p className="text-xs text-[#64748B] whitespace-pre-wrap">{exam.instructions}</p>
+              <p className="text-xs font-semibold text-muted mb-1">Instructions</p>
+              <p className="text-xs text-muted whitespace-pre-wrap">{exam.instructions}</p>
             </div>
           )}
           {startError && (
-            <div className="mb-4 text-xs text-red-700 bg-red-50 border border-red-200 rounded-lg px-3 py-2">{startError}</div>
+            <div className="mb-4 text-xs text-red-700 bg-red-50 border border-red-200 rounded px-3 py-2">{startError}</div>
           )}
           <button onClick={handleStart} disabled={starting || !exam}
-            className="w-full text-sm py-3 rounded-xl bg-[#1A7A4A] text-white font-bold hover:bg-[#14663D] disabled:opacity-50 transition-colors">
+            className="w-full text-sm py-3 rounded bg-brand text-brand-ink font-semibold hover:opacity-90 disabled:opacity-50 transition-colors">
             {starting ? 'Starting Exam…' : 'Start Exam'}
           </button>
         </div>
@@ -237,26 +238,26 @@ export default function TakeExamPage() {
     const passed = result.passed;
     return (
       <div className="max-w-lg mx-auto mt-8">
-        <div className="bg-white border border-[#DDE5F0] rounded-2xl p-8 text-center">
-          <div className="text-6xl mb-4">{passed ? '🎉' : '😔'}</div>
-          <h2 className="text-xl font-bold text-[#0D2B55] mb-2">{passed ? 'Congratulations!' : 'Not this time'}</h2>
-          <p className="text-xs text-[#64748B] mb-6">
+        <div className="bg-surface border border-line rounded p-8 text-center">
+          <div className="text-6xl mb-4" aria-hidden="true">{passed ? <PartyPopper size={40} /> : <Frown size={40} />}</div>
+          <h2 className="text-xl font-semibold text-ink mb-2">{passed ? 'Congratulations!' : 'Not this time'}</h2>
+          <p className="text-xs text-muted mb-6">
             {passed ? 'You passed the exam. Great work!' : `You needed ${exam?.pass_mark || 40}% to pass. Keep practicing!`}
           </p>
           <div className="flex items-center justify-center gap-8 mb-5">
             <div>
-              <p className="text-3xl font-bold text-[#0D2B55]">{result.score}/{result.total_marks}</p>
-              <p className="text-[10px] text-[#64748B]">Score</p>
+              <p className="text-3xl font-semibold text-ink">{result.score}/{result.total_marks}</p>
+              <p className="text-xs text-muted">Score</p>
             </div>
             <div>
-              <p className={`text-3xl font-bold ${passed ? 'text-[#1A7A4A]' : 'text-[#B91C1C]'}`}>{pct}%</p>
-              <p className="text-[10px] text-[#64748B]">Percentage</p>
+              <p className={`text-3xl font-semibold ${passed ? 'text-brand' : 'text-danger'}`}>{pct}%</p>
+              <p className="text-xs text-muted">Percentage</p>
             </div>
           </div>
-          <div className="h-3 bg-[#F0F4FA] rounded-full overflow-hidden mb-6">
-            <div className={`h-full rounded-full transition-all duration-1000 ${passed ? 'bg-[#1A7A4A]' : 'bg-[#B91C1C]'}`} style={{ width: `${Math.min(pct, 100)}%` }} />
+          <div className="h-3 bg-surface-2 rounded-full overflow-hidden mb-6">
+            <div className={`h-full rounded-full transition-all duration-1000 ${passed ? 'bg-brand' : 'bg-danger'}`} style={{ width: `${Math.min(pct, 100)}%` }} />
           </div>
-          <button onClick={() => router.push('/student/exams')} className="text-sm px-6 py-2.5 rounded-lg bg-[#0D2B55] text-white hover:bg-[#0A1F3D]">Back to Exams</button>
+          <button onClick={() => router.push('/student/exams')} className="text-sm px-6 py-2.5 rounded bg-brand text-brand-ink hover:bg-brand">Back to Exams</button>
         </div>
       </div>
     );
@@ -266,20 +267,20 @@ export default function TakeExamPage() {
   return (
     <div className="max-w-3xl mx-auto">
       {/* sticky header */}
-      <div className="bg-white border border-[#DDE5F0] rounded-xl p-3 mb-4 sticky top-0 z-20 flex items-center gap-3 shadow-sm">
+      <div className="bg-surface border border-line rounded p-3 mb-4 sticky top-0 z-20 flex items-center gap-3">
         <div className="flex-1 min-w-0">
-          <h1 className="text-sm font-bold text-[#0D2B55] truncate">{exam?.title}</h1>
-          <p className="text-[10px] text-[#64748B]">{exam?.subject_name}</p>
+          <h1 className="text-sm font-semibold text-ink truncate">{exam?.title}</h1>
+          <p className="text-xs text-muted">{exam?.subject_name}</p>
         </div>
         <div className="flex items-center gap-2">
-          <span className="text-[10px] text-[#64748B]">{answeredCount}/{totalQuestions}</span>
-          <button onClick={() => setShowNavigator(!showNavigator)}
-            className="text-[11px] px-2 py-1 rounded-lg border border-[#DDE5F0] hover:bg-[#F0F4FA]">🗺</button>
-          <div className={`text-base font-bold font-mono min-w-[60px] text-center ${timerWarning ? 'text-red-600 animate-pulse' : 'text-[#0D2B55]'}`}>
+          <span className="text-xs text-muted">{answeredCount}/{totalQuestions}</span>
+          <button onClick={() => setShowNavigator(!showNavigator)} aria-label="Question map"
+            className="px-2 py-1 rounded border border-line hover:bg-surface-2"><Map size={16} aria-hidden="true" /></button>
+          <div className={`text-base font-semibold font-mono min-w-[60px] text-center ${timerWarning ? 'text-red-600 animate-pulse' : 'text-ink'}`}>
             {displayTime !== null ? formatTime(displayTime) : '--:--'}
           </div>
           <button onClick={handleSubmitClick} disabled={answeredCount === 0 || submitting}
-            className="text-xs px-3 py-1.5 rounded-lg bg-[#1A7A4A] text-white hover:bg-[#14663D] disabled:opacity-40">
+            className="text-xs px-3 py-1.5 rounded bg-brand text-brand-ink hover:opacity-90 disabled:opacity-40">
             Submit
           </button>
         </div>
@@ -287,13 +288,13 @@ export default function TakeExamPage() {
 
       {/* question navigator panel */}
       {showNavigator && (
-        <div className="bg-white border border-[#DDE5F0] rounded-xl p-4 mb-4 sticky top-[68px] z-10">
+        <div className="bg-surface border border-line rounded p-4 mb-4 sticky top-[68px] z-10">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-[11px] font-bold text-[#0D2B55]">Question Map</span>
-            <button onClick={() => setShowNavigator(false)} className="text-xs text-[#64748B] hover:text-[#0D2B55]">✕</button>
+            <span className="text-xs font-semibold text-ink">Question Map</span>
+            <button onClick={() => setShowNavigator(false)} aria-label="Close question map" className="text-xs text-muted hover:text-ink"><X size={16} aria-hidden="true" /></button>
           </div>
-          <div className="flex items-center gap-3 mb-2 text-[10px] text-[#64748B]">
-            <span className="flex items-center gap-1"><span className="w-3 h-3 rounded border border-[#DDE5F0] bg-white inline-block" /> Unanswered</span>
+          <div className="flex items-center gap-3 mb-2 text-xs text-muted">
+            <span className="flex items-center gap-1"><span className="w-3 h-3 rounded border border-line bg-surface inline-block" /> Unanswered</span>
             <span className="flex items-center gap-1"><span className="w-3 h-3 rounded bg-green-500 inline-block" /> Answered</span>
             <span className="flex items-center gap-1"><span className="w-3 h-3 rounded bg-amber-400 inline-block" /> Flagged</span>
           </div>
@@ -301,12 +302,12 @@ export default function TakeExamPage() {
             {questions.map((q, i) => {
               const ans = answers[q.id];
               const flg = flagged.has(q.id);
-              let bg = 'bg-white border border-[#DDE5F0]';
+              let bg = 'bg-surface border border-line';
               if (ans) bg = 'bg-green-500 text-white border-green-500';
               else if (flg) bg = 'bg-amber-400 text-white border-amber-400';
               return (
                 <button key={q.id} onClick={() => { setCurrentIndex(i); setShowNavigator(false); }}
-                  className={`w-full aspect-square rounded-lg text-[10px] font-bold ${bg} hover:opacity-80 transition-opacity`}>
+                  className={`w-full aspect-square rounded text-xs font-semibold ${bg} hover:opacity-80 transition-opacity`}>
                   {i + 1}
                 </button>
               );
@@ -317,26 +318,26 @@ export default function TakeExamPage() {
 
       {/* question area */}
       {currentQuestion && (
-        <div className="bg-white border border-[#DDE5F0] rounded-xl p-5 mb-4">
+        <div className="bg-surface border border-line rounded p-5 mb-4">
           {/* question header */}
           <div className="flex items-start justify-between mb-4">
             <div className="flex-1 min-w-0 mr-3">
-              <span className="text-[10px] font-bold text-[#64748B] uppercase">Question {currentIndex + 1} of {totalQuestions}</span>
-              <span className="text-[10px] text-[#64748B] ml-2">({currentQuestion.mark} mark{currentQuestion.mark > 1 ? 's' : ''})</span>
-              {isFlagged && <span className="text-amber-500 text-sm ml-2">⚑</span>}
+              <span className="text-xs font-semibold text-muted">Question {currentIndex + 1} of {totalQuestions}</span>
+              <span className="text-xs text-muted ml-2">({currentQuestion.mark} mark{currentQuestion.mark > 1 ? 's' : ''})</span>
+              {isFlagged && <span className="text-amber-500 ml-2 inline-flex" aria-hidden="true"><Flag size={16} /></span>}
             </div>
             <button onClick={() => {
               const s = new Set(flagged);
               isFlagged ? s.delete(currentQuestion.id) : s.add(currentQuestion.id);
               setFlagged(s);
             }}
-              className={`text-xs px-2.5 py-1 rounded-lg border transition-colors ${isFlagged ? 'border-amber-400 bg-amber-50 text-amber-700' : 'border-[#DDE5F0] hover:bg-[#F0F4FA] text-[#64748B]'}`}>
-              {isFlagged ? '⚑ Flagged' : 'Flag'}
+              className={`text-xs px-2.5 py-1 rounded border transition-colors inline-flex items-center gap-1 ${isFlagged ? 'border-amber-400 bg-amber-50 text-amber-700' : 'border-line hover:bg-surface-2 text-muted'}`}>
+              <Flag size={16} aria-hidden="true" /> {isFlagged ? 'Flagged' : 'Flag'}
             </button>
           </div>
 
           {/* question body */}
-          <p className="text-base font-semibold text-[#0D2B55] mb-4 leading-relaxed">{currentQuestion.body}</p>
+          <p className="text-base font-semibold text-ink mb-4 leading-relaxed">{currentQuestion.body}</p>
 
           {/* mcq */}
           {currentQuestion.question_type === 'mcq' && currentQuestion.options && (
@@ -345,10 +346,10 @@ export default function TakeExamPage() {
                 const selected = answers[currentQuestion.id] === opt;
                 return (
                   <button key={oi} onClick={() => setAnswers({ ...answers, [currentQuestion.id]: opt })}
-                    className={`w-full text-left px-4 py-3 min-h-[52px] rounded-xl border-2 text-sm font-medium transition-all ${
-                      selected ? 'border-green-500 bg-green-50 text-green-800' : 'border-[#DDE5F0] bg-white text-[#0D2B55] hover:border-[#1A7A4A] hover:bg-[#F8FAFF]'
+                    className={`w-full text-left px-4 py-3 min-h-[52px] rounded border-2 text-sm font-medium transition-all ${
+                      selected ? 'border-green-500 bg-green-50 text-green-800' : 'border-line bg-surface text-ink hover:border-brand hover:bg-page'
                     }`}>
-                    <span className="font-bold mr-2">{String.fromCharCode(65 + oi)}.</span>
+                    <span className="font-semibold mr-2">{String.fromCharCode(65 + oi)}.</span>
                     {opt}
                   </button>
                 );
@@ -363,8 +364,8 @@ export default function TakeExamPage() {
                 const selected = answers[currentQuestion.id] === v;
                 return (
                   <button key={v} onClick={() => setAnswers({ ...answers, [currentQuestion.id]: v })}
-                    className={`w-full px-4 py-3 min-h-[52px] rounded-xl border-2 text-sm font-bold transition-all ${
-                      selected ? 'border-green-500 bg-green-50 text-green-800' : 'border-[#DDE5F0] bg-white text-[#0D2B55] hover:border-[#1A7A4A] hover:bg-[#F8FAFF]'
+                    className={`w-full px-4 py-3 min-h-[52px] rounded border-2 text-sm font-semibold transition-all ${
+                      selected ? 'border-green-500 bg-green-50 text-green-800' : 'border-line bg-surface text-ink hover:border-brand hover:bg-page'
                     }`}>
                     {v}
                   </button>
@@ -377,7 +378,7 @@ export default function TakeExamPage() {
           {currentQuestion.question_type === 'short_answer' && (
             <textarea value={answers[currentQuestion.id] || ''} onChange={e => setAnswers({ ...answers, [currentQuestion.id]: e.target.value })}
               placeholder="Type your answer here" rows={4}
-              className="w-full px-4 py-3 rounded-xl border-2 border-[#DDE5F0] text-sm outline-none focus:border-[#1A7A4A] resize-y min-h-[100px]" />
+              className="w-full px-4 py-3 rounded border-2 border-line text-sm outline-none focus:border-brand resize-y min-h-[100px]" />
           )}
         </div>
       )}
@@ -385,25 +386,25 @@ export default function TakeExamPage() {
       {/* bottom navigation */}
       <div className="flex items-center justify-between mb-8">
         <button onClick={() => setCurrentIndex(Math.max(0, currentIndex - 1))} disabled={currentIndex === 0}
-          className="text-sm px-4 py-2 rounded-lg border border-[#DDE5F0] hover:bg-[#F0F4FA] disabled:opacity-30 disabled:cursor-not-allowed">
-          ← Previous
+          className="text-sm px-4 py-2 rounded border border-line hover:bg-surface-2 disabled:opacity-30 disabled:cursor-not-allowed inline-flex items-center gap-1">
+          <ChevronLeft size={16} aria-hidden="true" /> Previous
         </button>
-        <span className="text-[10px] text-[#64748B]">
+        <span className="text-xs text-muted">
           {answeredCount} of {totalQuestions} answered
         </span>
         <button onClick={() => setCurrentIndex(Math.min(totalQuestions - 1, currentIndex + 1))} disabled={currentIndex === totalQuestions - 1}
-          className="text-sm px-4 py-2 rounded-lg border border-[#DDE5F0] hover:bg-[#F0F4FA] disabled:opacity-30 disabled:cursor-not-allowed">
-          Next →
+          className="text-sm px-4 py-2 rounded border border-line hover:bg-surface-2 disabled:opacity-30 disabled:cursor-not-allowed">
+          Next
         </button>
       </div>
 
       {/* submitting overlay */}
       {submitting && (
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center">
-          <div className="bg-white rounded-2xl p-8 text-center max-w-sm">
-            <div className="text-4xl mb-4 animate-spin">⏳</div>
-            <p className="text-sm font-bold text-[#0D2B55]">Submitting your exam…</p>
-            <p className="text-xs text-[#64748B] mt-1">Please wait, do not close this page.</p>
+          <div className="bg-surface rounded p-8 text-center max-w-sm">
+            <div className="mb-4 flex justify-center text-brand animate-spin" aria-hidden="true"><Loader2 size={32} /></div>
+            <p className="text-sm font-semibold text-ink">Submitting your exam…</p>
+            <p className="text-xs text-muted mt-1">Please wait, do not close this page.</p>
           </div>
         </div>
       )}
@@ -411,17 +412,17 @@ export default function TakeExamPage() {
       {/* tab switch warning modal */}
       {showTabWarning && (
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center">
-          <div className="bg-white rounded-2xl p-6 max-w-md w-[90vw] text-center">
-            <div className="text-5xl mb-4">🚨</div>
-            <h3 className="text-lg font-bold text-[#0D2B55] mb-2">Tab Switch Detected</h3>
-            <p className="text-sm text-[#64748B] mb-2">
+          <div className="bg-surface rounded p-6 max-w-md w-[90vw] text-center">
+            <div className="text-5xl mb-4 text-danger flex justify-center" aria-hidden="true"><AlertTriangle size={40} /></div>
+            <h3 className="text-lg font-semibold text-ink mb-2">Tab Switch Detected</h3>
+            <p className="text-sm text-muted mb-2">
               You switched away from the exam window. This is not allowed.
             </p>
-            <p className="text-sm font-bold text-[#B91C1C] mb-5">
+            <p className="text-sm font-semibold text-danger mb-5">
               Your exam will now be submitted. This cannot be undone.
             </p>
             <button onClick={() => { setShowTabWarning(false); handleSubmit(); }}
-              className="w-full text-sm py-3 rounded-xl bg-[#B91C1C] text-white font-bold hover:bg-[#991A1A] transition-colors">
+              className="w-full text-sm py-3 rounded bg-danger text-white font-semibold hover:opacity-90 transition-colors">
               End Exam
             </button>
           </div>
@@ -431,30 +432,30 @@ export default function TakeExamPage() {
       {/* pre-submit confirmation modal */}
       {showConfirm && (
         <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center" onClick={() => setShowConfirm(false)}>
-          <div className="bg-white rounded-2xl p-6 max-w-md w-[90vw]" onClick={e => e.stopPropagation()}>
+          <div className="bg-surface rounded p-6 max-w-md w-[90vw]" onClick={e => e.stopPropagation()}>
             {confirmUnanswered.length > 0 ? (
               <>
-                <div className="text-4xl mb-3 text-amber-500">⚠️</div>
-                <h3 className="text-base font-bold text-[#0D2B55] mb-2">Unanswered Questions</h3>
-                <p className="text-xs text-[#64748B] mb-3">You have <strong>{confirmUnanswered.length}</strong> unanswered question{confirmUnanswered.length > 1 ? 's' : ''}:</p>
+                <div className="mb-3 text-amber-500 flex justify-center" aria-hidden="true"><AlertTriangle size={32} /></div>
+                <h3 className="text-base font-semibold text-ink mb-2">Unanswered Questions</h3>
+                <p className="text-xs text-muted mb-3">You have <strong>{confirmUnanswered.length}</strong> unanswered question{confirmUnanswered.length > 1 ? 's' : ''}:</p>
                 <div className="flex flex-wrap gap-1 mb-4">
                   {confirmUnanswered.map(n => (
-                    <span key={n} className="px-2 py-0.5 bg-amber-100 text-amber-700 rounded text-xs font-bold">{n}</span>
+                    <span key={n} className="px-2 py-0.5 bg-amber-100 text-amber-700 rounded text-xs font-semibold">{n}</span>
                   ))}
                 </div>
                 <div className="flex gap-2 justify-end">
-                  <button onClick={() => setShowConfirm(false)} className="text-sm px-4 py-2 rounded-lg border border-[#DDE5F0] hover:bg-[#F0F4FA]">Go Back</button>
-                  <button onClick={confirmSubmit} className="text-sm px-4 py-2 rounded-lg bg-[#1A7A4A] text-white hover:bg-[#14663D]">Submit Anyway</button>
+                  <button onClick={() => setShowConfirm(false)} className="text-sm px-4 py-2 rounded border border-line hover:bg-surface-2">Go Back</button>
+                  <button onClick={confirmSubmit} className="text-sm px-4 py-2 rounded bg-brand text-brand-ink hover:opacity-90">Submit Anyway</button>
                 </div>
               </>
             ) : (
               <>
-                <div className="text-4xl mb-3">✅</div>
-                <h3 className="text-base font-bold text-[#0D2B55] mb-2">Submit Exam?</h3>
-                <p className="text-xs text-[#64748B] mb-4">All questions answered. Ready to submit?</p>
+                <div className="mb-3 text-brand flex justify-center" aria-hidden="true"><CheckCircle2 size={32} /></div>
+                <h3 className="text-base font-semibold text-ink mb-2">Submit Exam?</h3>
+                <p className="text-xs text-muted mb-4">All questions answered. Ready to submit?</p>
                 <div className="flex gap-2 justify-end">
-                  <button onClick={() => setShowConfirm(false)} className="text-sm px-4 py-2 rounded-lg border border-[#DDE5F0] hover:bg-[#F0F4FA]">Cancel</button>
-                  <button onClick={confirmSubmit} className="text-sm px-4 py-2 rounded-lg bg-[#1A7A4A] text-white hover:bg-[#14663D]">Submit Exam</button>
+                  <button onClick={() => setShowConfirm(false)} className="text-sm px-4 py-2 rounded border border-line hover:bg-surface-2">Cancel</button>
+                  <button onClick={confirmSubmit} className="text-sm px-4 py-2 rounded bg-brand text-brand-ink hover:opacity-90">Submit Exam</button>
                 </div>
               </>
             )}

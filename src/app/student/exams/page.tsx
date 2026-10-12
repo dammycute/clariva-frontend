@@ -19,23 +19,23 @@ export default function StudentExamsPage() {
 
   return (
     <div>
-      <h1 className="text-xl font-bold text-[#0D2B55] mb-1">CBT Exams</h1>
-      <p className="text-xs text-[#64748B] mb-5">Take your assigned examinations</p>
+      <h1 className="text-xl font-semibold text-ink mb-1">CBT Exams</h1>
+      <p className="text-xs text-muted mb-5">Take your assigned examinations</p>
 
       {loading ? (
-        <div className="text-sm text-[#64748B] p-8">Loading exams…</div>
+        <div className="text-sm text-muted p-8">Loading exams…</div>
       ) : exams.length === 0 ? (
-        <div className="bg-white border border-[#DDE5F0] rounded-xl p-8 text-center text-sm text-[#64748B]">No exams available right now.</div>
+        <div className="bg-surface border border-line rounded p-8 text-center text-sm text-muted">No exams available right now.</div>
       ) : (
         <div className="grid gap-3">
           {exams.map(ex => (
-            <div key={ex.id} className="bg-white border border-[#DDE5F0] rounded-xl p-4 flex items-center justify-between">
+            <div key={ex.id} className="bg-surface border border-line rounded p-4 flex items-center justify-between">
               <div>
-                <h3 className="text-sm font-bold text-[#0D2B55]">{ex.title}</h3>
-                <p className="text-xs text-[#64748B] mt-0.5">{ex.subject_name || '—'} · {ex.duration_mins} min · {ex.question_count} questions · Pass: {ex.pass_mark}%</p>
+                <h3 className="text-sm font-semibold text-ink">{ex.title}</h3>
+                <p className="text-xs text-muted mt-0.5">{ex.subject_name || '-'} · {ex.duration_mins} min · {ex.question_count} questions · Pass: {ex.pass_mark}%</p>
               </div>
               <Link href={`/student/exams/${ex.id}/take`}
-                className="text-sm px-4 py-2 rounded-lg bg-[#1A7A4A] text-white hover:bg-[#14663D]">Start Exam</Link>
+                className="text-sm px-4 py-2 rounded bg-brand text-brand-ink hover:opacity-90">Start Exam</Link>
             </div>
           ))}
         </div>

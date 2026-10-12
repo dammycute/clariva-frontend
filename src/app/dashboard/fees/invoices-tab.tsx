@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { api, auth } from '@/lib/api';
 import { generateReceiptPDF } from '@/lib/receipt';
+import { Search, FileText, X, ChevronDown, ChevronRight } from 'lucide-react';
 
 interface InvoiceItem {
   id: string;
@@ -257,48 +258,48 @@ export default function InvoicesTab({ onRefresh }: { onRefresh: () => void }) {
   }
 
   const statusBadge = (s: string) => {
-    const map: Record<string, string> = { paid: 'bg-[#D1FAE5] text-[#065F46]', partial: 'bg-[#FEF3C7] text-[#D4930A]', unpaid: 'bg-[#FEE2E2] text-[#B91C1C]' };
+    const map: Record<string, string> = { paid: 'bg-success/10 text-success', partial: 'bg-warning/10 text-warning', unpaid: 'bg-danger-soft text-danger' };
     return map[s] || map.unpaid;
   };
 
   return (
     <div>
       <div className="flex items-center justify-between mb-4">
-        <h3 className="text-base font-bold text-[#0D2B55]">Invoices</h3>
-        <button onClick={openGenerate} className="text-sm px-4 py-2 rounded-lg bg-[#1A7A4A] text-white hover:bg-[#14663D]">+ Generate Invoices</button>
+        <h3 className="text-base font-semibold text-ink">Invoices</h3>
+        <button onClick={openGenerate} className="text-sm px-4 py-2 rounded bg-brand text-brand-ink hover:opacity-90">+ Generate Invoices</button>
       </div>
 
       {error && (
-        <div className="bg-[#FEE2E2] border border-[#FCA5A5] text-[#B91C1C] rounded-xl p-6 text-center mb-4">
+        <div className="bg-danger-soft border border-danger/30 text-danger rounded p-6 text-center mb-4">
           <p className="text-sm mb-3">{error}</p>
-          <button onClick={loadAll} className="text-sm px-4 py-2 rounded-lg bg-[#B91C1C] text-white hover:bg-[#991B1B]">Try Again</button>
+          <button onClick={loadAll} className="text-sm px-4 py-2 rounded bg-danger text-white hover:bg-danger">Try Again</button>
         </div>
       )}
 
       <div className="flex items-center gap-2.5 mb-3">
         <div className="relative flex-1 max-w-xs">
-          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[#64748B] text-xs">🔍</span>
+          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted text-xs" aria-hidden="true"><Search size={16} /></span>
           <input type="text" value={searchQuery} onChange={e => setSearchQuery(e.target.value)} placeholder="Search student…"
-            className="w-full pl-8 pr-3 py-2 rounded-lg border border-[#DDE5F0] text-sm outline-none focus:border-[#1A7A4A]" />
+            className="w-full pl-8 pr-3 py-2 rounded border border-line text-sm outline-none focus:border-brand" />
         </div>
         <select value={statusFilter} onChange={e => setStatusFilter(e.target.value)}
-          className="text-sm border border-[#DDE5F0] rounded-lg px-3 py-2 bg-white text-[#64748B] outline-none">
+          className="text-sm border border-line rounded px-3 py-2 bg-surface text-muted outline-none">
           <option value="">All statuses</option>
           <option value="unpaid">Unpaid</option>
           <option value="partial">Partial</option>
           <option value="paid">Paid</option>
         </select>
-        <p className="text-xs text-[#64748B] ml-auto">{filteredInvoices().length} of {invoices.length} invoices</p>
+        <p className="text-xs text-muted ml-auto">{filteredInvoices().length} of {invoices.length} invoices</p>
       </div>
 
-      <div className="bg-white border border-[#DDE5F0] rounded-xl overflow-x-auto">
-        {loading ? <div className="p-8 text-center text-sm text-[#64748B]">Loading invoices…</div>
+      <div className="bg-surface border border-line rounded overflow-x-auto">
+        {loading ? <div className="p-8 text-center text-sm text-muted">Loading invoices…</div>
         : filteredInvoices().length === 0 ? (
-          <div className="p-8 text-center text-sm text-[#64748B]">{invoices.length === 0 ? 'No invoices yet. Click Generate Invoices to create them.' : 'No invoices match your filters.'}</div>
+          <div className="p-8 text-center text-sm text-muted">{invoices.length === 0 ? 'No invoices yet. Click Generate Invoices to create them.' : 'No invoices match your filters.'}</div>
         ) : (
           <table className="w-full text-xs">
             <thead>
-              <tr className="text-[11px] font-bold tracking-wider text-[#64748B] uppercase bg-[#F7F9FC]">
+              <tr className="text-xs font-semibold text-muted bg-page">
                 <th className="text-left px-4 py-3 w-8"></th>
                 <th className="text-left px-4 py-3">Student</th>
                 <th className="text-left px-4 py-3">Items</th>
@@ -316,49 +317,49 @@ export default function InvoicesTab({ onRefresh }: { onRefresh: () => void }) {
                 const isExpanded = expanded.has(inv.id);
                 return (
                   <>
-                    <tr key={inv.id} className="hover:bg-[#F8FAFF] border-t border-[#DDE5F0]">
+                    <tr key={inv.id} className="hover:bg-page border-t border-line">
                       <td className="px-4 py-3">
-                        <button onClick={() => toggleExpand(inv.id)} className="text-[#64748B] hover:text-[#0D2B55]">
-                          {isExpanded ? '▼' : '▶'}
+                        <button onClick={() => toggleExpand(inv.id)} className="text-muted hover:text-ink" aria-label={isExpanded ? 'Collapse' : 'Expand'}>
+                          {isExpanded ? <ChevronDown size={16} aria-hidden="true" /> : <ChevronRight size={16} aria-hidden="true" />}
                         </button>
                       </td>
                       <td className="px-4 py-3 font-semibold">{inv.student_name}</td>
-                      <td className="px-4 py-3 text-[#64748B]">{items.length} fee{items.length !== 1 ? 's' : ''}</td>
+                      <td className="px-4 py-3 text-muted">{items.length} fee{items.length !== 1 ? 's' : ''}</td>
                       <td className="px-4 py-3">₦{Number(inv.amount_due).toLocaleString()}</td>
-                      <td className="px-4 py-3 text-[#1A7A4A]">₦{Number(inv.amount_paid).toLocaleString()}</td>
-                      <td className={`px-4 py-3 font-bold ${balance > 0 ? 'text-[#B91C1C]' : 'text-[#1A7A4A]'}`}>₦{balance.toLocaleString()}</td>
+                      <td className="px-4 py-3 text-brand">₦{Number(inv.amount_paid).toLocaleString()}</td>
+                      <td className={`px-4 py-3 font-semibold ${balance > 0 ? 'text-danger' : 'text-brand'}`}>₦{balance.toLocaleString()}</td>
                       <td className="px-4 py-3">
-                        <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold ${statusBadge(inv.status)}`}>{inv.status}</span>
+                        <span className={`px-2.5 py-0.5 rounded text-xs font-semibold ${statusBadge(inv.status)}`}>{inv.status}</span>
                       </td>
                       <td className="px-4 py-3">
                         {Number(inv.amount_paid) < Number(inv.amount_due) && (
-                          <button onClick={() => openPayment(inv)} className="text-[11px] px-2.5 py-1 rounded-lg bg-[#1A7A4A] text-white hover:bg-[#14663D]">Pay</button>
+                          <button onClick={() => openPayment(inv)} className="text-xs px-2.5 py-1 rounded bg-brand text-brand-ink hover:opacity-90">Pay</button>
                         )}
                         {Number(inv.amount_paid) > 0 && (
-                          <button onClick={() => handleDownloadReceipt(inv)} className="text-xs px-2 py-1 rounded-lg border border-[#DDE5F0] bg-white hover:bg-[#F0F4FA] ml-1.5">🧾</button>
+                          <button onClick={() => handleDownloadReceipt(inv)} aria-label="Download receipt" className="text-xs px-2 py-1 rounded border border-line bg-surface hover:bg-surface-2 ml-1.5"><FileText size={16} aria-hidden="true" /></button>
                         )}
                       </td>
                     </tr>
                     {isExpanded && (
                       <tr key={`detail-${inv.id}`}>
-                        <td colSpan={8} className="px-4 py-3 bg-[#F7F9FC]">
+                        <td colSpan={8} className="px-4 py-3 bg-page">
                           <table className="w-full text-xs">
                             <thead>
-                              <tr className="text-[11px] font-bold text-[#64748B] uppercase">
+                              <tr className="text-xs font-semibold text-muted">
                                 <th className="text-left py-1.5">Fee Item</th>
                                 <th className="text-right py-1.5">Amount</th>
                               </tr>
                             </thead>
                             <tbody>
                               {items.map(it => (
-                                <tr key={it.id} className="border-t border-[#DDE5F0]">
+                                <tr key={it.id} className="border-t border-line">
                                   <td className="py-2">{it.fee_name || 'Deleted fee'}</td>
                                   <td className="py-2 text-right">₦{Number(it.amount_due).toLocaleString()}</td>
                                 </tr>
                               ))}
-                              <tr className="border-t border-[#DDE5F0] font-bold">
-                                <td className="py-2 text-[#0D2B55]">Total</td>
-                                <td className="py-2 text-right text-[#0D2B55]">₦{Number(inv.amount_due).toLocaleString()}</td>
+                              <tr className="border-t border-line font-semibold">
+                                <td className="py-2 text-ink">Total</td>
+                                <td className="py-2 text-right text-ink">₦{Number(inv.amount_due).toLocaleString()}</td>
                               </tr>
                             </tbody>
                           </table>
@@ -375,36 +376,36 @@ export default function InvoicesTab({ onRefresh }: { onRefresh: () => void }) {
 
       {showGenerate && (
         <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center" onClick={() => setShowGenerate(false)}>
-          <div className="bg-white rounded-2xl w-[560px] max-w-[95vw] max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+          <div className="bg-surface rounded w-[560px] max-w-[95vw] max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between p-5 pb-0">
-              <h2 className="text-base font-bold text-[#0D2B55]">Generate Invoices</h2>
-              <button onClick={() => setShowGenerate(false)} className="text-[#64748B] hover:text-[#0D2B55] text-lg">✕</button>
+              <h2 className="text-base font-semibold text-ink">Generate Invoices</h2>
+              <button onClick={() => setShowGenerate(false)} className="text-muted hover:text-ink text-lg" aria-label="Close"><X size={16} aria-hidden="true" /></button>
             </div>
             <form onSubmit={handleGenerate} className="p-5 space-y-3.5">
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-[11px] font-bold text-[#64748B] uppercase mb-1">Fee Item</label>
+                  <label className="block text-xs font-semibold text-muted mb-1">Fee Item</label>
                   <select value={genForm.fee_item_id} onChange={e => setGenForm({ ...genForm, fee_item_id: e.target.value })}
-                    className="w-full px-3 py-2 rounded-lg border border-[#DDE5F0] text-sm outline-none focus:border-[#1A7A4A] bg-white">
+                    className="w-full px-3 py-2 rounded border border-line text-sm outline-none focus:border-brand bg-surface">
                     <option value="">Select fee item</option>
-                    <option value="__all__">📋 All Fee Items</option>
-                    {feeItems.map(f => <option key={f.id} value={f.id}>{f.name} — ₦{Number(f.amount).toLocaleString()}</option>)}
+                    <option value="__all__">All Fee Items</option>
+                    {feeItems.map(f => <option key={f.id} value={f.id}>{f.name} - ₦{Number(f.amount).toLocaleString()}</option>)}
                   </select>
                 </div>
                 <div>
-                  <label className="block text-[11px] font-bold text-[#64748B] uppercase mb-1">Class</label>
+                  <label className="block text-xs font-semibold text-muted mb-1">Class</label>
                   <select value={genForm.year_group ? `yg:${genForm.year_group}` : genForm.class_group} onChange={e => handleClassSelect(e.target.value)}
-                    className="w-full px-3 py-2 rounded-lg border border-[#DDE5F0] text-sm outline-none focus:border-[#1A7A4A] bg-white">
+                    className="w-full px-3 py-2 rounded border border-line text-sm outline-none focus:border-brand bg-surface">
                     <option value="">All classes</option>
-                    <option disabled className="text-[#64748B] bg-[#F7F9FC]">— Categories —</option>
+                    <option disabled className="text-muted bg-page">- Categories -</option>
                     {CATEGORY_GROUPS.map(cg => (
                       <option key={cg} value={`yg:${cg}`}>{cg} (All Classes)</option>
                     ))}
-                    <option disabled className="text-[#64748B] bg-[#F7F9FC]">— Year Groups —</option>
+                    <option disabled className="text-muted bg-page">- Year Groups -</option>
                     {YEAR_GROUPS.map(yg => (
                       <option key={yg} value={`yg:${yg}`}>{yg} (All Arms)</option>
                     ))}
-                    <option disabled className="text-[#64748B] bg-[#F7F9FC]">— Specific Classes —</option>
+                    <option disabled className="text-muted bg-page">- Specific Classes -</option>
                     {clsList.map(c => (
                       <option key={c.id} value={c.id}>{c.name}</option>
                     ))}
@@ -413,20 +414,20 @@ export default function InvoicesTab({ onRefresh }: { onRefresh: () => void }) {
               </div>
               {genForm.fee_item_id === '__all__' && (
                 <div>
-                  <label className="text-[11px] font-bold text-[#64748B] uppercase mb-1.5 block">Fee Items to Include</label>
-                  <div className="border border-[#DDE5F0] rounded-lg divide-y divide-[#DDE5F0] max-h-[180px] overflow-y-auto">
+                  <label className="text-xs font-semibold text-muted mb-1.5 block">Fee Items to Include</label>
+                  <div className="border border-line rounded divide-y divide-line max-h-[180px] overflow-y-auto">
                     {feeItems
                       .slice()
                       .sort((a, b) => (a.is_mandatory === b.is_mandatory ? 0 : a.is_mandatory ? -1 : 1))
                       .map(f => {
                         const checked = selectedFeeItemIds.has(f.id);
                         return (
-                          <label key={f.id} className={`flex items-center gap-2.5 px-3 py-1.5 cursor-pointer hover:bg-[#F8FAFF] ${f.is_mandatory ? 'bg-[#F0FBF4]' : ''}`}>
+                          <label key={f.id} className={`flex items-center gap-2.5 px-3 py-1.5 cursor-pointer hover:bg-page ${f.is_mandatory ? 'bg-[#F0FBF4]' : ''}`}>
                             <input type="checkbox" checked={checked}
                               onChange={() => setSelectedFeeItemIds(prev => { const n = new Set(prev); n.has(f.id) ? n.delete(f.id) : n.add(f.id); return n; })}
-                              className="w-4 h-4 rounded border-[#DDE5F0] text-[#1A7A4A] focus:ring-[#1A7A4A]" />
-                            <span className="text-sm text-[#0D2B55] flex-1">{f.name}</span>
-                            <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${f.is_mandatory ? 'bg-[#D1FAE5] text-[#065F46]' : 'bg-[#FEF3C7] text-[#D4930A]'}`}>{f.is_mandatory ? 'Mandatory' : 'Optional'}</span>
+                              className="w-4 h-4 rounded border-line text-brand focus:ring-brand" />
+                            <span className="text-sm text-ink flex-1">{f.name}</span>
+                            <span className={`text-xs font-semibold px-1.5 py-0.5 rounded ${f.is_mandatory ? 'bg-success/10 text-success' : 'bg-warning/10 text-warning'}`}>{f.is_mandatory ? 'Mandatory' : 'Optional'}</span>
                           </label>
                         );
                       })}
@@ -436,28 +437,28 @@ export default function InvoicesTab({ onRefresh }: { onRefresh: () => void }) {
               {genStudents.length > 0 && (
                 <div>
                   <div className="flex items-center justify-between mb-2">
-                    <label className="text-[11px] font-bold text-[#64748B] uppercase">{genStudents.length} students</label>
+                    <label className="text-xs font-semibold text-muted">{genStudents.length} students</label>
                     <div className="flex gap-2">
-                      <button type="button" onClick={selectAll} className="text-[11px] text-[#1A7A4A] hover:underline">Select all</button>
-                      <button type="button" onClick={deselectAll} className="text-[11px] text-[#64748B] hover:underline">Deselect</button>
+                      <button type="button" onClick={selectAll} className="text-xs text-brand hover:underline">Select all</button>
+                      <button type="button" onClick={deselectAll} className="text-xs text-muted hover:underline">Deselect</button>
                     </div>
                   </div>
-                  <div className="max-h-[240px] overflow-y-auto border border-[#DDE5F0] rounded-lg divide-y divide-[#DDE5F0]">
+                  <div className="max-h-[240px] overflow-y-auto border border-line rounded divide-y divide-line">
                     {genStudents.map(s => (
-                      <label key={s.id} className="flex items-center gap-2.5 px-3 py-2 cursor-pointer hover:bg-[#F8FAFF]">
+                      <label key={s.id} className="flex items-center gap-2.5 px-3 py-2 cursor-pointer hover:bg-page">
                         <input type="checkbox" checked={genForm.student_ids.includes(s.id)} onChange={() => toggleStudent(s.id)}
-                          className="w-4 h-4 rounded border-[#DDE5F0] text-[#1A7A4A] focus:ring-[#1A7A4A]" />
-                        <span className="text-sm text-[#0D2B55]">{s.first_name} {s.last_name}</span>
+                          className="w-4 h-4 rounded border-line text-brand focus:ring-brand" />
+                        <span className="text-sm text-ink">{s.first_name} {s.last_name}</span>
                       </label>
                     ))}
                   </div>
                 </div>
               )}
-              {genError && <p className="text-[11px] text-[#B91C1C]">{genError}</p>}
+              {genError && <p className="text-xs text-danger">{genError}</p>}
               <div className="flex justify-end gap-2 pt-2">
-                <button type="button" onClick={() => setShowGenerate(false)} className="text-sm px-4 py-2 rounded-lg border border-[#DDE5F0] bg-white hover:bg-[#F0F4FA]">Cancel</button>
+                <button type="button" onClick={() => setShowGenerate(false)} className="text-sm px-4 py-2 rounded border border-line bg-surface hover:bg-surface-2">Cancel</button>
                 <button type="submit" disabled={generating || genForm.student_ids.length === 0 || !genForm.fee_item_id}
-                  className="text-sm px-4 py-2 rounded-lg bg-[#1A7A4A] text-white hover:bg-[#14663D] disabled:opacity-50">
+                  className="text-sm px-4 py-2 rounded bg-brand text-brand-ink hover:opacity-90 disabled:opacity-50">
                   {generating ? 'Generating…' : genForm.fee_item_id === '__all__' ? 'Generate Invoices' : `Generate ${genForm.student_ids.length} Invoice${genForm.student_ids.length !== 1 ? 's' : ''}`}
                 </button>
               </div>
@@ -468,41 +469,41 @@ export default function InvoicesTab({ onRefresh }: { onRefresh: () => void }) {
 
       {showPayment && payInvoice && (
         <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center" onClick={() => setShowPayment(false)}>
-          <div className="bg-white rounded-2xl w-[440px] max-w-[95vw]" onClick={e => e.stopPropagation()}>
+          <div className="bg-surface rounded w-[440px] max-w-[95vw]" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between p-5 pb-0">
-              <h2 className="text-base font-bold text-[#0D2B55]">Record Payment</h2>
-              <button onClick={() => setShowPayment(false)} className="text-[#64748B] hover:text-[#0D2B55] text-lg">✕</button>
+              <h2 className="text-base font-semibold text-ink">Record Payment</h2>
+              <button onClick={() => setShowPayment(false)} className="text-muted hover:text-ink text-lg" aria-label="Close"><X size={16} aria-hidden="true" /></button>
             </div>
-            <div className="px-5 py-3 bg-[#F7F9FC] mx-5 rounded-lg mb-3">
-              <p className="text-xs text-[#64748B]">{payInvoice.student_name}</p>
-              <p className="text-[11px] text-[#64748B]">
+            <div className="px-5 py-3 bg-page mx-5 rounded mb-3">
+              <p className="text-xs text-muted">{payInvoice.student_name}</p>
+              <p className="text-xs text-muted">
                 {(payInvoice.items || []).map(it => it.fee_name).filter(Boolean).join(', ') || 'Fee'}
-                {' — '}Balance: <strong className="text-[#0D2B55]">₦{(Number(payInvoice.amount_due) - Number(payInvoice.amount_paid)).toLocaleString()}</strong>
+                {' - '}Balance: <strong className="text-ink">₦{(Number(payInvoice.amount_due) - Number(payInvoice.amount_paid)).toLocaleString()}</strong>
               </p>
             </div>
             <form onSubmit={handlePayment} className="p-5 pt-0 space-y-3.5">
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-[11px] font-bold text-[#64748B] uppercase mb-1">Amount</label>
+                  <label className="block text-xs font-semibold text-muted mb-1">Amount</label>
                   <input type="number" value={payForm.amount} onChange={e => setPayForm({ ...payForm, amount: e.target.value })} required min="1"
-                    className="w-full px-3 py-2 rounded-lg border border-[#DDE5F0] text-sm outline-none focus:border-[#1A7A4A]" />
+                    className="w-full px-3 py-2 rounded border border-line text-sm outline-none focus:border-brand" />
                 </div>
                 <div>
-                  <label className="block text-[11px] font-bold text-[#64748B] uppercase mb-1">Method</label>
+                  <label className="block text-xs font-semibold text-muted mb-1">Method</label>
                   <select value={payForm.method} onChange={e => setPayForm({ ...payForm, method: e.target.value })}
-                    className="w-full px-3 py-2 rounded-lg border border-[#DDE5F0] text-sm outline-none focus:border-[#1A7A4A] bg-white">
+                    className="w-full px-3 py-2 rounded border border-line text-sm outline-none focus:border-brand bg-surface">
                     {PAYMENT_METHODS.map(m => <option key={m} value={m}>{m}</option>)}
                   </select>
                 </div>
               </div>
               <div>
-                <label className="block text-[11px] font-bold text-[#64748B] uppercase mb-1">Reference (optional)</label>
+                <label className="block text-xs font-semibold text-muted mb-1">Reference (optional)</label>
                 <input value={payForm.ref} onChange={e => setPayForm({ ...payForm, ref: e.target.value })}
-                  className="w-full px-3 py-2 rounded-lg border border-[#DDE5F0] text-sm outline-none focus:border-[#1A7A4A]" />
+                  className="w-full px-3 py-2 rounded border border-line text-sm outline-none focus:border-brand" />
               </div>
               <div className="flex justify-end gap-2 pt-2">
-                <button type="button" onClick={() => setShowPayment(false)} className="text-sm px-4 py-2 rounded-lg border border-[#DDE5F0] bg-white hover:bg-[#F0F4FA]">Cancel</button>
-                <button type="submit" className="text-sm px-4 py-2 rounded-lg bg-[#1A7A4A] text-white hover:bg-[#14663D]">Record Payment</button>
+                <button type="button" onClick={() => setShowPayment(false)} className="text-sm px-4 py-2 rounded border border-line bg-surface hover:bg-surface-2">Cancel</button>
+                <button type="submit" className="text-sm px-4 py-2 rounded bg-brand text-brand-ink hover:opacity-90">Record Payment</button>
               </div>
             </form>
           </div>
