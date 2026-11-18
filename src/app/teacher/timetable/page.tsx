@@ -66,7 +66,7 @@ export default function TeacherTimetablePage() {
                     const slot = tt.slots.find(s => s.day === d && s.period === p);
                     const isMySubject = slot?.teacher_name || slot?.subject_name;
                     return (
-                      <td key={d} className={`px-3 py-2.5 text-center ${slot ? (isMySubject ? 'bg-brand-soft' : '') : 'bg-[#FAFBFC]'}`}>
+                      <td key={d} className={`px-3 py-2.5 text-center ${slot ? (isMySubject ? 'bg-brand-soft' : '') : 'bg-page'}`}>
                         {slot ? (
                           <div>
                             <div className="font-semibold text-ink">{slot.subject_name || '-'}</div>

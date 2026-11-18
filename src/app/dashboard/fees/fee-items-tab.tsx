@@ -95,7 +95,7 @@ export default function FeeItemsTab({ onRefresh }: { onRefresh: () => void }) {
       <div className="flex items-center justify-between mb-4">
         <p className="text-xs text-muted">{items.length} fee items configured</p>
         <div className="flex gap-2">
-          <button onClick={() => setShowBulk(true)} className="text-sm px-3.5 py-2 rounded border border-brand text-brand hover:bg-[#F0FBF4]">Bulk Create</button>
+          <button onClick={() => setShowBulk(true)} className="text-sm px-3.5 py-2 rounded border border-brand text-brand hover:bg-success/10">Bulk Create</button>
           <button onClick={openAdd} className="text-sm px-3.5 py-2 rounded bg-brand text-brand-ink hover:opacity-90">+ Add Fee Item</button>
         </div>
       </div>
@@ -374,7 +374,7 @@ function BulkCreateModal({ classes, onClose, onDone }: { classes: Class[]; onClo
                     ))}
                     <td className="px-2 py-2">
                       {rows.length > 1 && (
-                        <button type="button" onClick={() => removeRow(ri)} aria-label="Remove row" className="text-danger text-sm hover:text-red-700"><X size={16} aria-hidden="true" /></button>
+                        <button type="button" onClick={() => removeRow(ri)} aria-label="Remove row" className="text-danger text-sm hover:text-danger"><X size={16} aria-hidden="true" /></button>
                       )}
                     </td>
                   </tr>

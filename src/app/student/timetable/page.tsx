@@ -54,7 +54,7 @@ export default function StudentTimetablePage() {
                   {DAYS.map(d => {
                     const slot = tt.slots.find(s => s.day === d && s.period === p);
                     return (
-                      <td key={d} className={`px-3 py-2.5 text-center ${slot ? 'bg-brand-soft' : 'bg-[#FAFBFC]'}`}>
+                      <td key={d} className={`px-3 py-2.5 text-center ${slot ? 'bg-brand-soft' : 'bg-page'}`}>
                         {slot ? (
                           <div>
                             <div className="font-semibold text-ink">{slot.subject_name || '-'}</div>

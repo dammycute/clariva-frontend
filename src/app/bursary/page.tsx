@@ -2,8 +2,9 @@
 
 import { useState, useEffect } from 'react';
 import { api } from '@/lib/api';
-import Link from 'next/link';
-import { Banknote, User } from 'lucide-react';
+import { SummaryStrip, Stat, StatSkeleton, Panel, LinkList } from '@/components/ui/summary';
+
+const naira = (n: number) => `₦${Math.round(n).toLocaleString('en-NG')}`;
 
 export default function BursaryDashboard() {
   const [summary, setSummary] = useState<{
@@ -12,83 +13,78 @@ export default function BursaryDashboard() {
     item_breakdown: { name: string; total_due: number; total_paid: number; outstanding: number }[];
   } | null>(null);
   const [loading, setLoading] = useState(true);
+  const [failed, setFailed] = useState(false);
 
   useEffect(() => {
     api.feeInvoices.bursarySummary()
       .then(setSummary)
-      .catch(() => {})
+      .catch(() => setFailed(true))
       .finally(() => setLoading(false));
   }, []);
 
-  if (loading) return <div className="text-center text-sm text-muted py-12">Loading bursary summary…</div>;
+  const dash = '-';
 
   return (
-    <div>
-      <div className="mb-6">
-        <h1 className="text-xl font-semibold text-ink">Bursary Dashboard</h1>
-        <p className="text-xs text-muted mt-0.5">Fee collection overview for your school</p>
-      </div>
+    <div className="max-w-[1120px]">
+      <header className="mb-6">
+        <h1 className="text-[22px] font-semibold text-ink leading-tight">Fee collection</h1>
+        <p className="text-[13px] text-muted mt-1">Where fees stand across the school.</p>
+      </header>
 
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-        <div className="bg-surface border border-line rounded p-4">
-          <p className="text-xs font-semibold text-muted">Total Due</p>
-          <p className="text-xl font-semibold text-ink">₦{summary ? summary.total_due.toLocaleString() : '-'}</p>
-        </div>
-        <div className="bg-surface border border-line rounded p-4">
-          <p className="text-xs font-semibold text-muted">Collected</p>
-          <p className="text-xl font-semibold text-brand">₦{summary ? summary.total_paid.toLocaleString() : '-'}</p>
-        </div>
-        <div className="bg-surface border border-line rounded p-4">
-          <p className="text-xs font-semibold text-muted">Outstanding</p>
-          <p className="text-xl font-semibold text-danger">₦{summary ? summary.outstanding.toLocaleString() : '-'}</p>
-        </div>
-        <div className="bg-surface border border-line rounded p-4">
-          <p className="text-xs font-semibold text-muted">Collection Rate</p>
-          <p className="text-xl font-semibold text-warning">{summary ? `${summary.collection_rate}%` : '-'}</p>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-2 gap-4 mb-6">
-        <div className="bg-surface border border-line rounded p-4">
-          <p className="text-xs font-semibold text-muted">Paid Invoices</p>
-          <p className="text-xl font-semibold text-brand">{summary?.paid_invoices || 0}</p>
-        </div>
-        <div className="bg-surface border border-line rounded p-4">
-          <p className="text-xs font-semibold text-muted">Pending Invoices</p>
-          <p className="text-xl font-semibold text-danger">{summary?.pending_invoices || 0}</p>
-        </div>
-      </div>
-
-      {summary && summary.item_breakdown.length > 0 && (
-        <div className="bg-surface border border-line rounded overflow-hidden mb-6">
-          <div className="px-4 py-3 border-b border-line">
-            <h3 className="text-sm font-semibold text-ink">Fee Item Breakdown</h3>
-          </div>
-          <div className="divide-y divide-line">
-            {summary.item_breakdown.map((item, idx) => (
-              <div key={idx} className="px-4 py-3 flex items-center justify-between">
-                <p className="text-xs font-semibold text-ink">{item.name}</p>
-                <div className="text-right">
-                  <p className="text-xs text-muted">₦{item.total_paid.toLocaleString()} / ₦{item.total_due.toLocaleString()}</p>
-                  <p className={`text-xs font-semibold ${item.outstanding > 0 ? 'text-danger' : 'text-brand'}`}>
-                    {item.outstanding > 0 ? `₦${item.outstanding.toLocaleString()} outstanding` : 'Fully paid'}
-                  </p>
-                </div>
-              </div>
-            ))}
-          </div>
+      {failed && (
+        <div role="alert" className="mb-6 text-sm text-danger bg-danger-soft border border-danger/30 rounded px-3 py-2">
+          We couldn&apos;t load the fee summary. Refresh to try again.
         </div>
       )}
 
-      <div className="grid grid-cols-2 gap-3">
-        <Link href="/dashboard/fees"
-          className="flex items-center gap-3 px-4 py-3.5 bg-surface border border-line rounded text-sm text-ink hover:bg-surface-2">
-          <span className="text-lg" aria-hidden="true"><Banknote size={18} /></span> Manage Invoices
-        </Link>
-        <Link href="/dashboard/students"
-          className="flex items-center gap-3 px-4 py-3.5 bg-surface border border-line rounded text-sm text-ink hover:bg-surface-2">
-          <span className="text-lg" aria-hidden="true"><User size={18} /></span> View Students
-        </Link>
+      <SummaryStrip className="mb-6">
+        {loading ? Array.from({ length: 4 }).map((_, i) => <StatSkeleton key={i} />) : (
+          <>
+            <Stat label="Charged" value={summary ? naira(summary.total_due) : dash} note={summary ? `${summary.total_students.toLocaleString()} students` : undefined} />
+            <Stat label="Collected" value={summary ? naira(summary.total_paid) : dash} note={summary ? `${summary.collection_rate}% of charged` : undefined} progress={summary ? summary.collection_rate : undefined} />
+            <Stat label="Outstanding" value={summary ? naira(summary.outstanding) : dash} tone={summary && summary.outstanding > 0 ? 'danger' : undefined} />
+            <Stat label="Invoices" value={summary ? `${summary.paid_invoices} paid` : dash} note={summary ? `${summary.pending_invoices} pending` : undefined} />
+          </>
+        )}
+      </SummaryStrip>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {summary && summary.item_breakdown.length > 0 && (
+          <div className="lg:col-span-2">
+            <Panel title="By fee item">
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm border-collapse">
+                  <thead>
+                    <tr className="border-b border-line text-left">
+                      <th className="px-4 py-2 text-[13px] font-medium text-muted">Item</th>
+                      <th className="px-4 py-2 text-[13px] font-medium text-muted text-right">Charged</th>
+                      <th className="px-4 py-2 text-[13px] font-medium text-muted text-right">Paid</th>
+                      <th className="px-4 py-2 text-[13px] font-medium text-muted text-right">Outstanding</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {summary.item_breakdown.map((item, idx) => (
+                      <tr key={idx} className="border-b border-line last:border-0">
+                        <td className="px-4 py-2.5 text-ink">{item.name}</td>
+                        <td className="px-4 py-2.5 text-right tabular-nums">{naira(item.total_due)}</td>
+                        <td className="px-4 py-2.5 text-right tabular-nums">{naira(item.total_paid)}</td>
+                        <td className={`px-4 py-2.5 text-right tabular-nums font-medium ${item.outstanding > 0 ? 'text-danger' : 'text-success'}`}>
+                          {item.outstanding > 0 ? naira(item.outstanding) : 'Paid'}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </Panel>
+          </div>
+        )}
+
+        <div className={summary && summary.item_breakdown.length > 0 ? '' : 'lg:col-span-3'}>
+          <Panel title="Where to work">
+            <LinkList items={[{ label: 'Invoices', text: 'Find an invoice and record a payment.', href: '/bursary/invoices' }]} />
+          </Panel>
+        </div>
       </div>
     </div>
   );

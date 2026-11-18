@@ -26,8 +26,8 @@ const DIFFICULTIES = ['easy', 'medium', 'hard'];
 const Q_TYPES = ['mcq', 'true_false', 'short_answer'];
 
 const typeLabel: Record<string, string> = { mcq: 'MCQ', true_false: 'T-F', short_answer: 'Short Answer' };
-const diffColors: Record<string, string> = { easy: 'bg-green-100 text-green-700', medium: 'bg-amber-100 text-amber-700', hard: 'bg-red-100 text-red-700' };
-const typeColors: Record<string, string> = { mcq: 'bg-blue-100 text-blue-700', true_false: 'bg-purple-100 text-purple-700', short_answer: 'bg-teal-100 text-teal-700' };
+const diffColors: Record<string, string> = { easy: 'bg-success/10 text-success', medium: 'bg-warning/10 text-warning', hard: 'bg-danger-soft text-danger' };
+const typeColors: Record<string, string> = { mcq: 'bg-brand-soft text-brand', true_false: 'bg-brand-soft text-brand', short_answer: 'bg-brand-soft text-brand' };
 
 export default function ExamDetailPage() {
   const params = useParams();
@@ -231,7 +231,7 @@ export default function ExamDetailPage() {
         <button onClick={() => router.push('/dashboard/cbt')} className="text-sm text-muted hover:text-ink inline-flex items-center gap-1"><ChevronLeft size={16} aria-hidden="true" /> Exams</button>
         <div className="h-4 w-px bg-line" />
         <h1 className="text-xl font-semibold text-ink">{exam.title}</h1>
-        <span className={`text-xs px-2 py-0.5 rounded font-semibold ${exam.status === 'published' ? 'bg-blue-100 text-blue-700' : exam.status === 'draft' ? 'bg-gray-100 text-gray-600' : exam.status === 'ongoing' ? 'bg-green-100 text-green-700' : exam.status === 'completed' ? 'bg-amber-100 text-amber-700' : 'bg-red-100 text-red-700'}`}>{exam.status}</span>
+        <span className={`text-xs px-2 py-0.5 rounded font-semibold ${exam.status === 'published' ? 'bg-brand-soft text-brand' : exam.status === 'draft' ? 'bg-surface-2 text-muted' : exam.status === 'ongoing' ? 'bg-success/10 text-success' : exam.status === 'completed' ? 'bg-warning/10 text-warning' : 'bg-danger-soft text-danger'}`}>{exam.status}</span>
       </div>
 
       {/* summary cards */}
@@ -261,7 +261,7 @@ export default function ExamDetailPage() {
         <div
           onDragOver={handleDragOver} onDragLeave={handleDragLeave} onDrop={handleDrop}
           onClick={() => fileInputRef.current?.click()}
-          className={`border-2 border-dashed rounded p-6 text-center cursor-pointer transition-colors ${dragging ? 'border-brand bg-green-50' : 'border-line hover:border-brand hover:bg-page'}`}
+          className={`border-2 border-dashed rounded p-6 text-center cursor-pointer transition-colors ${dragging ? 'border-brand bg-success/10' : 'border-line hover:border-brand hover:bg-page'}`}
         >
           <input ref={fileInputRef} type="file" accept=".docx" className="hidden"
             onChange={e => { const f = e.target.files?.[0]; if (f) { setUploadFile(f); setUploadResult(null); } }} />
@@ -291,12 +291,12 @@ export default function ExamDetailPage() {
         )}
 
         {uploadResult && (
-          <div className={`mt-3 text-xs px-3 py-2 rounded ${uploadResult.ok ? 'bg-green-50 text-green-700 border border-green-200' : 'bg-red-50 text-red-700 border border-red-200'}`}>
+          <div className={`mt-3 text-xs px-3 py-2 rounded ${uploadResult.ok ? 'bg-success/10 text-success border border-success/30' : 'bg-danger-soft text-danger border border-danger/30'}`}>
             {uploadResult.ok
               ? <CheckCircle2 size={16} className="inline align-[-3px] mr-1" aria-hidden="true" />
               : <X size={16} className="inline align-[-3px] mr-1" aria-hidden="true" />}{uploadResult.msg}
             {uploadResult.warnings && uploadResult.warnings.length > 0 && (
-              <div className="mt-1 text-amber-700">
+              <div className="mt-1 text-warning">
                 {uploadResult.warnings.map((w, i) => (
                   <div key={i}><AlertTriangle size={16} className="inline align-[-3px] mr-1" aria-hidden="true" />{w}</div>
                 ))}
@@ -362,10 +362,10 @@ export default function ExamDetailPage() {
                         >{q.body}</p>
                       </div>
                       <div className="flex items-center gap-2 mt-1.5 flex-wrap">
-                        {renderBadge(typeLabel[q.question_type] || q.question_type, typeColors[q.question_type] || 'bg-gray-100 text-gray-600')}
-                        {renderBadge(q.difficulty, diffColors[q.difficulty] || 'bg-gray-100 text-gray-600')}
+                        {renderBadge(typeLabel[q.question_type] || q.question_type, typeColors[q.question_type] || 'bg-surface-2 text-muted')}
+                        {renderBadge(q.difficulty, diffColors[q.difficulty] || 'bg-surface-2 text-muted')}
                         <span className="text-xs text-muted">{q.mark} mark{q.mark > 1 ? 's' : ''}</span>
-                        <span className="text-xs flex items-center gap-0.5 text-green-700 font-medium">
+                        <span className="text-xs flex items-center gap-0.5 text-success font-medium">
                           <Check size={16} aria-hidden="true" /> {q.correct_answer}
                         </span>
                         {q.topic && <span className="text-xs text-muted">Topic: {q.topic}</span>}
@@ -373,7 +373,7 @@ export default function ExamDetailPage() {
                       {q.question_type === 'mcq' && q.options && (
                         <div className="flex flex-wrap gap-1.5 mt-1">
                           {q.options.map((o, oi) => (
-                            <span key={oi} className={`text-xs px-1.5 py-0.5 rounded ${o === q.correct_answer ? 'bg-green-100 text-green-700 font-semibold' : 'bg-surface-2 text-muted'}`}>{String.fromCharCode(65 + oi)}. {o}</span>
+                            <span key={oi} className={`text-xs px-1.5 py-0.5 rounded ${o === q.correct_answer ? 'bg-success/10 text-success font-semibold' : 'bg-surface-2 text-muted'}`}>{String.fromCharCode(65 + oi)}. {o}</span>
                           ))}
                         </div>
                       )}
@@ -404,7 +404,7 @@ export default function ExamDetailPage() {
                 <div key={q.id} draggable
                   onDragStart={() => handleReorderDragStart(i)}
                   onDragOver={e => handleReorderDragOver(e, i)}
-                  className={`flex items-center gap-2 p-2 rounded border cursor-grab active:cursor-grabbing text-xs ${dragIdx === i ? 'border-brand bg-green-50' : 'border-line hover:bg-page'}`}
+                  className={`flex items-center gap-2 p-2 rounded border cursor-grab active:cursor-grabbing text-xs ${dragIdx === i ? 'border-brand bg-success/10' : 'border-line hover:bg-page'}`}
                 >
                   <span className="text-muted">⠿</span>
                   <span className="font-semibold text-ink shrink-0">Q{i + 1}.</span>

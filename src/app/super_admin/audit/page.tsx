@@ -84,7 +84,7 @@ export default function SuperAdminAudit() {
         <div className="bg-surface border border-line rounded overflow-hidden">
           <div className="divide-y divide-line">
             {filtered.map(log => (
-              <div key={log.id} className="px-4 py-3 hover:bg-[#F8FAFC] transition-colors">
+              <div key={log.id} className="px-4 py-3 hover:bg-surface-2 transition-colors">
                 <div className="flex items-center justify-between mb-1">
                   <div className="flex items-center gap-2">
                     <span className={`px-2 py-0.5 rounded text-xs font-semibold ${ACTION_COLORS[log.action] || 'bg-surface-2 text-muted'}`}>

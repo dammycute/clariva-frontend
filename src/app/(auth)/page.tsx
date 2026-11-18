@@ -7,6 +7,7 @@ import { auth, portal } from '@/lib/api';
 import { AuthShell, FormError } from '@/components/auth-shell';
 import { Button } from '@/components/ui/button';
 import { TextField, PasswordField } from '@/components/ui/text-field';
+import { safeRedirect } from '@/lib/safe-redirect';
 
 type Role = 'staff' | 'student' | 'parent';
 
@@ -49,8 +50,6 @@ export default function LoginPage() {
   // staff fields
   const [staffEmail, setStaffEmail] = useState('');
   const [staffPassword, setStaffPassword] = useState('');
-  const [showSubdomain, setShowSubdomain] = useState(false);
-  const [subdomain, setSubdomain] = useState('');
   const staffEmailRef = useRef<HTMLInputElement>(null);
   const staffPassRef = useRef<HTMLInputElement>(null);
 
@@ -71,7 +70,7 @@ export default function LoginPage() {
   const resetAll = () => {
     setError('');
     setLoading(false);
-    setStaffEmail(''); setStaffPassword(''); setShowSubdomain(false); setSubdomain('');
+    setStaffEmail(''); setStaffPassword('');
     setStudentId(''); setStudentPassword('');
     setParentAdm(''); setParentCode(''); setLookupResult(null);
   };
@@ -96,6 +95,10 @@ export default function LoginPage() {
     try {
       const data = await auth.login(email, pass);
       const role = data.role;
+      // Go back to the page the person wanted. The middleware sends anyone
+      // who asked for the wrong portal to their own home page.
+      const wanted = safeRedirect(new URLSearchParams(window.location.search).get('redirect'));
+      if (wanted) { window.location.href = wanted; return; }
       if (role === 'teacher') { window.location.href = '/teacher'; return; }
       if (role === 'principal') { window.location.href = '/principal'; return; }
       if (role === 'bursary') { window.location.href = '/bursary'; return; }
@@ -115,7 +118,8 @@ export default function LoginPage() {
     setLoading(true); setError('');
     try {
       await auth.studentLogin(sid, pass);
-      window.location.href = '/student';
+      const wanted = safeRedirect(new URLSearchParams(window.location.search).get('redirect'));
+      window.location.href = wanted || '/student';
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Invalid credentials');
     }
@@ -149,22 +153,10 @@ export default function LoginPage() {
       <PasswordField ref={staffPassRef} id="staff-password" label="Password" autoComplete="current-password"
         value={staffPassword} onChange={e => setStaffPassword(e.target.value)}
         onKeyDown={handleKeyDown(handleStaffLogin)} />
-      <div className="flex items-center justify-between">
-        <button type="button" onClick={() => setShowSubdomain(!showSubdomain)} aria-expanded={showSubdomain}
-          className="text-[13px] text-muted hover:text-ink underline-offset-2 hover:underline cursor-pointer">
-          Sign in to a different school
-        </button>
-        <button type="button" className="text-[13px] text-muted hover:text-ink underline-offset-2 hover:underline cursor-pointer">
-          Forgot password?
-        </button>
-      </div>
-      {showSubdomain && (
-        <TextField id="staff-subdomain" label="School subdomain" value={subdomain}
-          onChange={e => setSubdomain(e.target.value)} placeholder="yourschool" />
-      )}
       <Button onClick={handleStaffLogin} disabled={loading || !staffEmail || !staffPassword} className="w-full">
         {loading ? 'Signing in…' : 'Sign in'}
       </Button>
+      <p className="text-[13px] text-muted">Forgot your password? Ask your school administrator to reset it.</p>
     </div>
   );
 

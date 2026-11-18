@@ -249,7 +249,7 @@ export default function TimetablePage() {
             </button>
             {currentTT && (
               <button onClick={togglePublish}
-                className={`text-sm px-4 py-2 rounded border ${currentTT.is_published ? 'bg-warning/10 text-warning border-[#FDE68A]' : 'bg-surface text-muted border-line hover:bg-surface-2'}`}>
+                className={`text-sm px-4 py-2 rounded border ${currentTT.is_published ? 'bg-warning/10 text-warning border-warning/30' : 'bg-surface text-muted border-line hover:bg-surface-2'}`}>
                 {currentTT.is_published ? 'Published' : 'Publish'}
               </button>
             )}
@@ -350,7 +350,7 @@ export default function TimetablePage() {
 
       {/* Click-to-assign indicator */}
       {selectedSubject && (
-        <div className="flex items-center gap-2 mb-3 px-3 py-1.5 bg-success/10 border border-[#6EE7B7] rounded text-xs text-success">
+        <div className="flex items-center gap-2 mb-3 px-3 py-1.5 bg-success/10 border border-success/30 rounded text-xs text-success">
           <span>Tap any empty cell to assign: <strong>{selectedSubject.name}</strong></span>
           <button onClick={() => setSelectedSubject(null)} className="ml-auto text-success hover:text-danger font-semibold">&times;</button>
         </div>
@@ -404,7 +404,7 @@ export default function TimetablePage() {
                               }
                             }}
                             className={`border-r border-b border-line p-1.5 min-h-[60px] align-top transition-colors ${
-                              selectedSubject && !slot?.subject ? 'bg-[#F0FDF4] cursor-pointer hover:bg-success/10' : 'bg-surface'
+                              selectedSubject && !slot?.subject ? 'bg-success/10 cursor-pointer hover:bg-success/10' : 'bg-surface'
                             }`}>
                             {slot?.subject ? (
                               <div className="space-y-1">
@@ -435,7 +435,7 @@ export default function TimetablePage() {
                                 )}
                               </div>
                             ) : (
-                              <div className="text-xs text-[#CBD5E1] text-center py-2">
+                              <div className="text-xs text-muted text-center py-2">
                                 {selectedSubject ? `+ ${selectedSubject.name}` : 'Drop subject here'}
                               </div>
                             )}

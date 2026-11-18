@@ -90,7 +90,7 @@ export default function ConfirmDialog({ open, title, message, onConfirm, onCance
             ref={confirmRef}
             onClick={onConfirm}
             disabled={loading}
-            className="text-sm px-4 py-2.5 rounded bg-danger text-white hover:bg-danger disabled:opacity-50 cursor-pointer min-h-[40px]"
+            className="text-sm px-4 py-2.5 rounded bg-danger text-brand-ink hover:bg-danger disabled:opacity-50 cursor-pointer min-h-[40px]"
           >
             {loading ? 'Deleting…' : confirmLabel}
           </button>

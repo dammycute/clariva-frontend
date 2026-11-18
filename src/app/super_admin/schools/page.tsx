@@ -51,7 +51,7 @@ export default function SuperAdminSchools() {
         <div className="bg-surface border border-line rounded overflow-hidden">
           <div className="divide-y divide-line">
             {filtered.map(s => (
-              <div key={s.id} className="px-4 py-3 flex items-center justify-between hover:bg-[#F8FAFC] transition-colors">
+              <div key={s.id} className="px-4 py-3 flex items-center justify-between hover:bg-surface-2 transition-colors">
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-semibold text-ink truncate">{s.name}</p>
                   <p className="text-xs text-muted">{s.subdomain}.clariva.ng · {s.plan} · {s.current_academic_year}</p>

@@ -410,7 +410,7 @@ export default function OnboardPage() {
             <label className="flex items-start gap-2.5 cursor-pointer min-h-6">
               <input type="checkbox" checked={agreeTerms} onChange={e => { setAgreeTerms(e.target.checked); setFieldErrors(p => { const n = { ...p }; delete n.terms; return n; }); }}
                 className="mt-0.5 w-4 h-4 accent-brand" />
-              <span className="text-sm text-ink">I accept Clariva&apos;s <Link href="/terms" className="underline underline-offset-2">terms of service</Link>.</span>
+              <span className="text-sm text-ink">I accept Clariva&apos;s <Link href="/terms" target="_blank" rel="noopener noreferrer" className="underline underline-offset-2">terms of service</Link>.</span>
             </label>
             {fieldErrors.terms && <p className="text-[13px] text-danger mt-1.5">{fieldErrors.terms}</p>}
           </div>

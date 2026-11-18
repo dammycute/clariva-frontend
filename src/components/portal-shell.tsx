@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { api, auth } from '@/lib/api';
 import { Sidebar, type NavSection } from '@/components/sidebar';
 import NotificationBell from '@/components/notification-bell';
+import { ThemeSwitch } from '@/components/theme-switch';
 
 const ROLE_LABELS: Record<string, string> = {
   school_admin: 'School admin', admin_officer: 'Admin officer', principal: 'Principal',
@@ -62,17 +63,20 @@ export function PortalShell({ nav, children, allowRoles, deniedHref = '/', showS
   );
 
   const footer = (
-    <div className="border-t border-line px-5 py-3 flex items-center justify-between gap-3">
-      <div className="min-w-0">
-        <div className="text-sm font-medium text-ink truncate">{userName}</div>
-        <div className="text-xs text-muted truncate">{roleLabel}</div>
+    <div className="border-t border-line px-5 py-3 space-y-3">
+      <ThemeSwitch />
+      <div className="flex items-center justify-between gap-3">
+        <div className="min-w-0">
+          <div className="text-sm font-medium text-ink truncate">{userName}</div>
+          <div className="text-xs text-muted truncate">{roleLabel}</div>
+        </div>
+        <button
+          onClick={() => { auth.logout(); router.push('/'); }}
+          className="text-xs text-muted hover:text-ink underline-offset-2 hover:underline cursor-pointer shrink-0"
+        >
+          Sign out
+        </button>
       </div>
-      <button
-        onClick={() => { auth.logout(); router.push('/'); }}
-        className="text-xs text-muted hover:text-ink underline-offset-2 hover:underline cursor-pointer shrink-0"
-      >
-        Sign out
-      </button>
     </div>
   );
 

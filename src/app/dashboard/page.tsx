@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { api, auth } from '@/lib/api';
 import Link from 'next/link';
 import { ChevronRight } from 'lucide-react';
+import { SummaryStrip, Stat, StatSkeleton, Panel } from '@/components/ui/summary';
 
 type Student = { id: string; first_name: string; last_name: string; admission_no: string; class_name?: string; student_status: string };
 
@@ -103,15 +104,9 @@ export default function DashboardHome() {
       )}
 
       {/* Summary strip */}
-      <section aria-label="Summary" className="bg-line border border-line rounded overflow-hidden grid grid-cols-2 lg:grid-cols-4 gap-px mb-6">
+      <SummaryStrip className="mb-6">
         {!loaded ? (
-          Array.from({ length: 4 }).map((_, i) => (
-            <div key={i} className="p-4 bg-surface space-y-2">
-              <div className="h-3 w-1/2 bg-surface-2 rounded animate-pulse" />
-              <div className="h-7 w-2/3 bg-surface-2 rounded animate-pulse" />
-              <div className="h-3 w-1/3 bg-surface-2 rounded animate-pulse" />
-            </div>
-          ))
+          Array.from({ length: 4 }).map((_, i) => <StatSkeleton key={i} />)
         ) : (
           <>
             <Stat label="Students" value={error ? dash : stats.students.toLocaleString()} note={error ? '' : `across ${stats.classes} ${stats.classes === 1 ? 'class' : 'classes'}`} />
@@ -129,7 +124,7 @@ export default function DashboardHome() {
             />
           </>
         )}
-      </section>
+      </SummaryStrip>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2">
@@ -191,36 +186,5 @@ export default function DashboardHome() {
         </div>
       </div>
     </div>
-  );
-}
-
-function Stat({ label, value, note, progress }: { label: string; value: string; note?: string; progress?: number }) {
-  return (
-    <div className="p-4 bg-surface">
-      <p className="text-[13px] text-muted">{label}</p>
-      <p className="text-[26px] font-semibold text-ink leading-tight mt-1 tabular-nums">{value}</p>
-      {note && <p className="text-xs text-muted mt-1 tabular-nums">{note}</p>}
-      {progress !== undefined && (
-        <div
-          className="h-1 bg-surface-2 rounded-full overflow-hidden mt-2"
-          role="progressbar" aria-valuenow={progress} aria-valuemin={0} aria-valuemax={100} aria-label={`${label}: ${progress}%`}
-        >
-          <div className="h-full bg-brand" style={{ width: `${Math.min(progress, 100)}%` }} />
-        </div>
-      )}
-    </div>
-  );
-}
-
-function Panel({ title, aside, action, children }: { title: string; aside?: string; action?: React.ReactNode; children: React.ReactNode }) {
-  return (
-    <section className="bg-surface border border-line rounded overflow-hidden">
-      <div className="px-4 h-11 border-b border-line flex items-center justify-between">
-        <h2 className="text-[15px] font-semibold text-ink">{title}</h2>
-        {aside && <span className="text-[13px] text-muted">{aside}</span>}
-        {action}
-      </div>
-      {children}
-    </section>
   );
 }

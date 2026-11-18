@@ -64,7 +64,7 @@ export default function OutstandingTab() {
 
   return (
     <div>
-      <div className="bg-warning/10 border border-[#FDE68A] rounded px-4 py-3.5 mb-4 flex items-center justify-between">
+      <div className="bg-warning/10 border border-warning/30 rounded px-4 py-3.5 mb-4 flex items-center justify-between">
         <div>
           <p className="text-xs font-semibold text-warning">Total Outstanding</p>
           <p className="text-2xl font-semibold text-ink mt-0.5">₦{totalOutstanding.toLocaleString()}</p>

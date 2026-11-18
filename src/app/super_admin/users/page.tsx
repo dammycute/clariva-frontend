@@ -15,8 +15,8 @@ const ROLE_COLORS: Record<string, string> = {
   principal: 'bg-brand-soft text-brand',
   teacher: 'bg-success/10 text-success',
   bursary: 'bg-warning/10 text-warning',
-  student: 'bg-[#E0F2FE] text-[#0369A1]',
-  parent: 'bg-[#FFF7ED] text-[#C2410C]',
+  student: 'bg-brand-soft text-brand',
+  parent: 'bg-warning/10 text-warning',
 };
 
 export default function SuperAdminUsers() {

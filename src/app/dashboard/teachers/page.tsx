@@ -342,7 +342,7 @@ export default function StaffPage() {
             </div>
             <form onSubmit={handleSubmit} className="p-5 space-y-3.5">
               {fieldErrors._form && (
-                <p role="alert" className="text-xs text-danger bg-danger-soft border border-[#FECACA] rounded px-3 py-2">
+                <p role="alert" className="text-xs text-danger bg-danger-soft border border-danger/30 rounded px-3 py-2">
                   {fieldErrors._form}
                 </p>
               )}

@@ -146,7 +146,7 @@ export default function StudentsTab() {
       {error && (
         <div className="bg-danger-soft border border-danger/30 text-danger rounded p-6 text-center mb-4">
           <p className="text-sm mb-3">{error}</p>
-          <button onClick={loadData} className="text-sm px-4 py-2 rounded bg-danger text-white hover:bg-danger">Try Again</button>
+          <button onClick={loadData} className="text-sm px-4 py-2 rounded bg-danger text-brand-ink hover:bg-danger">Try Again</button>
         </div>
       )}
 

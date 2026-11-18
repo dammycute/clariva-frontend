@@ -17,6 +17,13 @@ describe('public routes', () => {
     expect(res.headers.get('location')).toBeNull();
   });
 
+  it('lets signed-out users read the terms page', async () => {
+    const { NextRequest } = await import('next/server');
+    const { middleware } = await import('@/middleware');
+    const res = await middleware(new NextRequest('http://localhost/terms'));
+    expect(res.headers.get('location')).toBeNull();
+  });
+
   it('still redirects signed-out users away from the guardian dashboard', async () => {
     const { NextRequest } = await import('next/server');
     const { middleware } = await import('@/middleware');

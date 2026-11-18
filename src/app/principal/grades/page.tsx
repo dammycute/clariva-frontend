@@ -120,7 +120,7 @@ export default function PrincipalGradesPage() {
         {selectedSubject && statusFilter === 'submitted' && (
           <div className="flex gap-2 ml-auto">
             <button onClick={handleApprove} className="text-sm px-4 py-1.5 rounded bg-brand text-brand-ink hover:opacity-90 inline-flex items-center gap-1.5"><Check size={16} aria-hidden="true" /> Approve All</button>
-            <button onClick={handleReject} className="text-sm px-4 py-1.5 rounded bg-danger text-white hover:bg-danger inline-flex items-center gap-1.5"><X size={16} aria-hidden="true" /> Reject All</button>
+            <button onClick={handleReject} className="text-sm px-4 py-1.5 rounded bg-danger text-brand-ink hover:bg-danger inline-flex items-center gap-1.5"><X size={16} aria-hidden="true" /> Reject All</button>
           </div>
         )}
       </div>

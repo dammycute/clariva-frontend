@@ -30,7 +30,7 @@ export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   // `/guardian` is the guardian login page; `/guardian/dashboard` stays protected.
-  if (pathname.startsWith('/portal') || pathname === '/' || pathname.startsWith('/onboard') || pathname === '/guardian') {
+  if (pathname.startsWith('/portal') || pathname === '/' || pathname.startsWith('/onboard') || pathname === '/guardian' || pathname === '/terms') {
     return NextResponse.next();
   }
 

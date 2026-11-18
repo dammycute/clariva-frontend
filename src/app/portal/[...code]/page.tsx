@@ -5,6 +5,7 @@ import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import { portal } from '@/lib/api';
 import { Button } from '@/components/ui/button';
+import { Section, Figure } from '@/components/ui/report';
 import type { JSX } from 'react';
 
 type LookupResult = {
@@ -40,24 +41,6 @@ const STATUS_TONE: Record<string, string> = {
   partial: 'text-warning', suspended: 'text-warning',
   unpaid: 'text-danger', inactive: 'text-danger',
 };
-
-function Section({ title, children }: { title: string; children: React.ReactNode }) {
-  return (
-    <section className="py-6 border-t border-line print:break-inside-avoid">
-      <h2 className="text-[15px] font-semibold text-ink mb-4">{title}</h2>
-      {children}
-    </section>
-  );
-}
-
-function Figure({ label, value, tone }: { label: string; value: string | number; tone?: string }) {
-  return (
-    <div>
-      <dt className="text-[13px] text-muted">{label}</dt>
-      <dd className={`text-xl font-semibold tabular-nums mt-0.5 ${tone || 'text-ink'}`}>{value}</dd>
-    </div>
-  );
-}
 
 const TH = 'py-2 text-[13px] font-medium text-muted';
 
@@ -124,7 +107,7 @@ export default function PortalPage(): JSX.Element {
   const ts = new Date().toLocaleString('en-NG');
 
   return (
-    <div className="min-h-dvh bg-page print:bg-white">
+    <div className="min-h-dvh bg-page print:bg-surface">
       <main className="max-w-3xl mx-auto px-6 py-8 print:px-0 print:py-0">
         <header className="flex items-center justify-between mb-10 print:hidden">
           <Link href="/" className="text-lg font-semibold text-ink">Clariva</Link>
@@ -150,7 +133,7 @@ export default function PortalPage(): JSX.Element {
           <dl className="grid grid-cols-3 gap-4 mb-2">
             <Figure label="Charged" value={naira(fee.total_due)} />
             <Figure label="Paid" value={naira(fee.total_paid)} />
-            <Figure label="Balance" value={naira(fee.balance)} tone={fee.balance > 0 ? 'text-danger' : 'text-success'} />
+            <Figure label="Balance" value={naira(fee.balance)} tone={fee.balance > 0 ? 'danger' : 'success'} />
           </dl>
           <p className={`text-[13px] mb-4 ${STATUS_TONE[fee.status] || 'text-muted'}`}>Status: {fee.status}</p>
           {fee.items.length > 0 && (
@@ -185,7 +168,7 @@ export default function PortalPage(): JSX.Element {
         {rc && (
           <Section title={`Report card, ${rc.term} ${rc.academic_year}`}>
             <dl className="grid grid-cols-2 gap-4 mb-4">
-              {rc.average !== null && <Figure label="Average" value={`${rc.average}%`} tone={rc.average >= 50 ? 'text-ink' : 'text-danger'} />}
+              {rc.average !== null && <Figure label="Average" value={`${rc.average}%`} tone={rc.average >= 50 ? undefined : 'danger'} />}
               {rc.class_rank !== null && <Figure label="Class position" value={`${rc.class_rank}`} />}
             </dl>
 
@@ -225,7 +208,7 @@ export default function PortalPage(): JSX.Element {
 
         <Section title="Attendance">
           <dl className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-            {att.rate !== null && <Figure label="Attendance rate" value={`${att.rate}%`} tone={att.rate >= 75 ? 'text-ink' : 'text-danger'} />}
+            {att.rate !== null && <Figure label="Attendance rate" value={`${att.rate}%`} tone={att.rate >= 75 ? undefined : 'danger'} />}
             <Figure label="Present" value={att.present} />
             <Figure label="Absent" value={att.absent} />
             <Figure label="Late" value={att.late} />

@@ -221,7 +221,7 @@ export default function TakeExamPage() {
             </div>
           )}
           {startError && (
-            <div className="mb-4 text-xs text-red-700 bg-red-50 border border-red-200 rounded px-3 py-2">{startError}</div>
+            <div className="mb-4 text-xs text-danger bg-danger-soft border border-danger/30 rounded px-3 py-2">{startError}</div>
           )}
           <button onClick={handleStart} disabled={starting || !exam}
             className="w-full text-sm py-3 rounded bg-brand text-brand-ink font-semibold hover:opacity-90 disabled:opacity-50 transition-colors">
@@ -276,7 +276,7 @@ export default function TakeExamPage() {
           <span className="text-xs text-muted">{answeredCount}/{totalQuestions}</span>
           <button onClick={() => setShowNavigator(!showNavigator)} aria-label="Question map"
             className="px-2 py-1 rounded border border-line hover:bg-surface-2"><Map size={16} aria-hidden="true" /></button>
-          <div className={`text-base font-semibold font-mono min-w-[60px] text-center ${timerWarning ? 'text-red-600 animate-pulse' : 'text-ink'}`}>
+          <div className={`text-base font-semibold font-mono min-w-[60px] text-center ${timerWarning ? 'text-danger animate-pulse' : 'text-ink'}`}>
             {displayTime !== null ? formatTime(displayTime) : '--:--'}
           </div>
           <button onClick={handleSubmitClick} disabled={answeredCount === 0 || submitting}
@@ -295,16 +295,16 @@ export default function TakeExamPage() {
           </div>
           <div className="flex items-center gap-3 mb-2 text-xs text-muted">
             <span className="flex items-center gap-1"><span className="w-3 h-3 rounded border border-line bg-surface inline-block" /> Unanswered</span>
-            <span className="flex items-center gap-1"><span className="w-3 h-3 rounded bg-green-500 inline-block" /> Answered</span>
-            <span className="flex items-center gap-1"><span className="w-3 h-3 rounded bg-amber-400 inline-block" /> Flagged</span>
+            <span className="flex items-center gap-1"><span className="w-3 h-3 rounded bg-success inline-block" /> Answered</span>
+            <span className="flex items-center gap-1"><span className="w-3 h-3 rounded bg-warning inline-block" /> Flagged</span>
           </div>
           <div className="grid grid-cols-10 gap-1.5">
             {questions.map((q, i) => {
               const ans = answers[q.id];
               const flg = flagged.has(q.id);
               let bg = 'bg-surface border border-line';
-              if (ans) bg = 'bg-green-500 text-white border-green-500';
-              else if (flg) bg = 'bg-amber-400 text-white border-amber-400';
+              if (ans) bg = 'bg-success text-brand-ink border-success';
+              else if (flg) bg = 'bg-warning text-brand-ink border-warning';
               return (
                 <button key={q.id} onClick={() => { setCurrentIndex(i); setShowNavigator(false); }}
                   className={`w-full aspect-square rounded text-xs font-semibold ${bg} hover:opacity-80 transition-opacity`}>
@@ -324,14 +324,14 @@ export default function TakeExamPage() {
             <div className="flex-1 min-w-0 mr-3">
               <span className="text-xs font-semibold text-muted">Question {currentIndex + 1} of {totalQuestions}</span>
               <span className="text-xs text-muted ml-2">({currentQuestion.mark} mark{currentQuestion.mark > 1 ? 's' : ''})</span>
-              {isFlagged && <span className="text-amber-500 ml-2 inline-flex" aria-hidden="true"><Flag size={16} /></span>}
+              {isFlagged && <span className="text-warning ml-2 inline-flex" aria-hidden="true"><Flag size={16} /></span>}
             </div>
             <button onClick={() => {
               const s = new Set(flagged);
               isFlagged ? s.delete(currentQuestion.id) : s.add(currentQuestion.id);
               setFlagged(s);
             }}
-              className={`text-xs px-2.5 py-1 rounded border transition-colors inline-flex items-center gap-1 ${isFlagged ? 'border-amber-400 bg-amber-50 text-amber-700' : 'border-line hover:bg-surface-2 text-muted'}`}>
+              className={`text-xs px-2.5 py-1 rounded border transition-colors inline-flex items-center gap-1 ${isFlagged ? 'border-warning bg-warning/10 text-warning' : 'border-line hover:bg-surface-2 text-muted'}`}>
               <Flag size={16} aria-hidden="true" /> {isFlagged ? 'Flagged' : 'Flag'}
             </button>
           </div>
@@ -347,7 +347,7 @@ export default function TakeExamPage() {
                 return (
                   <button key={oi} onClick={() => setAnswers({ ...answers, [currentQuestion.id]: opt })}
                     className={`w-full text-left px-4 py-3 min-h-[52px] rounded border-2 text-sm font-medium transition-all ${
-                      selected ? 'border-green-500 bg-green-50 text-green-800' : 'border-line bg-surface text-ink hover:border-brand hover:bg-page'
+                      selected ? 'border-success bg-success/10 text-success' : 'border-line bg-surface text-ink hover:border-brand hover:bg-page'
                     }`}>
                     <span className="font-semibold mr-2">{String.fromCharCode(65 + oi)}.</span>
                     {opt}
@@ -365,7 +365,7 @@ export default function TakeExamPage() {
                 return (
                   <button key={v} onClick={() => setAnswers({ ...answers, [currentQuestion.id]: v })}
                     className={`w-full px-4 py-3 min-h-[52px] rounded border-2 text-sm font-semibold transition-all ${
-                      selected ? 'border-green-500 bg-green-50 text-green-800' : 'border-line bg-surface text-ink hover:border-brand hover:bg-page'
+                      selected ? 'border-success bg-success/10 text-success' : 'border-line bg-surface text-ink hover:border-brand hover:bg-page'
                     }`}>
                     {v}
                   </button>
@@ -422,7 +422,7 @@ export default function TakeExamPage() {
               Your exam will now be submitted. This cannot be undone.
             </p>
             <button onClick={() => { setShowTabWarning(false); handleSubmit(); }}
-              className="w-full text-sm py-3 rounded bg-danger text-white font-semibold hover:opacity-90 transition-colors">
+              className="w-full text-sm py-3 rounded bg-danger text-brand-ink font-semibold hover:opacity-90 transition-colors">
               End Exam
             </button>
           </div>
@@ -435,12 +435,12 @@ export default function TakeExamPage() {
           <div className="bg-surface rounded p-6 max-w-md w-[90vw]" onClick={e => e.stopPropagation()}>
             {confirmUnanswered.length > 0 ? (
               <>
-                <div className="mb-3 text-amber-500 flex justify-center" aria-hidden="true"><AlertTriangle size={32} /></div>
+                <div className="mb-3 text-warning flex justify-center" aria-hidden="true"><AlertTriangle size={32} /></div>
                 <h3 className="text-base font-semibold text-ink mb-2">Unanswered Questions</h3>
                 <p className="text-xs text-muted mb-3">You have <strong>{confirmUnanswered.length}</strong> unanswered question{confirmUnanswered.length > 1 ? 's' : ''}:</p>
                 <div className="flex flex-wrap gap-1 mb-4">
                   {confirmUnanswered.map(n => (
-                    <span key={n} className="px-2 py-0.5 bg-amber-100 text-amber-700 rounded text-xs font-semibold">{n}</span>
+                    <span key={n} className="px-2 py-0.5 bg-warning/10 text-warning rounded text-xs font-semibold">{n}</span>
                   ))}
                 </div>
                 <div className="flex gap-2 justify-end">

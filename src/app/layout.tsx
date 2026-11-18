@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist } from "next/font/google";
 import { Toaster } from "react-hot-toast";
 import "./globals.css";
+import { THEME_INIT_SCRIPT } from "@/lib/theme";
 
 const geist = Geist({
   variable: "--font-geist",
@@ -21,7 +22,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
+      </head>
       <body className={`${geist.variable} antialiased`} suppressHydrationWarning>
         {children}
         <Toaster position="top-right" toastOptions={{ duration: 5000, style: { fontSize: '14px', maxWidth: '420px' } }} />

@@ -103,7 +103,7 @@ export default function SuperAdminSystem() {
             </button>
             {backupData && (
               <button onClick={handleRestore} disabled={restoreLoading}
-                className="w-full px-4 py-2.5 bg-danger text-white text-xs font-medium rounded hover:bg-danger transition-colors disabled:opacity-50">
+                className="w-full px-4 py-2.5 bg-danger text-brand-ink text-xs font-medium rounded hover:bg-danger transition-colors disabled:opacity-50">
                 {restoreLoading ? 'Restoring...' : 'Restore from Backup'}
               </button>
             )}

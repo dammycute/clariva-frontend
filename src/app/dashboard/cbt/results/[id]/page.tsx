@@ -99,7 +99,7 @@ export default function ExamResultsPage() {
                     <td className="px-4 py-3">{s.tab_switches || 0}</td>
                     <td className="px-4 py-3">
                       {s.late_submission
-                        ? <span className="px-2 py-0.5 rounded text-xs font-semibold bg-amber-100 text-amber-700">Late</span>
+                        ? <span className="px-2 py-0.5 rounded text-xs font-semibold bg-warning/10 text-warning">Late</span>
                         : <span className="text-muted">-</span>}
                     </td>
                     <td className="px-4 py-3 text-muted">{s.submitted_at ? new Date(s.submitted_at).toLocaleString('en-NG') : '-'}</td>

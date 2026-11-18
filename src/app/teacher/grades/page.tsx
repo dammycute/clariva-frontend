@@ -143,7 +143,7 @@ export default function TeacherGradesPage() {
           {saving ? 'Saving…' : 'Save All Grades'}
         </button>
         {selectedSubject && (
-          <button onClick={submitToPrincipal} className="text-sm px-4 py-2 rounded bg-warning text-white hover:opacity-90">
+          <button onClick={submitToPrincipal} className="text-sm px-4 py-2 rounded bg-warning text-brand-ink hover:opacity-90">
             Submit to Principal
           </button>
         )}
@@ -158,7 +158,7 @@ export default function TeacherGradesPage() {
       )}
 
       {isFormTeacher && (
-        <div className="px-3 py-1.5 mb-3 bg-brand-soft border border-[#C4B5FD] rounded text-xs text-brand">
+        <div className="px-3 py-1.5 mb-3 bg-brand-soft border border-brand/30 rounded text-xs text-brand">
           You are the form teacher - all year-group subjects are available for grade entry.
         </div>
       )}

@@ -10,14 +10,14 @@
   --sky-tint: #E8F0FA;
   --off-white: #F7F9FC;
   --white: #FFFFFF;
-  --border: #DDE5F0;
+  --border: var(--c-line);
   --text: #0D2B55;
   --muted: #64748B;
   --red: #B91C1C;
   --red-light: #FEE2E2;
 
-  --background: var(--off-white);
-  --foreground: var(--text);
+  --background: var(--c-page);
+  --foreground: var(--c-ink);
 
   /* Semantic tokens. New and migrated UI uses these (bg-surface, text-muted, ...);
      the legacy variables above stay until every page is migrated. */
@@ -37,8 +37,8 @@
   --c-ring: #0D2B55;
 }
 
-/* Dark values. Not exposed in the UI yet: most pages still use hardcoded
-   colours, so a toggle would give a half-dark app. Wire it up once migrated. */
+/* Dark values. Applied when <html data-theme="dark"> (see lib/theme.ts and the
+   Light / Dark / System switch in the portal sidebar). */
 :root[data-theme="dark"] {
   --c-page: #0B1220;
   --c-surface: #111A2B;

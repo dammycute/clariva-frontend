@@ -3,14 +3,20 @@
 import { useState, useEffect } from 'react';
 import { api, auth } from '@/lib/api';
 import { useRouter } from 'next/navigation';
-import Link from 'next/link';
-import { FileText, CheckCircle2, Calendar, Monitor } from 'lucide-react';
+import { SummaryStrip, Stat, StatSkeleton, Panel, LinkList } from '@/components/ui/summary';
+
+const AREAS = [
+  { label: 'My grades', text: 'Your scores for each subject.', href: '/student/grades' },
+  { label: 'Attendance', text: 'Days you were present, absent or late.', href: '/student/attendance' },
+  { label: 'Timetable', text: 'Your weekly schedule.', href: '/student/timetable' },
+  { label: 'CBT exams', text: 'Exams you can take or have taken.', href: '/student/exams' },
+];
 
 export default function StudentDashboard() {
   const router = useRouter();
   const [profile, setProfile] = useState<{ first_name: string; last_name: string; admission_no: string; class_name?: string; } | null>(null);
   const [gradeCount, setGradeCount] = useState(0);
-  const [attRate, setAttRate] = useState(0);
+  const [attRate, setAttRate] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -30,52 +36,36 @@ export default function StudentDashboard() {
         setGradeCount(Array.isArray(gr) ? gr.length : 0);
         const attArr = Array.isArray(att) ? att as Array<{ status: string }> : [];
         const p = attArr.filter(a => a.status === 'present').length;
-        setAttRate(attArr.length > 0 ? Math.round((p / attArr.length) * 100) : 0);
+        setAttRate(attArr.length > 0 ? Math.round((p / attArr.length) * 100) : null);
       } catch { /* */ }
       finally { setLoading(false); }
     })();
   }, [router]);
 
   return (
-    <div>
-      <div className="flex items-center gap-3 mb-5">
-        <div className="w-10 h-10 rounded-full bg-brand flex items-center justify-center text-brand-ink font-semibold text-sm">
-          {`${profile?.first_name || ''} ${profile?.last_name || ''}`.split(' ').map(w => w[0]).join('').slice(0, 2) || 'ST'}
-        </div>
-        <div>
-          <h1 className="text-lg font-semibold text-ink">{profile ? `${profile.first_name} ${profile.last_name}` : 'Student'}</h1>
-          <p className="text-xs text-muted">{profile?.admission_no} · {profile?.class_name || '-'}</p>
-        </div>
-      </div>
+    <div className="max-w-[1120px]">
+      <header className="mb-6">
+        <h1 className="text-[22px] font-semibold text-ink leading-tight">{profile ? `${profile.first_name} ${profile.last_name}` : 'Overview'}</h1>
+        {profile && <p className="text-[13px] text-muted mt-1">{profile.admission_no} · {profile.class_name || 'Class not set'}</p>}
+      </header>
 
-      <div className="grid grid-cols-3 gap-4 mb-6">
-        <div className="bg-surface border border-line rounded p-4 text-center">
-          <p className="text-2xl font-semibold text-ink">{loading ? '…' : gradeCount}</p>
-          <p className="text-xs text-muted">Grades Entered</p>
-        </div>
-        <div className="bg-surface border border-line rounded p-4 text-center">
-          <p className={`text-2xl font-semibold ${attRate >= 75 ? 'text-brand' : 'text-danger'}`}>{loading ? '…' : `${attRate}%`}</p>
-          <p className="text-xs text-muted">Attendance Rate</p>
-        </div>
-        <div className="bg-surface border border-line rounded p-4 text-center">
-          <p className="text-2xl font-semibold text-ink">-</p>
-          <p className="text-xs text-muted">Upcoming Exams</p>
-        </div>
-      </div>
+      <SummaryStrip cols={2} className="mb-6">
+        {loading ? Array.from({ length: 2 }).map((_, i) => <StatSkeleton key={i} />) : (
+          <>
+            <Stat label="Grades entered" value={gradeCount} />
+            <Stat
+              label="Attendance rate"
+              value={attRate === null ? '-' : `${attRate}%`}
+              tone={attRate !== null && attRate < 75 ? 'danger' : undefined}
+              note={attRate === null ? 'No attendance recorded yet' : undefined}
+            />
+          </>
+        )}
+      </SummaryStrip>
 
-      <div className="grid grid-cols-2 gap-3">
-        {[
-          { label: 'My Grades', href: '/student/grades', icon: <FileText size={16} aria-hidden="true" /> },
-          { label: 'Attendance', href: '/student/attendance', icon: <CheckCircle2 size={16} aria-hidden="true" /> },
-          { label: 'Timetable', href: '/student/timetable', icon: <Calendar size={16} aria-hidden="true" /> },
-          { label: 'CBT Exams', href: '/student/exams', icon: <Monitor size={16} aria-hidden="true" /> },
-        ].map(a => (
-          <Link key={a.href} href={a.href}
-            className="flex items-center gap-3 px-4 py-3.5 bg-surface border border-line rounded text-sm text-ink hover:bg-surface-2">
-            <span className="inline-flex items-center">{a.icon}</span> {a.label}
-          </Link>
-        ))}
-      </div>
+      <Panel title="Where to look">
+        <LinkList items={AREAS} />
+      </Panel>
     </div>
   );
 }

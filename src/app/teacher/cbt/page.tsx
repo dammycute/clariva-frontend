@@ -7,7 +7,7 @@ import { Pencil, BarChart3 } from 'lucide-react';
 interface Exam { id: string; title: string; subject_name?: string; subject: string; class_name?: string; class_group: string | null; duration_mins: number; pass_mark: number; question_count: number; status: string; }
 interface Subject { id: string; name: string; year_group: string | null; }
 
-const statusColors: Record<string, string> = { draft: 'bg-gray-100 text-gray-600', published: 'bg-blue-100 text-blue-700', ongoing: 'bg-green-100 text-green-700', completed: 'bg-amber-100 text-amber-700', archived: 'bg-red-100 text-red-700' };
+const statusColors: Record<string, string> = { draft: 'bg-surface-2 text-muted', published: 'bg-brand-soft text-brand', ongoing: 'bg-success/10 text-success', completed: 'bg-warning/10 text-warning', archived: 'bg-danger-soft text-danger' };
 
 export default function TeacherCBTExamsPage() {
   const [exams, setExams] = useState<Exam[]>([]);
