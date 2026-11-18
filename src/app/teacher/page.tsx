@@ -3,7 +3,14 @@
 import { useState, useEffect } from 'react';
 import { api, auth } from '@/lib/api';
 import { useRouter } from 'next/navigation';
-import Link from 'next/link';
+import { SummaryStrip, Stat, StatSkeleton, Panel, LinkList } from '@/components/ui/summary';
+
+const WORK = [
+  { label: 'Mark attendance', text: 'Record who is in class today.', href: '/teacher/attendance' },
+  { label: 'Enter grades', text: 'Add scores for your subjects.', href: '/teacher/grades' },
+  { label: 'My classes', text: 'See the classes you teach and their students.', href: '/teacher/classes' },
+  { label: 'Timetable', text: 'Your weekly schedule.', href: '/teacher/timetable' },
+];
 
 export default function TeacherDashboard() {
   const router = useRouter();
@@ -49,49 +56,30 @@ export default function TeacherDashboard() {
   }, [router]);
 
   return (
-    <div>
-      <h1 className="text-xl font-bold text-[#0D2B55] mb-1">Teacher Dashboard</h1>
-      <p className="text-xs text-[#64748B] mb-5">Welcome back! Here&apos;s your overview.</p>
+    <div className="max-w-[1120px]">
+      <header className="mb-6">
+        <h1 className="text-[22px] font-semibold text-ink leading-tight">Overview</h1>
+        <p className="text-[13px] text-muted mt-1">Your classes, students and exams.</p>
+      </header>
 
-      <div className="grid grid-cols-3 gap-4 mb-6">
-        <div className="bg-white border border-[#DDE5F0] rounded-xl p-4">
-          <p className="text-[11px] font-bold text-[#64748B] uppercase">My Classes</p>
-          <p className="text-2xl font-bold text-[#0D2B55]">{loading ? '…' : stats.classes}</p>
-        </div>
-        <div className="bg-white border border-[#DDE5F0] rounded-xl p-4">
-          <p className="text-[11px] font-bold text-[#64748B] uppercase">My Students</p>
-          <p className="text-2xl font-bold text-[#0D2B55]">{loading ? '…' : stats.students}</p>
-        </div>
-        <div className="bg-white border border-[#DDE5F0] rounded-xl p-4">
-          <p className="text-[11px] font-bold text-[#64748B] uppercase">My Subjects</p>
-          <p className="text-2xl font-bold text-[#0D2B55]">{loading ? '…' : stats.subjects}</p>
-        </div>
-      </div>
+      <SummaryStrip className="mb-6">
+        {loading ? Array.from({ length: 4 }).map((_, i) => <StatSkeleton key={i} />) : (
+          <>
+            <Stat label="Classes" value={stats.classes} />
+            <Stat label="Students" value={stats.students.toLocaleString()} />
+            <Stat label="Subjects" value={stats.subjects} />
+            <Stat
+              label="CBT sessions"
+              value={stats.examSessions}
+              note={stats.examSessions > 0 ? `average score ${stats.avgScore}` : undefined}
+            />
+          </>
+        )}
+      </SummaryStrip>
 
-      <div className="grid grid-cols-2 gap-4 mb-6">
-        <div className="bg-white border border-[#DDE5F0] rounded-xl p-4">
-          <p className="text-[11px] font-bold text-[#64748B] uppercase">Exam Sessions</p>
-          <p className="text-2xl font-bold text-[#0D2B55]">{loading ? '…' : stats.examSessions}</p>
-        </div>
-        <div className="bg-white border border-[#DDE5F0] rounded-xl p-4">
-          <p className="text-[11px] font-bold text-[#64748B] uppercase">Avg Score</p>
-          <p className="text-2xl font-bold text-[#1A7A4A]">{loading ? '…' : `${stats.avgScore}%`}</p>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-2 gap-3">
-        {[
-          { label: 'Mark Attendance', href: '/teacher/attendance', icon: '✅' },
-          { label: 'Enter Grades', href: '/teacher/grades', icon: '📝' },
-          { label: 'View Timetable', href: '/teacher/timetable', icon: '📅' },
-          { label: 'My Classes', href: '/teacher/classes', icon: '🏫' },
-        ].map(a => (
-          <Link key={a.href} href={a.href}
-            className="flex items-center gap-3 px-4 py-3.5 bg-white border border-[#DDE5F0] rounded-xl text-sm text-[#0D2B55] hover:bg-[#F0F4FA] transition-colors">
-            <span className="text-lg">{a.icon}</span> {a.label}
-          </Link>
-        ))}
-      </div>
+      <Panel title="Where to work">
+        <LinkList items={WORK} />
+      </Panel>
     </div>
   );
 }

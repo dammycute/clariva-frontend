@@ -16,20 +16,20 @@ export default function StudentGradesPage() {
     });
   }, []);
 
-  if (loading) return <div className="text-sm text-[#64748B] p-8">Loading grades…</div>;
+  if (loading) return <div className="text-sm text-muted p-8">Loading grades…</div>;
 
   return (
     <div>
-      <h1 className="text-xl font-bold text-[#0D2B55] mb-1">My Grades</h1>
-      <p className="text-xs text-[#64748B] mb-5">Your performance across all subjects</p>
+      <h1 className="text-xl font-semibold text-ink mb-1">My Grades</h1>
+      <p className="text-xs text-muted mb-5">Your performance across all subjects</p>
 
       {grades.length === 0 ? (
-        <div className="bg-white border border-[#DDE5F0] rounded-xl p-8 text-center text-sm text-[#64748B]">No grades recorded yet.</div>
+        <div className="bg-surface border border-line rounded p-8 text-center text-sm text-muted">No grades recorded yet.</div>
       ) : (
-        <div className="bg-white border border-[#DDE5F0] rounded-xl overflow-x-auto">
+        <div className="bg-surface border border-line rounded overflow-x-auto">
           <table className="w-full text-xs">
             <thead>
-              <tr className="text-[11px] font-bold text-[#64748B] uppercase bg-[#F7F9FC]">
+              <tr className="text-xs font-semibold text-muted bg-page">
                 <th className="text-left px-4 py-3">Subject</th>
                 {Object.keys(grades[0]?.scores || {}).map(key => (
                   <th key={key} className="text-center px-4 py-3">{key.toUpperCase()}</th>
@@ -40,13 +40,13 @@ export default function StudentGradesPage() {
             </thead>
             <tbody>
               {grades.map((g, i) => (
-                <tr key={i} className="hover:bg-[#F8FAFF] border-t border-[#DDE5F0]">
-                  <td className="px-4 py-3 font-semibold">{g.subject_name || '—'}</td>
+                <tr key={i} className="hover:bg-page border-t border-line">
+                  <td className="px-4 py-3 font-semibold">{g.subject_name || '-'}</td>
                   {Object.keys(g.scores || {}).map(key => (
-                    <td key={key} className="px-4 py-3 text-center">{g.scores[key] ?? '—'}</td>
+                    <td key={key} className="px-4 py-3 text-center">{g.scores[key] ?? '-'}</td>
                   ))}
-                  <td className="px-4 py-3 text-center font-bold">{g.total}</td>
-                  <td className="px-4 py-3 text-center text-[#64748B]">{g.term || '—'}</td>
+                  <td className="px-4 py-3 text-center font-semibold">{g.total}</td>
+                  <td className="px-4 py-3 text-center text-muted">{g.term || '-'}</td>
                 </tr>
               ))}
             </tbody>

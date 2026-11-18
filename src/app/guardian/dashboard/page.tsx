@@ -1,8 +1,10 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { portal } from '@/lib/api';
+import { auth, portal } from '@/lib/api';
 import { useRouter } from 'next/navigation';
+import { Button } from '@/components/ui/button';
+import { Section, Figure } from '@/components/ui/report';
 
 interface NotificationItem {
   id: string; type: string; title: string; message: string; read: boolean; created_at: string;
@@ -17,15 +19,16 @@ interface ChildData {
   recent_notifications: NotificationItem[];
 }
 
+const naira = (n: number) => `₦${Math.round(n).toLocaleString('en-NG')}`;
+
 export default function GuardianDashboard() {
   const router = useRouter();
   const [children, setChildren] = useState<ChildData[]>([]);
   const [loading, setLoading] = useState(true);
-  const [expandedChild, setExpandedChild] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState(0);
+  const [active, setActive] = useState(0);
 
   useEffect(() => {
-    const token = localStorage.getItem('access_token');
+    const token = auth.getToken();
     if (!token) {
       router.push('/guardian');
       return;
@@ -41,184 +44,130 @@ export default function GuardianDashboard() {
   }, [router]);
 
   const handleLogout = () => {
-    localStorage.removeItem('access_token');
-    localStorage.removeItem('refresh_token');
-    document.cookie = 'access_token=; path=/; max-age=0';
+    auth.logout();
     router.push('/guardian');
   };
 
   const totalBalance = children.reduce((a, c) => a + c.fee_summary.balance, 0);
+  const child = children[active];
 
-  if (loading) return <div className="min-h-screen bg-[#F7F9FC] flex items-center justify-center"><p className="text-sm text-[#64748B]">Loading your dashboard…</p></div>;
+  const header = (
+    <header className="flex items-center justify-between mb-10">
+      <span className="text-lg font-semibold text-ink">Clariva</span>
+      <Button variant="secondary" onClick={handleLogout} className="h-9 px-3">Sign out</Button>
+    </header>
+  );
 
-  if (children.length === 0) {
+  if (loading) {
     return (
-      <div className="min-h-screen bg-[#F7F9FC]">
-        <header className="h-14 bg-white border-b border-[#DDE5F0] flex items-center justify-between px-6">
-          <div className="flex items-center gap-2">
-            <div className="w-7 h-7 bg-[#1A7A4A] rounded-lg flex items-center justify-center text-white font-bold text-xs">C</div>
-            <span className="font-semibold text-sm text-[#0D2B55]">Parent Portal</span>
-          </div>
-          <button onClick={handleLogout} className="text-xs px-3 py-1.5 rounded-lg border border-[#DDE5F0] bg-white hover:bg-[#F0F4FA]">Log out</button>
-        </header>
-        <main className="max-w-4xl mx-auto p-6">
-          <div className="bg-white border border-[#DDE5F0] rounded-xl p-8 text-center">
-            <p className="text-sm text-[#64748B]">No children linked to your account yet.</p>
-          </div>
-        </main>
+      <div role="status" aria-label="Loading your records" className="min-h-dvh bg-page">
+        <div className="max-w-3xl mx-auto px-6 py-10 space-y-4 animate-pulse" aria-hidden="true">
+          <div className="h-5 w-24 rounded bg-line" />
+          <div className="h-8 w-64 rounded bg-line mt-8" />
+          <div className="h-28 rounded bg-line" />
+        </div>
+        <span className="sr-only">Loading your records…</span>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#F7F9FC]">
-      <header className="h-14 bg-white border-b border-[#DDE5F0] flex items-center justify-between px-6">
-        <div className="flex items-center gap-2">
-          <div className="w-7 h-7 bg-[#1A7A4A] rounded-lg flex items-center justify-center text-white font-bold text-xs">C</div>
-          <span className="font-semibold text-sm text-[#0D2B55]">Parent Portal</span>
-        </div>
-        <button onClick={handleLogout} className="text-xs px-3 py-1.5 rounded-lg border border-[#DDE5F0] bg-white hover:bg-[#F0F4FA]">Log out</button>
-      </header>
+    <div className="min-h-dvh bg-page">
+      <main className="max-w-3xl mx-auto px-6 py-8">
+        {header}
 
-      <main className="max-w-4xl mx-auto p-6">
-        <div className="flex items-center justify-between mb-1">
-          <h1 className="text-xl font-bold text-[#0D2B55]">My Children</h1>
-          {totalBalance > 0 && (
-            <div className="text-xs bg-[#FEE2E2] text-[#B91C1C] px-3 py-1.5 rounded-lg font-bold">
-              Outstanding: ₦{totalBalance.toLocaleString()}
-            </div>
+        <div className="mb-6">
+          <h1 className="text-2xl font-semibold text-ink tracking-tight">Your children</h1>
+          {children.length > 0 && (
+            <p className="text-sm text-muted mt-1">
+              {totalBalance > 0
+                ? <>Total fees outstanding: <span className="text-danger font-medium tabular-nums">{naira(totalBalance)}</span></>
+                : 'All fees are paid.'}
+            </p>
           )}
         </div>
-        <p className="text-xs text-[#64748B] mb-6">View your wards&apos; school information, fees, report cards, and attendance</p>
 
-        {/* Tabs for multiple children */}
+        {children.length === 0 && (
+          <p className="text-sm text-muted border-t border-line pt-6">No children are linked to your account yet. Ask the school to link your phone number to your child&apos;s record.</p>
+        )}
+
         {children.length > 1 && (
-          <div className="flex gap-1 mb-4 bg-[#F0F4FA] rounded-lg p-1">
-            {children.map((child, idx) => (
-              <button key={child.id} onClick={() => setActiveTab(idx)}
-                className={`flex-1 text-xs py-2 rounded-md font-semibold transition-colors ${
-                  activeTab === idx ? 'bg-white text-[#0D2B55] shadow-sm' : 'text-[#64748B] hover:text-[#0D2B55]'
-                }`}>
-                {child.full_name.split(' ')[0]}
+          <div role="tablist" aria-label="Children" className="flex gap-5 border-b border-line mb-6">
+            {children.map((c, idx) => (
+              <button
+                key={c.id}
+                role="tab"
+                aria-selected={active === idx}
+                onClick={() => setActive(idx)}
+                className={`pb-2.5 -mb-px text-sm border-b-2 cursor-pointer transition-colors ${
+                  active === idx ? 'border-brand text-ink font-semibold' : 'border-transparent text-muted hover:text-ink'
+                }`}
+              >
+                {c.full_name.split(' ')[0]}
               </button>
             ))}
           </div>
         )}
 
-        {renderChild(children[activeTab], expandedChild === children[activeTab].id, () => {
-          setExpandedChild(expandedChild === children[activeTab].id ? null : children[activeTab].id);
-        })}
+        {child && (
+          <div>
+            <div className="mb-6">
+              <h2 className="text-xl font-semibold text-ink tracking-tight">{child.full_name}</h2>
+              <p className="text-sm text-muted mt-1">
+                {child.admission_no} · {child.class_name || 'Class not set'}
+                {child.gender && <> · {child.gender}</>}
+              </p>
+              <p className={`text-[13px] mt-1 ${child.status === 'active' ? 'text-success' : 'text-danger'}`}>
+                {child.status.charAt(0).toUpperCase() + child.status.slice(1)}
+              </p>
+            </div>
 
-        {/* Show other children if not using tabs */}
-        {children.length > 1 && (
-          <div className="mt-4 grid gap-4">
-            {children.filter((_, i) => i !== activeTab).map(child => (
-              <div key={child.id} className="bg-white border border-[#DDE5F0] rounded-xl overflow-hidden">
-                <div className="flex items-center justify-between px-5 py-4 cursor-pointer hover:bg-[#F8FAFF]"
-                  onClick={() => { setActiveTab(children.indexOf(child)); }}>
-                  <div>
-                    <h2 className="text-base font-bold text-[#0D2B55]">{child.full_name}</h2>
-                    <p className="text-xs text-[#64748B] mt-0.5">{child.admission_no} · {child.class_name || '—'}</p>
-                  </div>
-                  <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold ${
-                    child.fee_summary.balance > 0 ? 'bg-[#FEE2E2] text-[#B91C1C]' : 'bg-[#DCFCE7] text-[#1A7A4A]'
-                  }`}>
-                    {child.fee_summary.balance > 0 ? `₦${child.fee_summary.balance.toLocaleString()}` : 'Paid'}
-                  </span>
-                </div>
-              </div>
-            ))}
+            <Section title="Fees">
+              <dl className="grid grid-cols-3 gap-4">
+                <Figure label="Charged" value={naira(child.fee_summary.total_due)} />
+                <Figure label="Paid" value={naira(child.fee_summary.total_paid)} />
+                <Figure label="Balance" value={naira(child.fee_summary.balance)} tone={child.fee_summary.balance > 0 ? 'danger' : 'success'} />
+              </dl>
+            </Section>
+
+            <Section title="Latest report card">
+              {child.latest_report_card ? (
+                <dl className="grid grid-cols-2 gap-4">
+                  <Figure label={`${child.latest_report_card.term} ${child.latest_report_card.academic_year}`} value={`${child.latest_report_card.average}%`} tone={child.latest_report_card.average >= 50 ? undefined : 'danger'} />
+                </dl>
+              ) : (
+                <p className="text-sm text-muted">No report cards have been released yet.</p>
+              )}
+            </Section>
+
+            <Section title="Attendance">
+              {child.attendance_rate !== null ? (
+                <dl className="grid grid-cols-2 gap-4">
+                  <Figure label="Attendance rate" value={`${child.attendance_rate}%`} tone={child.attendance_rate >= 75 ? undefined : 'danger'} />
+                </dl>
+              ) : (
+                <p className="text-sm text-muted">No attendance has been recorded yet.</p>
+              )}
+            </Section>
+
+            {child.recent_notifications && child.recent_notifications.length > 0 && (
+              <Section title="Recent updates">
+                <ul className="divide-y divide-line border-y border-line">
+                  {child.recent_notifications.slice(0, 3).map(n => (
+                    <li key={n.id} className="py-3">
+                      <p className="text-sm font-medium text-ink">{n.title}</p>
+                      <p className="text-[13px] text-muted mt-0.5">{n.message}</p>
+                      {n.created_at && (
+                        <p className="text-xs text-muted/80 mt-1 tabular-nums">{new Date(n.created_at).toLocaleDateString('en-NG', { day: 'numeric', month: 'short', year: 'numeric' })}</p>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              </Section>
+            )}
           </div>
         )}
       </main>
     </div>
   );
-
-  function renderChild(child: ChildData, isExpanded: boolean, onToggle: () => void) {
-    const { fee_summary: fees, latest_report_card: rc, attendance_rate } = child;
-    return (
-      <div className="bg-white border border-[#DDE5F0] rounded-xl overflow-hidden">
-        <div className="flex items-center justify-between px-5 py-4 border-b border-[#DDE5F0] cursor-pointer hover:bg-[#F8FAFF]" onClick={onToggle}>
-          <div>
-            <h2 className="text-base font-bold text-[#0D2B55]">{child.full_name}</h2>
-            <p className="text-xs text-[#64748B] mt-0.5">{child.admission_no} · {child.class_name || '—'} · {child.gender || '—'}</p>
-          </div>
-          <div className="flex items-center gap-3">
-            <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold ${child.status === 'active' ? 'bg-[#DCFCE7] text-[#1A7A4A]' : 'bg-[#FEE2E2] text-[#B91C1C]'}`}>{child.status}</span>
-            <span className="text-[#64748B] text-sm">{isExpanded ? '▲' : '▼'}</span>
-          </div>
-        </div>
-
-        {isExpanded && (
-          <div className="px-5 py-4 space-y-5">
-            {/* Fee Summary */}
-            <div>
-              <p className="text-[11px] font-bold text-[#64748B] uppercase mb-2">Fees</p>
-              <div className="grid grid-cols-3 gap-3 mb-3">
-                <div className="bg-[#F7F9FC] rounded-lg px-3 py-2">
-                  <p className="text-[10px] text-[#64748B]">Total Due</p>
-                  <p className="text-sm font-bold text-[#0D2B55]">₦{fees.total_due.toLocaleString()}</p>
-                </div>
-                <div className="bg-[#F7F9FC] rounded-lg px-3 py-2">
-                  <p className="text-[10px] text-[#64748B]">Paid</p>
-                  <p className="text-sm font-bold text-[#1A7A4A]">₦{fees.total_paid.toLocaleString()}</p>
-                </div>
-                <div className="bg-[#F7F9FC] rounded-lg px-3 py-2">
-                  <p className="text-[10px] text-[#64748B]">Outstanding</p>
-                  <p className={`text-sm font-bold ${fees.balance > 0 ? 'text-[#B91C1C]' : 'text-[#1A7A4A]'}`}>₦{fees.balance.toLocaleString()}</p>
-                </div>
-              </div>
-            </div>
-
-            {/* Report Card */}
-            <div>
-              <p className="text-[11px] font-bold text-[#64748B] uppercase mb-2">Latest Report Card</p>
-              {rc ? (
-                <div className="bg-[#F7F9FC] rounded-lg px-3 py-2 flex items-center justify-between">
-                  <div>
-                    <p className="text-xs font-semibold text-[#0D2B55]">{rc.term} {rc.academic_year}</p>
-                  </div>
-                  <span className={`text-sm font-bold ${rc.average >= 50 ? 'text-[#1A7A4A]' : 'text-[#B91C1C]'}`}>{rc.average}%</span>
-                </div>
-              ) : (
-                <p className="text-xs text-[#64748B]">No report cards yet.</p>
-              )}
-            </div>
-
-            {/* Attendance */}
-            <div>
-              <p className="text-[11px] font-bold text-[#64748B] uppercase mb-2">Attendance Rate</p>
-              {attendance_rate !== null ? (
-                <div className="bg-[#F7F9FC] rounded-lg px-3 py-2">
-                  <span className={`text-sm font-bold ${attendance_rate >= 75 ? 'text-[#1A7A4A]' : 'text-[#B91C1C]'}`}>{attendance_rate}%</span>
-                </div>
-              ) : (
-                <p className="text-xs text-[#64748B]">No attendance records yet.</p>
-              )}
-            </div>
-
-            {/* Notifications */}
-            {child.recent_notifications && child.recent_notifications.length > 0 && (
-              <div>
-                <p className="text-[11px] font-bold text-[#64748B] uppercase mb-2">Recent Updates</p>
-                <div className="space-y-1.5">
-                  {child.recent_notifications.slice(0, 3).map(n => (
-                    <div key={n.id} className="bg-[#F7F9FC] rounded-lg px-3 py-2 flex items-start gap-2">
-                      <span className="text-xs mt-0.5">
-                        {n.type === 'attendance' ? '✅' : n.type === 'exam' ? '📝' : n.type === 'fee' ? '💰' : n.type === 'grade' ? '📊' : '📢'}
-                      </span>
-                      <div className="min-w-0">
-                        <p className="text-[11px] font-semibold text-[#0D2B55]">{n.title}</p>
-                        <p className="text-[10px] text-[#64748B]">{n.message}</p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-        )}
-      </div>
-    );
-  }
 }
