@@ -1,3 +1,7 @@
 'use client';
-import CBTExamsPage from '@/app/dashboard/cbt/page';
-export default function PrincipalCBTExamsPage() { return <CBTExamsPage />; }
+
+import { ExamList } from '@/components/cbt/exam-list';
+
+export default function Page() {
+  return <ExamList base="/principal" />;
+}
