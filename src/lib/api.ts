@@ -129,7 +129,7 @@ async function request<T = unknown>(
     let fallback = '';
     for (const [key, val] of Object.entries(err as Record<string, unknown>)) {
       const msgs = toMessages(val);
-      if (key === 'detail') {
+      if (key === 'detail' || key === 'error') {
         fallback = msgs.join(' ');
         continue;
       }
@@ -245,6 +245,26 @@ export const portal = {
 
 const examsBase = createApi('/exams/exams/');
 
+/** What the server says after an answer save. `closed` means the attempt already ended. */
+export type ExamSaveReply = {
+  closed: boolean;
+  time_remaining?: number | null;
+  saved?: number;
+} & Partial<ExamResult>;
+
+/** What a student is told after submitting. While results are held there is no score. */
+export type ExamResult = {
+  submitted: boolean;
+  held: boolean;
+  message?: string;
+  late_submission: boolean;
+  auto_submitted: boolean;
+  score?: number;
+  total_marks?: number;
+  passed?: boolean;
+  percentage?: number;
+};
+
 export const api = {
   schools: createApi('/schools/'),
   gradingConfig: {
@@ -279,14 +299,30 @@ export const api = {
       });
     },
     startExam: (examId: string | number) =>
-      request<{ session_id: string; time_remaining: number | null; questions: unknown[] }>('POST', `/exams/exams/${examId}/start/`),
+      request<{
+        session_id: string; time_remaining: number | null; questions: unknown[];
+        saved_answers: Record<string, string>;
+      }>('POST', `/exams/exams/${examId}/start/`),
+    /** Save answers as the student types. The reply also carries the server's time left. */
+    saveAnswers: (sessionId: string | number, answers: Record<string, string>) =>
+      request<ExamSaveReply>('POST', `/exams/sessions/${sessionId}/save/`, { answers }),
     submitExam: (sessionId: string | number, answers: Record<string, string>, tab_switches: number = 0) =>
-      request<{ score: number; total_marks: number; passed: boolean; percentage: number; late_submission: boolean }>('POST', `/exams/sessions/${sessionId}/submit/`, { answers, tab_switches }),
+      request<ExamResult>('POST', `/exams/sessions/${sessionId}/submit/`, { answers, tab_switches }),
     duplicate: (examId: string | number) =>
       request('POST', `/exams/exams/${examId}/duplicate/`),
+    close: (examId: string | number) =>
+      request<{ status: string; attempts_submitted: number }>('POST', `/exams/exams/${examId}/close/`),
+    release: (examId: string | number) =>
+      request<{ results_released: boolean; grades_posted: number }>('POST', `/exams/exams/${examId}/release/`),
+    copyQuestions: (examId: string | number, sourceExamId: string | number) =>
+      request<{ created: number }>('POST', `/exams/exams/${examId}/copy_questions/`, { source_exam: sourceExamId }),
   },
   questions: createApi('/exams/questions/'),
-  examSessions: createApi('/exams/sessions/'),
+  examSessions: {
+    ...createApi('/exams/sessions/'),
+    reset: (sessionId: string | number) =>
+      request<{ reset: boolean }>('POST', `/exams/sessions/${sessionId}/reset/`),
+  },
   announcements: createApi('/comms/'),
   notifications: createApi('/comms/notifications/'),
   analytics: {
