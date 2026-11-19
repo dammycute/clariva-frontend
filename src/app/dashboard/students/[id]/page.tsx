@@ -25,7 +25,7 @@ export default function StudentDetailPage() {
   const [invoices, setInvoices] = useState<FeeInvoice[]>([]);
   const [attendance, setAttendance] = useState<Attendance[]>([]);
   const [loading, setLoading] = useState(true);
-  const [pwdResult, setPwdResult] = useState<{ email: string; password: string } | null>(null);
+  const [pwdResult, setPwdResult] = useState<{ admission_no: string | null; email: string; password: string } | null>(null);
   const [resetting, setResetting] = useState(false);
 
   const id = params?.id as string;
@@ -34,14 +34,15 @@ export default function StudentDetailPage() {
     if (!id) return;
     (async () => {
       try {
-        const [s, inv, att] = await Promise.all([
+        const [s, inv, att] = await Promise.allSettled([
           api.students.get(id),
           api.feeInvoices.list({ student_id: id }),
           api.attendance.list({ student_id: id }),
         ]);
-        setStudent(s as Student);
-        setInvoices(Array.isArray(inv) ? inv as FeeInvoice[] : []);
-        setAttendance(Array.isArray(att) ? att as Attendance[] : []);
+        if (s.status === 'rejected') throw s.reason;
+        setStudent(s.value as Student);
+        if (inv.status === 'fulfilled' && Array.isArray(inv.value)) setInvoices(inv.value as FeeInvoice[]);
+        if (att.status === 'fulfilled' && Array.isArray(att.value)) setAttendance(att.value as Attendance[]);
       } catch { router.push('/dashboard/students'); }
       finally { setLoading(false); }
     })();
@@ -79,10 +80,10 @@ export default function StudentDetailPage() {
             <div className="flex justify-between"><span className="text-muted">DOB</span><span className="font-semibold">{student.date_of_birth || '-'}</span></div>
             {student.has_account && (
               <div className="flex items-center justify-between gap-2">
-                <span className="text-muted">Login Email</span>
+                <span className="text-muted">Login ID</span>
                 <div className="flex items-center gap-1">
-                  <span className="font-semibold text-xs">{student.user_email}</span>
-                  <button onClick={() => navigator.clipboard.writeText(student.user_email ?? '')} className="text-xs px-1.5 py-0.5 rounded bg-surface-2 border border-line hover:bg-brand-soft">Copy</button>
+                  <span className="font-semibold text-xs">{student.admission_no}</span>
+                  <button onClick={() => navigator.clipboard.writeText(student.admission_no ?? '')} className="text-xs px-1.5 py-0.5 rounded bg-surface-2 border border-line hover:bg-brand-soft">Copy</button>
                 </div>
               </div>
             )}
@@ -149,7 +150,7 @@ export default function StudentDetailPage() {
               setResetting(true);
               try {
                 const data = await request<{ password?: string }>('POST', `/students/${id}/reset_password/`);
-                if (data.password) setPwdResult(data as { email: string; password: string });
+                if (data.password) setPwdResult(data as { admission_no: string | null; email: string; password: string });
               } finally {
                 setResetting(false);
               }
@@ -159,9 +160,9 @@ export default function StudentDetailPage() {
             </button>
           </div>
           <div className="flex items-center gap-2 bg-surface-2 rounded px-3.5 py-2.5 w-fit">
-            <span className="text-xs text-muted">Login:</span>
-            <strong className="text-xs text-ink">{student.user_email}</strong>
-            <button onClick={() => { navigator.clipboard.writeText(student.user_email ?? ''); }} className="text-xs px-2 py-0.5 rounded bg-surface border border-line hover:bg-brand-soft">Copy</button>
+            <span className="text-xs text-muted">Login ID (admission number):</span>
+            <strong className="text-xs text-ink">{student.admission_no}</strong>
+            <button onClick={() => { navigator.clipboard.writeText(student.admission_no ?? ''); }} className="text-xs px-2 py-0.5 rounded bg-surface border border-line hover:bg-brand-soft">Copy</button>
           </div>
         </div>
       ) : (
@@ -181,8 +182,8 @@ export default function StudentDetailPage() {
             <div className="p-5 space-y-3">
               <div className="bg-surface-2 rounded p-4 text-xs space-y-3">
                 <div className="flex items-center justify-between">
-                  <div><span className="text-muted">Email:</span> <strong className="text-ink ml-1">{pwdResult.email}</strong></div>
-                  <button onClick={() => navigator.clipboard.writeText(pwdResult.email)} className="text-xs px-2 py-0.5 rounded bg-surface border border-line hover:bg-brand-soft">Copy</button>
+                  <div><span className="text-muted">Login ID:</span> <strong className="text-ink ml-1">{pwdResult.admission_no || pwdResult.email}</strong></div>
+                  <button onClick={() => navigator.clipboard.writeText(pwdResult.admission_no || pwdResult.email)} className="text-xs px-2 py-0.5 rounded bg-surface border border-line hover:bg-brand-soft">Copy</button>
                 </div>
                 <div className="flex items-center justify-between">
                   <div><span className="text-muted">Password:</span> <strong className="text-brand ml-1">{pwdResult.password}</strong></div>

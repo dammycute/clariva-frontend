@@ -1,7 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { api, auth } from '@/lib/api';
+import toast from 'react-hot-toast';
+import { api, request } from '@/lib/api';
 import ConfirmDialog from '@/components/confirm-dialog';
 import { UserPlus, Pencil, Trash2, X, AlertTriangle } from 'lucide-react';
 
@@ -20,7 +21,7 @@ export default function ClassesTab() {
   const [submitError, setSubmitError] = useState('');
   const [confirm, setConfirm] = useState<{ id: string; name: string } | null>(null);
   const [creatingAccounts, setCreatingAccounts] = useState<string | null>(null);
-  const [accountsResult, setAccountsResult] = useState<{ name: string; email: string; password: string }[] | null>(null);
+  const [accountsResult, setAccountsResult] = useState<{ name: string; admission_no: string; email: string; password: string }[] | null>(null);
   const [staffList, setStaffList] = useState<StaffMember[]>([]);
 
   useEffect(() => { loadClasses(); loadStaff(); }, []);
@@ -123,16 +124,13 @@ export default function ClassesTab() {
                     <div className="flex gap-1 justify-end">
                       <button onClick={async () => {
                         setCreatingAccounts(c.id);
-                        const token = auth.getToken();
-                        const base = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
-                        const res = await fetch(`${base}/students/bulk_create_accounts/`, {
-                          method: 'POST',
-                          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token ?? ''}` },
-                          body: JSON.stringify({ class_id: c.id }),
-                        });
-                        const data = await res.json();
-                        setCreatingAccounts(null);
-                        if (data.created) setAccountsResult(data.created);
+                        try {
+                          const data = await request<{ created: { name: string; admission_no: string; email: string; password: string }[] }>(
+                            'POST', '/students/bulk_create_accounts/', { class_id: c.id });
+                          if (data.created.length === 0) toast('Every student in this class already has an account.');
+                          else setAccountsResult(data.created);
+                        } catch { /* the reason is already shown */ }
+                        finally { setCreatingAccounts(null); }
                       }} disabled={creatingAccounts === c.id}
                         className="text-xs px-2 py-1 rounded bg-brand text-brand-ink hover:bg-brand disabled:opacity-50 inline-flex items-center gap-1">
                         {creatingAccounts === c.id ? '…' : <><UserPlus size={16} aria-hidden="true" /> Accounts</>}
@@ -158,12 +156,12 @@ export default function ClassesTab() {
               <button onClick={() => setAccountsResult(null)} className="text-muted hover:text-ink text-lg" aria-label="Close"><X size={16} aria-hidden="true" /></button>
             </div>
             <div className="p-5">
-              <p className="text-xs text-muted mb-4">{accountsResult.length} accounts created. Share credentials with students.</p>
+              <p className="text-xs text-muted mb-4">{accountsResult.length} accounts created. Students sign in on the Student tab with the admission number and this password. Passwords are shown only once, so print or copy them now.</p>
               <div className="divide-y divide-line max-h-[400px] overflow-y-auto border border-line rounded">
                 {accountsResult.map((a, i) => (
                   <div key={i} className="p-3 text-xs">
                     <p className="font-semibold text-ink">{a.name}</p>
-                    <p className="text-muted">Email: {a.email}</p>
+                    <p className="text-muted">Login ID (admission number): {a.admission_no}</p>
                     <p className="text-brand font-semibold">Password: {a.password}</p>
                   </div>
                 ))}
