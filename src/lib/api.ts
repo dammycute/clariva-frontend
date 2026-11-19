@@ -277,7 +277,15 @@ export const api = {
   },
   classes: createApi<{ id: string; name: string; year_group: string | null; arm: string | null; academic_year: string | null }>('/classes/'),
   staff: createApi('/staff/'),
-  feeItems: createApi('/fees/items/'),
+  feeItems: {
+    ...createApi('/fees/items/'),
+    /** How many invoices bill this fee, and how many of them already have a payment. */
+    deleteImpact: (id: string | number) =>
+      request<{ invoices: number; with_payments: number }>('GET', `/fees/items/${id}/delete_impact/`),
+    /** Delete a fee. `invoices` says what happens to the invoices made from it. */
+    remove: (id: string | number, invoices?: 'delete' | 'keep') =>
+      request<void>('DELETE', `/fees/items/${id}/${invoices === 'delete' ? '?with_invoices=true' : invoices === 'keep' ? '?keep_invoices=true' : ''}`),
+  },
   attendance: createApi('/attendance/'),
   grades: createApi('/grades/'),
   subjects: createApi('/exams/subjects/'),

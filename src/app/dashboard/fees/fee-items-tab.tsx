@@ -35,7 +35,8 @@ export default function FeeItemsTab({ onRefresh }: { onRefresh: () => void }) {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState({ name: '', amount: '', class_group: '', year_group: '', arm: '', pricing_tiers: '' as string, term: '', academic_year: '2025/2026', is_mandatory: true });
   const [showBulk, setShowBulk] = useState(false);
-  const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
+  const [confirmDelete, setConfirmDelete] = useState<{ id: string; invoices: number; withPayments: number } | null>(null);
+  const [deleting, setDeleting] = useState(false);
   const [expandedTiers, setExpandedTiers] = useState<Set<string>>(new Set());
 
   useEffect(() => { loadItems(); }, []);
@@ -84,10 +85,26 @@ export default function FeeItemsTab({ onRefresh }: { onRefresh: () => void }) {
     onRefresh();
   }
 
-  async function handleDelete(id: string) {
-    await api.feeItems.delete(id);
-    setConfirmDelete(null);
-    loadItems();
+  // Ask the server what deleting would touch before showing the confirmation.
+  async function askDelete(id: string) {
+    try {
+      const impact = await api.feeItems.deleteImpact(id);
+      setConfirmDelete({ id, invoices: impact.invoices, withPayments: impact.with_payments });
+    } catch { /* the reason is already shown */ }
+  }
+
+  async function handleDelete() {
+    if (!confirmDelete) return;
+    setDeleting(true);
+    try {
+      const { id, invoices, withPayments } = confirmDelete;
+      // No invoices: plain delete. Unpaid invoices: delete them with the fee. Paid ones: keep them.
+      await api.feeItems.remove(id, invoices === 0 ? undefined : withPayments > 0 ? 'keep' : 'delete');
+      setConfirmDelete(null);
+      loadItems();
+      onRefresh();
+    } catch { /* the reason is already shown */ }
+    finally { setDeleting(false); }
   }
 
   return (
@@ -140,7 +157,7 @@ export default function FeeItemsTab({ onRefresh }: { onRefresh: () => void }) {
                       <td className="px-4 py-3 text-right">
                         <div className="flex gap-1 justify-end">
                           <button onClick={() => openEdit(i)} className="text-xs px-2 py-1 rounded border border-line bg-surface hover:bg-surface-2" aria-label="Edit"><Pencil size={16} aria-hidden="true" /></button>
-                      <button onClick={() => setConfirmDelete(i.id)} className="text-xs px-2 py-1 rounded border border-danger-soft bg-surface text-danger hover:bg-danger-soft" aria-label="Delete"><Trash2 size={16} aria-hidden="true" /></button>
+                      <button onClick={() => askDelete(i.id)} className="text-xs px-2 py-1 rounded border border-danger-soft bg-surface text-danger hover:bg-danger-soft" aria-label="Delete"><Trash2 size={16} aria-hidden="true" /></button>
                     </div>
                   </td>
                 </tr>
@@ -275,7 +292,19 @@ export default function FeeItemsTab({ onRefresh }: { onRefresh: () => void }) {
         </div>
       )}
 
-      <ConfirmDialog open={!!confirmDelete} title="Delete Fee Item" message="Delete this fee item? It will also affect existing invoices." onConfirm={() => confirmDelete && handleDelete(confirmDelete)} onCancel={() => setConfirmDelete(null)} />
+      <ConfirmDialog
+        open={!!confirmDelete}
+        title="Delete fee item"
+        loading={deleting}
+        confirmLabel={!confirmDelete || confirmDelete.invoices === 0 ? 'Delete'
+          : confirmDelete.withPayments > 0 ? 'Delete fee, keep invoices' : `Delete fee and ${confirmDelete.invoices} invoices`}
+        message={!confirmDelete || confirmDelete.invoices === 0
+          ? 'Delete this fee item? No student has been billed for it.'
+          : confirmDelete.withPayments > 0
+            ? `${confirmDelete.invoices} invoices were made from this fee and ${confirmDelete.withPayments} already have a payment, so they cannot be deleted. Only the fee will be deleted. The invoices stay, because they are records of money received.`
+            : `${confirmDelete.invoices} invoices were made from this fee. None has a payment. They will be deleted with the fee, and the students' balances will drop by the same amount. This cannot be undone.`}
+        onConfirm={handleDelete}
+        onCancel={() => setConfirmDelete(null)} />
       {showBulk && <BulkCreateModal classes={classes} onClose={() => setShowBulk(false)} onDone={() => { setShowBulk(false); loadItems(); onRefresh(); }} />}
     </div>
   );
