@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import toast from 'react-hot-toast';
 import Link from 'next/link';
-import { api } from '@/lib/api';
+import { api, auth } from '@/lib/api';
 import { Button } from '@/components/ui/button';
 import { Modal } from '@/components/ui/modal';
 import { TextField } from '@/components/ui/text-field';
@@ -16,7 +16,20 @@ export interface Exam {
   status: string; instructions: string | null; is_open: boolean;
   shuffle_questions: boolean; shuffle_options: boolean; time_limit_enforced: boolean;
   release_mode: 'immediate' | 'on_release'; results_released: boolean; component: string | null;
+  term: string | null; academic_year: string | null;
 }
+
+interface GradingComponent { key: string; label: string; max: number; enabled?: boolean; }
+
+/** What an exam counts as. Empty means practice only: nothing goes to the grade book. */
+const COUNTS_AS = [
+  { value: '', label: 'Practice only (no marks posted)' },
+  { value: 'ca1', label: 'CA 1' },
+  { value: 'ca2', label: 'CA 2' },
+  { value: 'assignment', label: 'Assignment' },
+  { value: 'exam', label: 'Exam' },
+];
+const TERMS = ['1st Term', '2nd Term', '3rd Term'];
 
 interface Subject { id: string; name: string; year_group: string | null; }
 interface Class { id: string; name: string; year_group: string | null; }
@@ -41,8 +54,18 @@ export function statusLabel(e: Pick<Exam, 'status' | 'is_open'>): { text: string
 const EMPTY_FORM = {
   title: '', subject: '', classes: [] as string[], duration_mins: '30', pass_mark: '40',
   start_time: '', end_time: '', status: 'draft', instructions: '',
+  component: '', term: '', academic_year: '',
   release_mode: 'on_release', shuffle_questions: false, shuffle_options: false, time_limit_enforced: true,
 };
+
+/** "Counts as CA 1 · out of 15 · 1st Term 2025/2026", or a note that nothing is posted. */
+function countsAsText(exam: Exam, grading: GradingComponent[]): string {
+  if (!exam.component) return 'Practice only: no marks go to the grade book';
+  const comp = grading.find(g => g.key === exam.component);
+  const label = comp?.label || COUNTS_AS.find(o => o.value === exam.component)?.label || exam.component;
+  return [`Counts as ${label}`, comp?.max ? `out of ${comp.max}` : null,
+    [exam.term, exam.academic_year].filter(Boolean).join(' ') || null].filter(Boolean).join(' · ');
+}
 
 /** The list of CBT exams, with create and edit. `base` is the portal this page lives in. */
 export function ExamList({ base, ownSubjectsOnly = false }: { base: string; ownSubjectsOnly?: boolean }) {
@@ -54,12 +77,17 @@ export function ExamList({ base, ownSubjectsOnly = false }: { base: string; ownS
   const [editId, setEditId] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState(EMPTY_FORM);
+  const [grading, setGrading] = useState<GradingComponent[]>([]);
 
   useEffect(() => { void loadAll(); }, []);
 
   async function loadAll() {
     setLoading(true);
     try {
+      // The school's score setup, so each exam can say "out of 15". The list still works without it.
+      auth.me().then(me => (me.school_id ? api.gradingConfig.get(me.school_id) : null))
+        .then(g => setGrading(((g as { components?: GradingComponent[] } | null)?.components) || []))
+        .catch(() => {});
       const [e, s, c] = await Promise.all([
         api.exams.list(),
         ownSubjectsOnly ? api.subjects.list({ teacher_id: 'me' }) : api.subjects.list(),
@@ -85,6 +113,7 @@ export function ExamList({ base, ownSubjectsOnly = false }: { base: string; ownS
       start_time: exam.start_time ? exam.start_time.slice(0, 16) : '',
       end_time: exam.end_time ? exam.end_time.slice(0, 16) : '',
       status: exam.status, instructions: exam.instructions || '',
+      component: exam.component || '', term: exam.term || '', academic_year: exam.academic_year || '',
       release_mode: exam.release_mode, shuffle_questions: exam.shuffle_questions,
       shuffle_options: exam.shuffle_options, time_limit_enforced: exam.time_limit_enforced,
     });
@@ -114,6 +143,9 @@ export function ExamList({ base, ownSubjectsOnly = false }: { base: string; ownS
         end_time: form.end_time ? new Date(form.end_time).toISOString() : null,
         status: form.status,
         instructions: form.instructions,
+        component: form.component || null,
+        term: form.component ? (form.term || null) : null,
+        academic_year: form.component ? (form.academic_year || null) : null,
         release_mode: form.release_mode,
         shuffle_questions: form.shuffle_questions,
         shuffle_options: form.shuffle_options,
@@ -166,6 +198,7 @@ export function ExamList({ base, ownSubjectsOnly = false }: { base: string; ownS
                     <p className="text-[13px] text-muted mt-0.5">
                       {exam.subject_name || 'No subject'} · {exam.class_name || 'No class chosen'} · {exam.duration_mins} min · {exam.question_count} questions · {exam.total_marks} marks · pass mark {exam.pass_mark}%
                     </p>
+                    <p className="text-[13px] text-muted">{countsAsText(exam, grading)}</p>
                     <p className="text-[13px] text-muted">
                       {exam.release_mode === 'on_release'
                         ? (exam.results_released ? 'Results released' : 'Results held until you release them')
@@ -214,6 +247,36 @@ export function ExamList({ base, ownSubjectsOnly = false }: { base: string; ownS
               </div>
               <p className="text-[13px] text-muted mt-1.5">Only students in these classes can see and sit the exam.</p>
             </fieldset>
+
+            <div>
+              <label htmlFor="exam-counts" className="block text-sm font-medium text-ink mb-1.5">Counts as</label>
+              <select id="exam-counts" value={form.component} onChange={e => setForm({ ...form, component: e.target.value })}
+                className="w-full h-11 px-3 rounded border border-line bg-surface text-sm text-ink outline-none focus:border-brand">
+                {COUNTS_AS.map(o => {
+                  const max = grading.find(g => g.key === o.value)?.max;
+                  return <option key={o.value} value={o.value}>{o.label}{o.value && max ? ` (out of ${max})` : ''}</option>;
+                })}
+              </select>
+              <p className="text-[13px] text-muted mt-1.5">
+                {form.component
+                  ? "When you release the results, each score goes to this part of the grade book, scaled to the school's maximum."
+                  : 'Students can sit it, but no marks reach the grade book.'}
+              </p>
+            </div>
+            {form.component && (
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label htmlFor="exam-term" className="block text-sm font-medium text-ink mb-1.5">Term</label>
+                  <select id="exam-term" value={form.term} onChange={e => setForm({ ...form, term: e.target.value })}
+                    className="w-full h-11 px-3 rounded border border-line bg-surface text-sm text-ink outline-none focus:border-brand">
+                    <option value="">Current term</option>
+                    {TERMS.map(t => <option key={t} value={t}>{t}</option>)}
+                  </select>
+                </div>
+                <TextField id="exam-year" label="Academic year" placeholder="Current year" value={form.academic_year}
+                  onChange={e => setForm({ ...form, academic_year: e.target.value })} />
+              </div>
+            )}
 
             <div className="grid grid-cols-2 gap-3">
               <TextField id="exam-duration" label="Time allowed (minutes)" type="number" min={1} required value={form.duration_mins}
