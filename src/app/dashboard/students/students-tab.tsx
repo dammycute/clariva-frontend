@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import toast from 'react-hot-toast';
-import { api, auth } from '@/lib/api';
+import { api, request } from '@/lib/api';
 import { downloadCsv } from '@/lib/csv';
 import Link from 'next/link';
 import { Search, Download, Upload, ChevronUp, Eye, Pencil, X, Check } from 'lucide-react';
@@ -42,7 +42,8 @@ export default function StudentsTab() {
   const [importClass, setImportClass] = useState('');
   const [importCsv, setImportCsv] = useState('');
   const [importing, setImporting] = useState(false);
-  const [importResult, setImportResult] = useState<{ created: number; errors: string[] } | null>(null);
+  const [importResult, setImportResult] = useState<{ created: number; errors: string[]; students?: { name: string; admission_no: string }[] } | null>(null);
+  const [importFileName, setImportFileName] = useState('');
   const [form, setForm] = useState({
     first_name: '', last_name: '', gender: '', date_of_birth: '', state_of_origin: '', lga_of_origin: '',
     class_group: '', guardian_name: '', guardian_phone: '', guardian_email: '',
@@ -207,19 +208,19 @@ export default function StudentsTab() {
         <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center" onClick={() => setShowImport(false)}>
           <div className="bg-surface rounded w-[560px] max-w-[95vw]" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between p-5 pb-0">
-              <h2 className="text-base font-semibold text-ink">Import Students from CSV</h2>
+              <h2 className="text-base font-semibold text-ink">Import students from a CSV file</h2>
               <button onClick={() => setShowImport(false)} className="text-muted hover:text-ink text-lg" aria-label="Close"><X size={16} aria-hidden="true" /></button>
             </div>
             <div className="p-5 space-y-3.5">
               {importResult ? (
                 <div>
-                  <p className="text-sm font-semibold text-brand inline-flex items-center gap-1"><Check size={16} aria-hidden="true" /> {importResult.created} students imported.</p>
+                  <p className="text-sm font-semibold text-brand inline-flex items-center gap-1"><Check size={16} aria-hidden="true" /> {importResult.created} students imported. Admission numbers were generated.</p>
                   {importResult.errors.length > 0 && (
                     <div className="mt-2 bg-danger-soft rounded p-3 max-h-[200px] overflow-y-auto">
                       {importResult.errors.map((e, i) => <p key={i} className="text-xs text-danger">{e}</p>)}
                     </div>
                   )}
-                  <button onClick={() => setShowImport(false)} className="mt-4 w-full text-sm px-4 py-2.5 rounded bg-brand text-brand-ink hover:opacity-90">Done</button>
+                  <button onClick={() => { setShowImport(false); setImportResult(null); setImportCsv(''); setImportFileName(''); }} className="mt-4 w-full text-sm px-4 py-2.5 rounded bg-brand text-brand-ink hover:opacity-90">Done</button>
                 </div>
               ) : (
                 <>
@@ -232,10 +233,17 @@ export default function StudentsTab() {
                     </select>
                   </div>
                   <div>
-                    <label className="block text-xs font-semibold text-muted mb-1">CSV data</label>
-                    <textarea value={importCsv} onChange={e => setImportCsv(e.target.value)} rows={8} placeholder={'first_name,last_name,admission_no,gender,guardian_name,guardian_phone\nJohn,Doe,JH123,Male,Jane Doe,08012345678'}
-                      className="w-full px-3 py-2 rounded border border-line text-sm outline-none focus:border-brand font-mono" />
-                    <p className="text-xs text-muted mt-1">Required: <strong>first_name</strong>. Optional: last_name, admission_no, gender, guardian_name, guardian_phone, guardian_email</p>
+                    <label htmlFor="import-file" className="block text-xs font-semibold text-muted mb-1">CSV file</label>
+                    <input id="import-file" type="file" accept=".csv,text/csv"
+                      onChange={async e => {
+                        const f = e.target.files?.[0];
+                        if (!f) return;
+                        setImportFileName(f.name);
+                        setImportCsv(await f.text());
+                      }}
+                      className="block w-full text-sm text-ink file:mr-3 file:px-3 file:py-2 file:rounded file:border file:border-line file:bg-surface-2 file:text-sm file:cursor-pointer" />
+                    {importFileName && <p className="text-xs text-muted mt-1">{importFileName}: {Math.max(importCsv.trim().split('\n').length - 1, 0)} rows</p>}
+                    <p className="text-xs text-muted mt-2">Columns: <strong>full_name</strong> (or first_name and last_name), gender, guardian_name, guardian_phone, guardian_email, and <strong>class</strong> (a class name such as JSS1A). Admission numbers are made for you after the import.</p>
                   </div>
                   <div className="flex justify-end gap-2 pt-2">
                     <button onClick={() => setShowImport(false)} className="text-sm px-4 py-2 rounded border border-line bg-surface hover:bg-surface-2">Cancel</button>
@@ -243,16 +251,11 @@ export default function StudentsTab() {
                       if (!importCsv.trim()) return;
                       setImporting(true);
                       try {
-                        const token = auth.getToken();
-                        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api'}/students/import_csv/`, {
-                          method: 'POST',
-                          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token ?? ''}` },
-                          body: JSON.stringify({ csv: importCsv, class_id: importClass || null }),
-                        });
-                        const data = await res.json();
+                        const data = await request<{ created: number; errors: string[]; students?: { name: string; admission_no: string }[] }>(
+                          'POST', '/students/import_csv/', { csv: importCsv, class_id: importClass || null });
                         setImportResult(data);
                         loadData();
-                      } catch { toast.error('Import failed'); }
+                      } catch { /* the reason is already shown */ }
                       finally { setImporting(false); }
                     }} disabled={!importCsv.trim() || importing}
                       className="text-sm px-4 py-2 rounded bg-brand text-brand-ink hover:opacity-90 disabled:opacity-50">
@@ -302,16 +305,10 @@ export default function StudentsTab() {
                   setPromoting(true);
                   try {
                     const ids = students.filter(s => String(s.class_group) === promoteSource).map(s => s.id);
-                    const token = auth.getToken();
-                    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api'}/students/promote/`, {
-                      method: 'POST',
-                      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token ?? ''}` },
-                      body: JSON.stringify({ student_ids: ids, target_class_id: promoteTarget }),
-                    });
-                    if (!res.ok) { const d = await res.json(); toast.error(d.error || 'Promotion failed'); return; }
+                    await request('POST', '/students/promote/', { student_ids: ids, target_class_id: promoteTarget });
                     setShowPromote(false);
                     loadData();
-                  } catch { toast.error('Promotion failed'); }
+                  } catch { /* the reason is already shown */ }
                   finally { setPromoting(false); }
                 }} disabled={!promoteSource || !promoteTarget || promoting}
                   className="text-sm px-4 py-2 rounded bg-brand text-brand-ink hover:bg-brand disabled:opacity-50">
