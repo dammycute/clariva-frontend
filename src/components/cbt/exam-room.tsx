@@ -3,8 +3,13 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import toast from 'react-hot-toast';
 import { useParams, useRouter } from 'next/navigation';
-import { api, type ExamResult } from '@/lib/api';
+import { api, ApiError, type ExamResult } from '@/lib/api';
 import { AnswerSaver, type SaveStatus } from '@/lib/autosave';
+import {
+  loadAttempt, saveQuestions, saveMeta, clearAttempt, secondsLeft, unsentAnswers, withTimeout,
+  type LocalAttempt,
+} from '@/lib/exam-store';
+import { prepareOfflineShell } from '@/lib/offline-shell';
 import { Button } from '@/components/ui/button';
 
 interface Exam {
@@ -25,8 +30,12 @@ const SAVE_LABEL: Record<SaveStatus, string> = {
   idle: '',
   saving: 'Saving…',
   saved: 'All answers saved',
-  offline: 'Offline. Your answers are kept and will send when you are back online.',
+  offline: 'No connection. Keep going: your answers are kept on this device and will send when you are back online.',
 };
+
+const SAVE_TIMEOUT_MS = 15000;     // a request hanging on a weak connection is given up and retried
+const SUBMIT_TIMEOUT_MS = 20000;
+const SUBMIT_RETRY_MS = 8000;
 
 /** The student's exam room: start or resume, answer with autosave, submit, see the result. */
 export function ExamRoom({ backHref }: { backHref: string }) {
@@ -37,7 +46,6 @@ export function ExamRoom({ backHref }: { backHref: string }) {
   const [screen, setScreen] = useState<Screen>('start');
   const [exam, setExam] = useState<Exam | null>(null);
   const [questions, setQuestions] = useState<Question[]>([]);
-  const [sessionId, setSessionId] = useState<string | null>(null);
   const [starting, setStarting] = useState(false);
   const [startError, setStartError] = useState<string | null>(null);
 
@@ -49,9 +57,17 @@ export function ExamRoom({ backHref }: { backHref: string }) {
   const [saveStatus, setSaveStatus] = useState<SaveStatus>('idle');
 
   const [displayTime, setDisplayTime] = useState<number | null>(null);
-  const remainingRef = useRef<number | null>(null);
+  // When time runs out, by this device's clock. Counting down from this (not by subtracting a
+  // second per tick) keeps the clock right through a sleeping tab, a reload or no connection.
+  const endsAtRef = useRef<number | null>(null);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const tabSwitchesRef = useRef(0);
+  const finishedInTimeRef = useRef(true);
+  const sessionIdRef = useRef<string | null>(null);
+  const [waiting, setWaiting] = useState(false);          // submitted here, not yet confirmed by the server
+  const [pendingCount, setPendingCount] = useState(0);
+  const [hasLocal, setHasLocal] = useState(false);        // an unfinished exam is saved on this device
+  const retryingRef = useRef(false);
   const saverRef = useRef<AnswerSaver | null>(null);
   const answersRef = useRef<Record<string, string>>({});
   const submittingRef = useRef(false);
@@ -61,96 +77,186 @@ export function ExamRoom({ backHref }: { backHref: string }) {
   const [confirmUnanswered, setConfirmUnanswered] = useState<number[]>([]);
   const [result, setResult] = useState<ExamResult | null>(null);
 
-  // exam details for the start screen
+  // exam details for the start screen. With no connection, fall back to the copy saved on this device.
   useEffect(() => {
     if (!id) return;
+    const local = loadAttempt(id);
+    setHasLocal(!!local);
     (async () => {
       try {
-        setExam(await api.exams.get(id) as Exam);
-      } catch {
-        toast.error('This exam is not available.');
-        router.push(backHref);
+        const e = await withTimeout(api.exams.get(id), SAVE_TIMEOUT_MS) as Exam;
+        setExam(e);
+        try { localStorage.setItem(`cbt-exam:${id}`, JSON.stringify(e)); } catch { /* optional */ }
+      } catch (err) {
+        if (err instanceof ApiError) {          // the server answered: this exam is not available
+          toast.error('This exam is not available.');
+          router.push(backHref);
+          return;
+        }
+        try {                                   // no connection: use the details seen earlier
+          const raw = localStorage.getItem(`cbt-exam:${id}`);
+          if (raw) { setExam(JSON.parse(raw) as Exam); return; }
+        } catch { /* fall through */ }
+        setStartError('No connection. Check your internet and reload this page.');
       }
     })();
   }, [id, router, backHref]);
 
+  // make the exam page able to reopen offline (production only)
+  useEffect(() => { void prepareOfflineShell(); }, []);
+
+  /** Write the running exam to this device. Cheap enough to call on every answer. */
+  const persist = useCallback((extra: Partial<LocalAttempt> = {}) => {
+    const sid = sessionIdRef.current;
+    if (!id || !sid) return;
+    saveMeta(id, {
+      sessionId: sid,
+      answers: answersRef.current,
+      endsAt: endsAtRef.current,
+      tabSwitches: tabSwitchesRef.current,
+      submitPending: submittingRef.current,
+      finishedInTime: finishedInTimeRef.current,
+      ...extra,
+    });
+  }, [id]);
+
   const finish = useCallback((res: ExamResult) => {
     saverRef.current?.stop();
     if (timerRef.current) { clearInterval(timerRef.current); timerRef.current = null; }
+    if (id) clearAttempt(id);                 // the server has the result; the device copy is not needed
+    setWaiting(false);
     setResult(res);
     setScreen('result');
-  }, []);
+  }, [id]);
+
+  /** One try at handing in the exam. Returns true when the server has it. */
+  const attemptSubmit = useCallback(async (): Promise<boolean> => {
+    const sid = sessionIdRef.current;
+    if (!sid || retryingRef.current) return false;
+    retryingRef.current = true;
+    try {
+      await saverRef.current?.flush();              // best effort; the full set is sent below as well
+      const res = await withTimeout(
+        api.exams.submitExam(sid, answersRef.current, tabSwitchesRef.current, finishedInTimeRef.current),
+        SUBMIT_TIMEOUT_MS);
+      finish(res);
+      return true;
+    } catch {
+      setWaiting(true);                             // keep the answers, keep trying
+      return false;
+    } finally { retryingRef.current = false; }
+  }, [finish]);
+
+  const handleSubmit = useCallback(async () => {
+    if (submittingRef.current || !sessionIdRef.current) return;
+    submittingRef.current = true;
+    setSubmitting(true);
+    if (timerRef.current) { clearInterval(timerRef.current); timerRef.current = null; }
+    // Pressed before the clock reached zero, or the clock ran out here: either way it was in time.
+    const left = secondsLeft(endsAtRef.current);
+    finishedInTimeRef.current = left == null || left >= 0;
+    persist({ submitPending: true, finishedInTime: finishedInTimeRef.current });
+    await attemptSubmit();
+  }, [attemptSubmit, persist]);
+
+  /** Open the exam room with this data. Used for a normal start, a resume, and an offline resume. */
+  const enterExam = useCallback((o: {
+    sessionId: string; questions: Question[]; answers: Record<string, string>;
+    endsAt: number | null; unsent: Record<string, string>; tabSwitches: number; submitPending: boolean;
+  }) => {
+    sessionIdRef.current = o.sessionId;
+    setQuestions(o.questions);
+    setAnswers(o.answers);
+    answersRef.current = o.answers;
+    tabSwitchesRef.current = o.tabSwitches;
+    endsAtRef.current = o.endsAt;
+    setDisplayTime(secondsLeft(o.endsAt));
+
+    const firstOpen = o.questions.findIndex(q => !o.answers[q.id]);       // pick up where the student stopped
+    setCurrentIndex(firstOpen === -1 ? 0 : firstOpen);
+
+    saveQuestions(id, o.questions);
+    saverRef.current = new AnswerSaver({
+      send: batch => withTimeout(api.exams.saveAnswers(o.sessionId, batch), SAVE_TIMEOUT_MS),
+      onStatus: setSaveStatus,
+      onReply: reply => {
+        // the server clock wins whenever we can reach it
+        if (reply.time_remaining != null) endsAtRef.current = Date.now() + reply.time_remaining * 1000;
+        if (reply.expired) endsAtRef.current = Date.now();
+        persist();
+        if (reply.closed) finish(reply as ExamResult);
+      },
+    });
+    // anything typed on this device that the server may not have yet
+    for (const [q, a] of Object.entries(o.unsent)) saverRef.current.queue(q, a);
+    persist({ submitPending: o.submitPending });
+    setScreen('exam');
+    if (o.submitPending) {                  // the student had already submitted; finish the hand-in
+      submittingRef.current = true;
+      setSubmitting(true);
+      void attemptSubmit();
+    }
+  }, [id, persist, finish, attemptSubmit]);
 
   const handleStart = useCallback(async () => {
     if (!id) return;
     setStarting(true);
     setStartError(null);
+    const local = loadAttempt(id);
     try {
-      const session = await api.exams.startExam(id);
+      const session = await withTimeout(api.exams.startExam(id), SAVE_TIMEOUT_MS);
       const qs = session.questions as Question[];
-      const saved = session.saved_answers || {};
-
-      setSessionId(session.session_id);
-      setQuestions(qs);
-      setAnswers(saved);
-      answersRef.current = saved;
-
-      // pick up where the student stopped
-      const firstOpen = qs.findIndex(q => !saved[q.id]);
-      setCurrentIndex(firstOpen === -1 ? 0 : firstOpen);
-      if (Object.keys(saved).length > 0) toast.success('Welcome back. Your saved answers are restored.');
-
-      remainingRef.current = session.time_remaining;
-      setDisplayTime(session.time_remaining);
-
-      saverRef.current = new AnswerSaver({
-        send: batch => api.exams.saveAnswers(session.session_id, batch),
-        onStatus: setSaveStatus,
-        onReply: reply => {
-          if (reply.time_remaining != null) remainingRef.current = reply.time_remaining;   // server clock wins
-          if (reply.closed) finish(reply as ExamResult);
-        },
+      const serverAnswers = session.saved_answers || {};
+      // the copy on this device only counts if it is the same attempt
+      const mine = local && local.sessionId === session.session_id ? local : null;
+      if (local && !mine) clearAttempt(id);
+      const answers = { ...serverAnswers, ...(mine?.answers || {}) };
+      if (Object.keys(answers).length > 0) toast.success('Welcome back. Your saved answers are restored.');
+      if (mine) finishedInTimeRef.current = mine.finishedInTime;
+      enterExam({
+        sessionId: session.session_id, questions: qs, answers,
+        endsAt: session.time_remaining == null ? null : Date.now() + session.time_remaining * 1000,
+        unsent: unsentAnswers(answers, serverAnswers),
+        tabSwitches: mine?.tabSwitches || 0,
+        submitPending: !!mine?.submitPending,
       });
-      setScreen('exam');
     } catch (err: unknown) {
-      setStartError(err instanceof Error ? err.message : 'We could not start the exam. Try again.');
+      if (err instanceof ApiError) {
+        // The server gave a real answer (already submitted, not open, not yours). The device copy is out of date.
+        clearAttempt(id);
+        setStartError(err.message);
+      } else if (local) {
+        // No connection, but this exam was already opened here: carry on from the device copy.
+        toast('No connection. Continuing from this device. Your answers will send when you are back online.', { icon: '⚠️' });
+        finishedInTimeRef.current = local.finishedInTime;
+        enterExam({
+          sessionId: local.sessionId, questions: local.questions as Question[], answers: local.answers,
+          endsAt: local.endsAt, unsent: local.answers, tabSwitches: local.tabSwitches,
+          submitPending: local.submitPending,
+        });
+      } else {
+        setStartError('We could not reach the server. Check your internet and try again.');
+      }
     }
     finally { setStarting(false); }
-  }, [id, finish]);
+  }, [id, enterExam]);
 
   const setAnswer = useCallback((questionId: string, value: string) => {
-    setAnswers(prev => {
-      const next = { ...prev, [questionId]: value };
-      answersRef.current = next;
-      return next;
-    });
+    const next = { ...answersRef.current, [questionId]: value };
+    answersRef.current = next;                   // updated now, so the copy below is never one answer behind
+    setAnswers(next);
+    persist();                                 // on this device first, so a crash or reload loses nothing
     saverRef.current?.queue(questionId, value);
-  }, []);
+  }, [persist]);
 
-  const handleSubmit = useCallback(async () => {
-    if (submittingRef.current || !sessionId) return;
-    submittingRef.current = true;
-    setSubmitting(true);
-    if (timerRef.current) { clearInterval(timerRef.current); timerRef.current = null; }
-    try {
-      await saverRef.current?.flush();              // best effort; the full set is sent below as well
-      const res = await api.exams.submitExam(sessionId, answersRef.current, tabSwitchesRef.current);
-      finish(res);
-    } catch {
-      toast.error('We could not submit yet. Your answers are saved. Check your connection and try again.');
-      submittingRef.current = false;
-      setSubmitting(false);
-    }
-  }, [sessionId, finish]);
-
-  // one clock tick per second; the server's time left is applied whenever a save comes back
+  // one clock tick per second, read from the end time so a slept tab or a reload cannot drift
   useEffect(() => {
     if (screen !== 'exam' || submitting) return;
     timerRef.current = setInterval(() => {
-      if (remainingRef.current == null) return;
-      remainingRef.current -= 1;
-      setDisplayTime(Math.max(0, remainingRef.current));
-      if (remainingRef.current <= 0) {
+      const left = secondsLeft(endsAtRef.current);
+      if (left == null) return;
+      setDisplayTime(left);
+      if (left <= 0) {
         if (timerRef.current) clearInterval(timerRef.current);
         void handleSubmit();
       }
@@ -158,13 +264,26 @@ export function ExamRoom({ backHref }: { backHref: string }) {
     return () => { if (timerRef.current) { clearInterval(timerRef.current); timerRef.current = null; } };
   }, [screen, submitting, handleSubmit]);
 
-  // send anything waiting as soon as the connection is back
+  // when the connection comes back: send what is waiting and finish a pending hand-in
   useEffect(() => {
     if (screen !== 'exam') return;
-    const online = () => { void saverRef.current?.flush(); };
+    const online = () => {
+      if (submittingRef.current) void attemptSubmit();
+      else void saverRef.current?.flush();
+    };
+    const offline = () => setSaveStatus('offline');
     window.addEventListener('online', online);
-    return () => window.removeEventListener('online', online);
-  }, [screen]);
+    window.addEventListener('offline', offline);
+    return () => { window.removeEventListener('online', online); window.removeEventListener('offline', offline); };
+  }, [screen, attemptSubmit]);
+
+  // a hand-in that could not reach the server keeps trying by itself
+  useEffect(() => {
+    if (!waiting) return;
+    setPendingCount(Object.keys(answersRef.current).length);
+    const t = setInterval(() => { void attemptSubmit(); }, SUBMIT_RETRY_MS);
+    return () => clearInterval(t);
+  }, [waiting, attemptSubmit]);
 
   // tab switch detection: same rule as before, the first switch ends the exam
   useEffect(() => {
@@ -236,15 +355,15 @@ export function ExamRoom({ backHref }: { backHref: string }) {
             </div>
           )}
           <ul className="text-[13px] text-muted mb-5 list-disc pl-5 space-y-1">
-            <li>Your answers are saved as you go. If your connection drops, you can come back and continue.</li>
-            <li>The clock keeps running while you are away.</li>
+            <li>Your answers are saved as you go. If your connection drops, keep answering: they are kept on this device and sent when you are back online.</li>
+            <li>The clock keeps running if the connection drops. Do not close the page or clear your browser data until the exam is submitted.</li>
             <li>Leaving this window ends the exam.</li>
           </ul>
           {startError && (
             <div role="alert" className="mb-4 text-[13px] text-danger bg-danger-soft border border-danger/30 rounded px-3 py-2">{startError}</div>
           )}
           <Button onClick={handleStart} disabled={starting || !exam} className="w-full">
-            {starting ? 'Starting…' : 'Start exam'}
+            {starting ? 'Starting…' : hasLocal ? 'Continue exam' : 'Start exam'}
           </Button>
         </div>
       </div>
@@ -406,8 +525,21 @@ export function ExamRoom({ backHref }: { backHref: string }) {
       {submitting && (
         <div role="status" className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center">
           <div className="bg-surface rounded p-8 text-center max-w-sm">
-            <p className="text-sm font-semibold text-ink">Submitting your exam…</p>
-            <p className="text-xs text-muted mt-1">Please wait. Do not close this page.</p>
+            {waiting ? (
+              <>
+                <p className="text-sm font-semibold text-ink">Waiting for the connection</p>
+                <p className="text-xs text-muted mt-2">
+                  Your exam is finished and your {pendingCount} answer{pendingCount === 1 ? ' is' : 's are'} saved on this device.
+                  It will be sent as soon as you are online. Keep this page open.
+                </p>
+                <Button onClick={() => { void attemptSubmit(); }} className="mt-4">Try again now</Button>
+              </>
+            ) : (
+              <>
+                <p className="text-sm font-semibold text-ink">Submitting your exam…</p>
+                <p className="text-xs text-muted mt-1">Please wait. Do not close this page.</p>
+              </>
+            )}
           </div>
         </div>
       )}

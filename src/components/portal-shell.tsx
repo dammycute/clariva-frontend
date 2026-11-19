@@ -2,10 +2,12 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { api, auth } from '@/lib/api';
+import { api, auth, ApiError } from '@/lib/api';
 import { Sidebar, type NavSection } from '@/components/sidebar';
 import NotificationBell from '@/components/notification-bell';
 import { ThemeSwitch } from '@/components/theme-switch';
+
+const LAST_USER = 'portal-last-user';
 
 const ROLE_LABELS: Record<string, string> = {
   school_admin: 'School admin', admin_officer: 'Admin officer', principal: 'Principal',
@@ -37,18 +39,33 @@ export function PortalShell({ nav, children, allowRoles, deniedHref = '/', showS
 
   useEffect(() => {
     if (!auth.getToken()) { router.push('/'); return; }
-    auth.me().then(user => {
+    type Me = Awaited<ReturnType<typeof auth.me>>;
+    const show = (user: Me, online: boolean) => {
       if (allowRoles && !allowRoles.includes(user.role)) { router.push(deniedHref); return; }
       const full = `${user.first_name || ''} ${user.last_name || ''}`.trim();
       setUserName(full || user.email);
       setRoleLabel(ROLE_LABELS[user.role] || user.role.replace(/_/g, ' '));
       setReady(true);
-      if (showSchool && user.school_id) {
+      if (online && showSchool && user.school_id) {
         (api.schools.get(user.school_id) as Promise<{ name: string }>)
           .then(s => setSchoolName(s?.name || ''))
           .catch(() => {});
       }
-    }).catch(() => { router.push('/'); });
+    };
+    auth.me().then(user => {
+      try { localStorage.setItem(LAST_USER, JSON.stringify(user)); } catch { /* optional */ }
+      show(user, true);
+    }).catch(err => {
+      // The server said no (not signed in): go to the sign-in page. But if it simply could not be
+      // reached, use the last known user so a student with a weak connection is not thrown out of an exam.
+      if (!(err instanceof ApiError)) {
+        try {
+          const raw = localStorage.getItem(LAST_USER);
+          if (raw && auth.getToken()) { show(JSON.parse(raw) as Me, false); return; }
+        } catch { /* fall through */ }
+      }
+      router.push('/');
+    });
     // allowRoles is a static array from the layout; run once.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [router]);
