@@ -18,10 +18,10 @@ const WAEC_BOUNDARIES: GradeBoundary[] = [
 ];
 
 const DEFAULT_COMPONENTS = [
-  { key: 'ca1', label: 'CA 1', max: 30, enabled: true },
-  { key: 'ca2', label: 'CA 2', max: 30, enabled: true },
-  { key: 'assignment', label: 'Assignment', max: 40, enabled: true },
-  { key: 'exam', label: 'Exam', max: 100, enabled: true },
+  { key: 'ca1', label: 'CA 1', max: 10, enabled: true },
+  { key: 'ca2', label: 'CA 2', max: 10, enabled: true },
+  { key: 'assignment', label: 'Assignment', max: 10, enabled: true },
+  { key: 'exam', label: 'Exam', max: 70, enabled: true },
 ];
 
 export default function GradingSettingsTab() {
@@ -125,13 +125,14 @@ export default function GradingSettingsTab() {
                 <input value={comp.label} onChange={e => updateComponentField(idx, 'label', e.target.value)}
                   className="flex-1 text-sm border border-line rounded px-3 py-2 bg-surface text-ink outline-none" />
                 <span className="text-xs text-muted">Max</span>
-                <input type="number" min="0" max="200" value={comp.max} onChange={e => updateComponentField(idx, 'max', parseInt(e.target.value) || 0)}
+                <input type="number" min="0" max="100" value={comp.max} onChange={e => updateComponentField(idx, 'max', parseInt(e.target.value) || 0)}
                   disabled={comp.enabled === false}
                   className="w-20 text-sm border border-line rounded px-3 py-2 bg-surface text-ink outline-none disabled:opacity-40" />
               </div>
             ))}
           </div>
           <p className="text-xs text-muted mt-3">Total possible score: <strong className="text-ink">{maxTotal}</strong></p>
+          {maxTotal !== 100 && <p role="status" className="text-xs text-warning mt-1">Most schools score out of 100. Your total is {maxTotal}.</p>}
         </div>
 
         <div className="bg-surface border border-line rounded p-5 mb-4">
