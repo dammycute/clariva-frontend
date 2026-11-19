@@ -1,4 +1,5 @@
 import toast from 'react-hot-toast';
+import { clearAllAttempts } from '@/lib/exam-store';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
 
@@ -94,7 +95,11 @@ async function _refreshToken(): Promise<string | null> {
     setCookie('access_token', data.access);
     sessionStorage.setItem('refresh_token', data.refresh);
     return data.access;
-  } catch { clearTokens(); return null; }
+  } catch {
+    // No connection is not the same as a bad token. Keep the session so a student who drops
+    // offline in the middle of an exam is not logged out.
+    return null;
+  }
 }
 
 async function request<T = unknown>(
@@ -183,6 +188,8 @@ export const auth = {
     // Best-effort server-side revoke; local state is cleared regardless.
     if (refresh) void request('POST', '/auth/logout/', { refresh }).catch(() => undefined);
     clearTokens();
+    clearAllAttempts();   // do not leave a student's exam copy on a shared computer
+    try { localStorage.removeItem('portal-last-user'); } catch { /* nothing to clear */ }
   },
   getToken,
   getRole: () => typeof window !== 'undefined' ? sessionStorage.getItem('user_role') : null,
@@ -257,6 +264,8 @@ export type ExamSaveReply = {
   closed: boolean;
   time_remaining?: number | null;
   saved?: number;
+  /** Time is up. The attempt is still open for a short wait so the device can hand in with Submit. */
+  expired?: boolean;
 } & Partial<ExamResult>;
 
 /** What a student is told after submitting. While results are held there is no score. */
@@ -321,8 +330,8 @@ export const api = {
     /** Save answers as the student types. The reply also carries the server's time left. */
     saveAnswers: (sessionId: string | number, answers: Record<string, string>) =>
       request<ExamSaveReply>('POST', `/exams/sessions/${sessionId}/save/`, { answers }),
-    submitExam: (sessionId: string | number, answers: Record<string, string>, tab_switches: number = 0) =>
-      request<ExamResult>('POST', `/exams/sessions/${sessionId}/submit/`, { answers, tab_switches }),
+    submitExam: (sessionId: string | number, answers: Record<string, string>, tab_switches: number = 0, finished_in_time?: boolean) =>
+      request<ExamResult>('POST', `/exams/sessions/${sessionId}/submit/`, { answers, tab_switches, finished_in_time }),
     duplicate: (examId: string | number) =>
       request('POST', `/exams/exams/${examId}/duplicate/`),
     close: (examId: string | number) =>
