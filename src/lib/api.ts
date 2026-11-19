@@ -199,10 +199,17 @@ function unwrap<T>(data: unknown): T[] {
 function createApi<T = unknown>(basePath: string) {
   const id = (p: string) => `${basePath}${p}/`.replace('//', '/');
   return {
+    // The server sends results in pages. Read every page so lists are never cut off at the first one.
     list: async (params?: Record<string, string>) => {
-      const qs = params ? '?' + new URLSearchParams(params).toString() : '';
-      const data = await request<unknown>('GET', `${basePath}${qs}`);
-      return unwrap<T>(data);
+      const all: T[] = [];
+      for (let page = 1; page <= 100; page++) {
+        const qs = '?' + new URLSearchParams({ page_size: '500', ...params, page: String(page) }).toString();
+        const data = await request<unknown>('GET', `${basePath}${qs}`);
+        all.push(...unwrap<T>(data));
+        const next = data && typeof data === 'object' ? (data as { next?: string | null }).next : null;
+        if (!next) break;
+      }
+      return all;
     },
     get: (pk: number | string) => request<T>('GET', id(`${pk}`)),
     create: (data: Partial<T>) => request<T>('POST', basePath, data),

@@ -26,6 +26,8 @@ interface Invoice {
   paid_at: string | null;
   student_name?: string;
   fee_name?: string;
+  class_group?: string | null;
+  class_name?: string | null;
   items: InvoiceItem[];
 }
 
@@ -59,12 +61,14 @@ export default function InvoicesTab({ onRefresh }: { onRefresh: () => void }) {
   const [payForm, setPayForm] = useState({ amount: '', method: 'Cash', ref: '' });
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
+  const [classFilter, setClassFilter] = useState('');
   const [selectedFeeItemIds, setSelectedFeeItemIds] = useState<Set<string>>(new Set());
 
   function filteredInvoices() {
     return invoices.filter(inv => {
       if (searchQuery && !inv.student_name?.toLowerCase().includes(searchQuery.toLowerCase())) return false;
       if (statusFilter && inv.status !== statusFilter) return false;
+      if (classFilter && String(inv.class_group) !== classFilter) return false;
       return true;
     });
   }
@@ -282,6 +286,11 @@ export default function InvoicesTab({ onRefresh }: { onRefresh: () => void }) {
           <input type="text" value={searchQuery} onChange={e => setSearchQuery(e.target.value)} placeholder="Search student…"
             className="w-full pl-8 pr-3 py-2 rounded border border-line text-sm outline-none focus:border-brand" />
         </div>
+        <select value={classFilter} onChange={e => setClassFilter(e.target.value)} aria-label="Filter by class"
+          className="text-sm border border-line rounded px-3 py-2 bg-surface text-muted outline-none">
+          <option value="">All classes</option>
+          {clsList.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+        </select>
         <select value={statusFilter} onChange={e => setStatusFilter(e.target.value)}
           className="text-sm border border-line rounded px-3 py-2 bg-surface text-muted outline-none">
           <option value="">All statuses</option>
