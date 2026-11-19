@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import toast from 'react-hot-toast';
 import { api } from '@/lib/api';
 import ConfirmDialog from '@/components/confirm-dialog';
 import { Pencil, Trash2, X, ChevronDown, ChevronRight } from 'lucide-react';
@@ -37,6 +38,7 @@ export default function FeeItemsTab({ onRefresh }: { onRefresh: () => void }) {
   const [showBulk, setShowBulk] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState<{ id: string; invoices: number; withPayments: number } | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const [saving, setSaving] = useState(false);
   const [expandedTiers, setExpandedTiers] = useState<Set<string>>(new Set());
 
   useEffect(() => { loadItems(); }, []);
@@ -62,6 +64,7 @@ export default function FeeItemsTab({ onRefresh }: { onRefresh: () => void }) {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    if (saving) return;                       // a second click while the first save runs does nothing
     let pricingTiers = null;
     try { const p = form.pricing_tiers ? JSON.parse(form.pricing_tiers) : null; if (p && typeof p === 'object') pricingTiers = p; } catch {}
     const payload = {
@@ -75,14 +78,19 @@ export default function FeeItemsTab({ onRefresh }: { onRefresh: () => void }) {
       academic_year: form.academic_year || null,
       is_mandatory: form.is_mandatory,
     };
-    if (editingId) {
-      await api.feeItems.update(editingId, payload);
-    } else {
-      await api.feeItems.create(payload);
-    }
-    setShowModal(false);
-    loadItems();
-    onRefresh();
+    setSaving(true);
+    try {
+      if (editingId) {
+        await api.feeItems.update(editingId, payload);
+      } else {
+        await api.feeItems.create(payload);
+      }
+      toast.success(editingId ? 'Fee item saved.' : 'Fee item added. Students it applies to have been billed.');
+      setShowModal(false);
+      loadItems();
+      onRefresh();
+    } catch { /* the reason is already shown, and the form stays open so nothing is lost */ }
+    finally { setSaving(false); }
   }
 
   // Ask the server what deleting would touch before showing the confirmation.
@@ -285,7 +293,9 @@ export default function FeeItemsTab({ onRefresh }: { onRefresh: () => void }) {
               </div>
               <div className="flex justify-end gap-2 pt-2">
                 <button type="button" onClick={() => setShowModal(false)} className="text-sm px-4 py-2 rounded border border-line bg-surface hover:bg-surface-2">Cancel</button>
-                <button type="submit" className="text-sm px-4 py-2 rounded bg-brand text-brand-ink hover:opacity-90">{editingId ? 'Save Changes' : 'Add Fee Item'}</button>
+                <button type="submit" disabled={saving} className="text-sm px-4 py-2 rounded bg-brand text-brand-ink hover:opacity-90 disabled:opacity-50">
+                  {saving ? (editingId ? 'Saving…' : 'Adding and billing students…') : editingId ? 'Save Changes' : 'Add Fee Item'}
+                </button>
               </div>
             </form>
           </div>
