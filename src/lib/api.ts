@@ -88,7 +88,7 @@ async function isSessionReplaced(res: Response): Promise<boolean> {
 /** This student signed in somewhere else. Drop this device's sign-in and say why on the login page. */
 function sessionReplaced() {
   clearTokens();
-  if (typeof window !== 'undefined') window.location.assign('/?reason=session_replaced');
+  if (typeof window !== 'undefined') window.location.assign('/login?reason=session_replaced');
 }
 
 function clearTokens() {

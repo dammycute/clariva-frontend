@@ -17,7 +17,7 @@ export default function SettingsPage() {
   async function loadSchool() {
     const me = await auth.me();
     if (!me || (me.role !== 'school_admin' && me.role !== 'super_admin')) {
-      router.push('/');
+      router.push('/login');
       return;
     }
     setLoading(true);

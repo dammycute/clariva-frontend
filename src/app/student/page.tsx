@@ -21,8 +21,8 @@ export default function StudentDashboard() {
 
   useEffect(() => {
     auth.me().then(user => {
-      if (user.role !== 'student') { router.push('/'); return; }
-    }).catch(() => router.push('/'));
+      if (user.role !== 'student') { router.push('/login'); return; }
+    }).catch(() => router.push('/login'));
 
     (async () => {
       try {
