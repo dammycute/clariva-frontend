@@ -19,8 +19,8 @@ export default function TeacherDashboard() {
 
   useEffect(() => {
     auth.me().then(user => {
-      if (user.role !== 'teacher') { router.push('/'); return; }
-    }).catch(() => router.push('/'));
+      if (user.role !== 'teacher') { router.push('/login'); return; }
+    }).catch(() => router.push('/login'));
 
     (async () => {
       try {

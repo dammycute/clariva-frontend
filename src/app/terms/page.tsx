@@ -68,7 +68,7 @@ export default function TermsPage() {
         <p className="text-[13px] text-muted mt-12 pt-6 border-t border-line">
           <Link href="/onboard" className="underline underline-offset-2 hover:text-ink">Back to setup</Link>
           {' · '}
-          <Link href="/" className="underline underline-offset-2 hover:text-ink">Sign in</Link>
+          <Link href="/login" className="underline underline-offset-2 hover:text-ink">Sign in</Link>
         </p>
       </main>
     </div>

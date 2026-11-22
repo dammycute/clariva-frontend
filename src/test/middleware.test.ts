@@ -28,7 +28,7 @@ describe('public routes', () => {
     const { NextRequest } = await import('next/server');
     const { middleware } = await import('@/middleware');
     const res = await middleware(new NextRequest('http://localhost/guardian/dashboard'));
-    expect(res.headers.get('location')).toContain('/?redirect=%2Fguardian%2Fdashboard');
+    expect(res.headers.get('location')).toContain('/login?redirect=%2Fguardian%2Fdashboard');
   });
 });
 

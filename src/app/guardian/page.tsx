@@ -209,7 +209,7 @@ export default function GuardianLoginPage() {
       )}
 
       <p className="text-[13px] text-muted mt-8 lg:hidden">
-        <Link href="/" className="underline underline-offset-2 hover:text-ink">School staff and students sign in here</Link>
+        <Link href="/login" className="underline underline-offset-2 hover:text-ink">School staff and students sign in here</Link>
       </p>
     </AuthShell>
   );

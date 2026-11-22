@@ -368,7 +368,7 @@ export default function OnboardPage() {
               hint="Used for password recovery." error={fieldErrors.proprietorEmail} />
             {fieldErrors.proprietorEmail && (
               <p className="text-[13px] mt-1">
-                <Link href="/" className="text-ink underline underline-offset-2">Sign in instead</Link>
+                <Link href="/login" className="text-ink underline underline-offset-2">Sign in instead</Link>
               </p>
             )}
           </div>
@@ -427,7 +427,7 @@ export default function OnboardPage() {
       )}
 
       <p className="text-[13px] text-muted mt-8 lg:hidden">
-        Already have an account? <Link href="/" className="text-ink underline underline-offset-2">Sign in</Link>
+        Already have an account? <Link href="/login" className="text-ink underline underline-offset-2">Sign in</Link>
       </p>
     </AuthShell>
   );

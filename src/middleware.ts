@@ -30,7 +30,7 @@ export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   // `/guardian` is the guardian login page; `/guardian/dashboard` stays protected.
-  if (pathname.startsWith('/portal') || pathname === '/' || pathname.startsWith('/onboard') || pathname === '/guardian' || pathname === '/terms') {
+  if (pathname.startsWith('/portal') || pathname === '/' || pathname === '/login' || pathname.startsWith('/onboard') || pathname === '/guardian' || pathname === '/terms') {
     return NextResponse.next();
   }
 
@@ -38,7 +38,7 @@ export async function middleware(request: NextRequest) {
 
   if (!token) {
     const url = request.nextUrl.clone();
-    url.pathname = '/';
+    url.pathname = '/login';
     url.searchParams.set('redirect', pathname);
     return NextResponse.redirect(url);
   }
@@ -48,7 +48,7 @@ export async function middleware(request: NextRequest) {
 
   if (!role || !ROLE_HOME[role]) {
     const url = request.nextUrl.clone();
-    url.pathname = '/';
+    url.pathname = '/login';
     return NextResponse.redirect(url);
   }
 

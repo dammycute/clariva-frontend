@@ -38,7 +38,7 @@ export function PortalShell({ nav, children, allowRoles, deniedHref = '/', showS
   const [schoolName, setSchoolName] = useState('');
 
   useEffect(() => {
-    if (!auth.getToken()) { router.push('/'); return; }
+    if (!auth.getToken()) { router.push('/login'); return; }
     type Me = Awaited<ReturnType<typeof auth.me>>;
     const show = (user: Me, online: boolean) => {
       if (allowRoles && !allowRoles.includes(user.role)) { router.push(deniedHref); return; }
@@ -64,7 +64,7 @@ export function PortalShell({ nav, children, allowRoles, deniedHref = '/', showS
           if (raw && auth.getToken()) { show(JSON.parse(raw) as Me, false); return; }
         } catch { /* fall through */ }
       }
-      router.push('/');
+      router.push('/login');
     });
     // allowRoles is a static array from the layout; run once.
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -88,7 +88,7 @@ export function PortalShell({ nav, children, allowRoles, deniedHref = '/', showS
           <div className="text-xs text-muted truncate">{roleLabel}</div>
         </div>
         <button
-          onClick={() => { auth.logout(); router.push('/'); }}
+          onClick={() => { auth.logout(); router.push('/login'); }}
           className="text-xs text-muted hover:text-ink underline-offset-2 hover:underline cursor-pointer shrink-0"
         >
           Sign out
