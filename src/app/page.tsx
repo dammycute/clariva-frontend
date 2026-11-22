@@ -3,9 +3,12 @@ import Image from 'next/image';
 import Link from 'next/link';
 import {
   ArrowRight, BookOpen, Banknote, CalendarCheck, CalendarClock, Check, ClipboardList, FileSpreadsheet,
-  GraduationCap, History, KeyRound, Layers, Lock, Megaphone, MonitorCheck, UserCheck, Users,
+  GraduationCap, History, KeyRound, Layers, Lock, Megaphone, MessageCircle, MonitorCheck, UserCheck, Users,
 } from 'lucide-react';
 import { Reveal } from '@/components/landing/reveal';
+import { DemoForm } from '@/components/landing/demo-form';
+import { PricingCalculator } from '@/components/landing/pricing-calculator';
+import { PRICE_PER_BLOCK, WHATSAPP_DISPLAY, WHATSAPP_LINK, naira, rangeFor } from '@/lib/pricing';
 import { CbtIllustration, FeesIllustration, ResultsIllustration } from '@/components/landing/illustrations';
 
 export const metadata: Metadata = {
@@ -45,7 +48,7 @@ const TRUST = [
 ] as const;
 
 const STEPS = [
-  ['Create your school account', 'Set up takes a few minutes. Your 30-day trial starts straight away.'],
+  ['Request a demo', 'Tell us about your school. We show you the platform and answer your questions.'],
   ['Add classes and students', 'Import students from a CSV file. Admission numbers are generated for you.'],
   ['Open accounts and start the term', 'Create staff and student accounts, then take attendance, set exams and raise fees.'],
 ] as const;
@@ -57,6 +60,8 @@ const FAQ = [
     'Yes. Upload a CSV file with names, class and guardian details. Each import reports any row it could not use.'],
   ['What happens if the internet drops during an exam?',
     'The student keeps answering. Answers are kept on the device and sent when the connection returns. Reloading the page does not lose them. The time limit is still enforced by the server.'],
+  ['How is the price worked out?',
+    `${naira(PRICE_PER_BLOCK)} per term for every block of 50 students. A school can be up to 10 students over its last block at no extra cost, so 60 students is one block and 110 is two.`],
   ['Is there an app to install?',
     'No. Clariva runs in the browser on phones and computers.'],
 ] as const;
@@ -101,9 +106,10 @@ export default function LandingPage() {
           <nav aria-label="Main" className="flex items-center gap-5">
             <a href="#features" className="hidden md:block text-sm text-muted hover:text-ink py-3">Features</a>
             <a href="#start" className="hidden md:block text-sm text-muted hover:text-ink py-3">How it works</a>
+            <a href="#pricing" className="hidden md:block text-sm text-muted hover:text-ink py-3">Pricing</a>
             <a href="#faq" className="hidden md:block text-sm text-muted hover:text-ink py-3">Questions</a>
             <Link href="/login" className="text-sm text-muted hover:text-ink py-3">Sign in</Link>
-            <Link href="/onboard" className={`${PRIMARY} hidden sm:inline-flex`}>Set up your school</Link>
+            <a href="#demo" className={`${PRIMARY} hidden sm:inline-flex`}>Request a demo</a>
           </nav>
         </div>
       </header>
@@ -121,10 +127,10 @@ export default function LandingPage() {
               Clariva brings student records, attendance, results, fees and computer-based tests into one secure platform, so your office, teachers, students and parents work from the same record.
             </p>
             <div className="rise mt-8 flex flex-wrap gap-3" style={{ '--d': '240ms' } as React.CSSProperties}>
-              <Link href="/onboard" className={PRIMARY}>Set up your school <ArrowRight size={16} aria-hidden="true" /></Link>
-              <Link href="/login" className={SECONDARY}>Sign in</Link>
+              <a href="#demo" className={PRIMARY}>Request a demo <ArrowRight size={16} aria-hidden="true" /></a>
+              <a href="#pricing" className={SECONDARY}>See pricing</a>
             </div>
-            <p className="rise mt-4 text-[13px] text-muted" style={{ '--d': '320ms' } as React.CSSProperties}>30-day trial. Your records stay separate from every other school&apos;s.</p>
+            <p className="rise mt-4 text-[13px] text-muted" style={{ '--d': '320ms' } as React.CSSProperties}>From {naira(PRICE_PER_BLOCK)} per term for every 50 students. Your records stay separate from every other school&apos;s.</p>
           </div>
 
           <div className="rise relative" style={{ '--d': '200ms' } as React.CSSProperties}>
@@ -260,13 +266,39 @@ export default function LandingPage() {
           </div>
         </section>
 
-        <section className="bg-[#0D2B55] text-white">
-          <div className="max-w-6xl mx-auto px-5 py-14 flex flex-col sm:flex-row sm:items-center justify-between gap-6">
-            <h2 className="text-2xl sm:text-3xl font-semibold tracking-tight text-balance max-w-[24ch]">Try Clariva with your school this term</h2>
-            <div className="flex flex-wrap gap-3">
-              <Link href="/onboard" className={`${BTN} bg-white text-[#0D2B55] hover:opacity-90`}>Set up your school <ArrowRight size={16} aria-hidden="true" /></Link>
-              <Link href="/login" className={`${BTN} border border-white/40 text-white hover:bg-white/10`}>Sign in</Link>
-            </div>
+        <section id="pricing" className="border-y border-line bg-surface scroll-mt-16" aria-labelledby="pricing-title">
+          <div className="max-w-6xl mx-auto px-5 py-16 lg:py-20 grid lg:grid-cols-2 gap-10 lg:gap-16 items-start">
+            <Reveal>
+              <h2 id="pricing-title" className={H2}>Simple pricing that grows with your school</h2>
+              <p className="mt-3 text-muted text-pretty max-w-[52ch]">
+                {naira(PRICE_PER_BLOCK)} per term for every block of 50 students. Every feature is included. A school can be up to 10 students over its last block at no extra cost.
+              </p>
+              <table className="mt-6 w-full max-w-md text-[15px]">
+                <caption className="sr-only">Price per term by number of students</caption>
+                <thead><tr className="text-left text-[13px] text-muted"><th scope="col" className="py-2 font-medium">Students</th><th scope="col" className="py-2 text-right font-medium">Per term</th></tr></thead>
+                <tbody className="divide-y divide-line border-y border-line">
+                  {[1, 2, 3].map(b => {
+                    const [from, to] = rangeFor(b);
+                    return <tr key={b}><td className="py-3 text-ink">{from} to {to}</td><td className="py-3 text-right font-semibold tabular-nums text-ink">{naira(b * PRICE_PER_BLOCK)}</td></tr>;
+                  })}
+                  <tr><td className="py-3 text-muted">More than 160</td><td className="py-3 text-right text-muted">{naira(PRICE_PER_BLOCK)} for each extra 50</td></tr>
+                </tbody>
+              </table>
+            </Reveal>
+            <Reveal delay={120}><PricingCalculator /></Reveal>
+          </div>
+        </section>
+
+        <section id="demo" className="bg-[#0D2B55] scroll-mt-16" aria-labelledby="demo-title">
+          <div className="max-w-6xl mx-auto px-5 py-16 lg:py-20 grid lg:grid-cols-[1fr_1.3fr] gap-10 lg:gap-16 items-start">
+            <Reveal className="text-white">
+              <h2 id="demo-title" className="text-2xl sm:text-3xl font-semibold tracking-tight text-balance">See Clariva running for a school like yours</h2>
+              <p className="mt-4 text-white/80 text-pretty max-w-[44ch]">Tell us a little about your school. We will show you the platform and answer your questions, with no obligation.</p>
+              <a href={WHATSAPP_LINK} target="_blank" rel="noopener noreferrer" className="mt-6 inline-flex items-center gap-2 rounded border border-white/40 px-4 h-11 text-sm font-medium hover:bg-white/10">
+                <MessageCircle size={16} aria-hidden="true" /> WhatsApp {WHATSAPP_DISPLAY}
+              </a>
+            </Reveal>
+            <Reveal delay={120}><DemoForm /></Reveal>
           </div>
         </section>
       </main>
@@ -279,6 +311,7 @@ export default function LandingPage() {
             <a href="https://www.studio8six.com" target="_blank" rel="noopener noreferrer" className="font-medium text-ink underline underline-offset-2 hover:opacity-80">Studio8six</a>
           </span>
           <nav aria-label="Footer" className="flex gap-4 sm:justify-end">
+            <a href={WHATSAPP_LINK} target="_blank" rel="noopener noreferrer" className="hover:text-ink py-3">WhatsApp</a>
             <Link href="/terms" className="hover:text-ink py-3">Terms</Link>
             <Link href="/login" className="hover:text-ink py-3">Sign in</Link>
           </nav>
