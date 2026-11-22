@@ -5,6 +5,8 @@ import { useParams, useRouter } from 'next/navigation';
 import { api, request } from '@/lib/api';
 import Link from 'next/link';
 import { ChevronLeft, Banknote, CheckCircle2, Key, Users, X } from 'lucide-react';
+import toast from 'react-hot-toast';
+import ConfirmDialog from '@/components/confirm-dialog';
 
 interface Student {
   id: string; admission_no: string; first_name: string; last_name: string; gender: string | null;
@@ -13,6 +15,7 @@ interface Student {
   guardian_name: string | null; guardian_phone: string | null; guardian_email: string | null;
   student_status: string; academic_year: string | null;
   has_account: boolean; user_email: string | null;
+  signed_in_on: string | null; signed_in_at: string | null;
 }
 
 interface FeeInvoice { id: string; amount_due: number; amount_paid: number; student: string; student_name?: string; }
@@ -27,6 +30,8 @@ export default function StudentDetailPage() {
   const [loading, setLoading] = useState(true);
   const [pwdResult, setPwdResult] = useState<{ admission_no: string | null; email: string; password: string } | null>(null);
   const [resetting, setResetting] = useState(false);
+  const [confirmSignOut, setConfirmSignOut] = useState(false);
+  const [signingOut, setSigningOut] = useState(false);
 
   const id = params?.id as string;
 
@@ -164,6 +169,18 @@ export default function StudentDetailPage() {
             <strong className="text-xs text-ink">{student.admission_no}</strong>
             <button onClick={() => { navigator.clipboard.writeText(student.admission_no ?? ''); }} className="text-xs px-2 py-0.5 rounded bg-surface border border-line hover:bg-brand-soft">Copy</button>
           </div>
+          <div className="flex items-center justify-between gap-3 mt-3 text-xs">
+            <p className="text-muted">
+              {student.signed_in_on
+                ? <>Signed in on <strong className="text-ink">{student.signed_in_on}</strong>{student.signed_in_at && <> since {new Date(student.signed_in_at).toLocaleString('en-NG', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}</>}.</>
+                : 'Not signed in on any device.'}
+              {' '}A student can be signed in on one device at a time.
+            </p>
+            {student.signed_in_on && (
+              <button onClick={() => setConfirmSignOut(true)}
+                className="shrink-0 px-3 py-1.5 rounded border border-line bg-surface hover:bg-surface-2 cursor-pointer">Sign out of all devices</button>
+            )}
+          </div>
         </div>
       ) : (
         <div className="bg-surface border border-line rounded p-5 mt-4">
@@ -171,6 +188,24 @@ export default function StudentDetailPage() {
           <p className="text-xs text-muted mt-0.5">No login account. Create one from the Classes tab.</p>
         </div>
       )}
+
+      <ConfirmDialog
+        open={confirmSignOut}
+        title="Sign out of all devices"
+        message={`${student.first_name} will be signed out on every device, including any exam in progress on it. They can sign in again straight away. Use this if a device is lost or someone else may be using the account.`}
+        confirmLabel="Sign out"
+        loading={signingOut}
+        onCancel={() => setConfirmSignOut(false)}
+        onConfirm={async () => {
+          setSigningOut(true);
+          try {
+            await request('POST', `/students/${id}/sign_out_everywhere/`);
+            toast.success('Signed out on every device.');
+            setStudent({ ...student, signed_in_on: null, signed_in_at: null });
+            setConfirmSignOut(false);
+          } catch { /* the reason is already shown */ }
+          finally { setSigningOut(false); }
+        }} />
 
       {pwdResult && (
         <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center" onClick={() => setPwdResult(null)}>

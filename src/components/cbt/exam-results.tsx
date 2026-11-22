@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import toast from 'react-hot-toast';
 import { useParams, useRouter } from 'next/navigation';
-import { api } from '@/lib/api';
+import { api, request } from '@/lib/api';
 import { Button } from '@/components/ui/button';
 import { SummaryStrip, Stat } from '@/components/ui/summary';
 import { statusLabel, type Exam } from '@/components/cbt/exam-list';
@@ -56,6 +56,11 @@ export function ExamResults({ base }: { base: string }) {
       await load();
     } catch { /* shown */ }
     finally { setBusy(false); }
+  }
+
+  async function signOutDevices(s: ExamSession) {
+    if (!confirm(`Sign ${s.student_name || 'this student'} out of every device? Use this if their device died or is lost during the exam. They can sign in again straight away and carry on.`)) return;
+    try { await request('POST', `/students/${s.student}/sign_out_everywhere/`); toast.success('Signed out on every device.'); } catch { /* shown */ }
   }
 
   async function resetOne(s: ExamSession) {
@@ -133,7 +138,8 @@ export function ExamResults({ base }: { base: string }) {
                       {[s.auto_submitted && 'Time ran out', s.late_submission && 'Late'].filter(Boolean).join(', ') || <span className="text-muted">—</span>}
                     </td>
                     <td className="px-4 py-3 text-muted">{s.submitted_at ? new Date(s.submitted_at).toLocaleString('en-NG') : '—'}</td>
-                    <td className="px-4 py-3 text-right">
+                    <td className="px-4 py-3 text-right space-x-4">
+                      {isActive && <button onClick={() => signOutDevices(s)} className="text-brand hover:underline cursor-pointer">Sign out of devices</button>}
                       <button onClick={() => resetOne(s)} className="text-brand hover:underline cursor-pointer">Let them retake</button>
                     </td>
                   </tr>

@@ -122,6 +122,21 @@ export default function SettingsPage() {
         </div>
 
         <div className="bg-surface border border-line rounded p-5">
+          <h2 className="text-sm font-semibold text-ink mb-4">Student sign-in</h2>
+          <label className="flex items-start gap-2.5 cursor-pointer">
+            <input type="checkbox" checked={school?.single_device_students !== false}
+              onChange={e => update('single_device_students', e.target.checked)}
+              className="w-4 h-4 mt-0.5 rounded border-line text-brand focus:ring-brand" />
+            <span className="text-sm text-ink">
+              One device at a time
+              <span className="block text-xs text-muted mt-0.5">
+                A student who signs in on a new device is signed out of the old one. During a running exam, a different device cannot sign in until the exam is submitted or a teacher signs the student out.
+              </span>
+            </span>
+          </label>
+        </div>
+
+        <div className="bg-surface border border-line rounded p-5">
           <h2 className="text-sm font-semibold text-ink mb-4">Proprietor / Contact</h2>
           <div className="grid grid-cols-2 gap-4">
             <div>

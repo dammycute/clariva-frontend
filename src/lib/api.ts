@@ -67,6 +67,30 @@ function setTokens(access: string, _refresh: string, role?: string) {
   sessionStorage.setItem('refresh_token', _refresh);
   if (role) sessionStorage.setItem('user_role', role);
 }
+/** A random id for this browser. It lets the server tell "same device signing in again" from "another device". */
+function getDeviceId(): string {
+  try {
+    let id = localStorage.getItem('device-id');
+    if (!id) {
+      id = (crypto.randomUUID?.() ?? `${Date.now()}-${Math.random().toString(16).slice(2)}`).slice(0, 64);
+      localStorage.setItem('device-id', id);
+    }
+    return id;
+  } catch { return ''; }
+}
+
+const REPLACED_MESSAGE = 'You were signed out because your account was opened on another device.';
+
+async function isSessionReplaced(res: Response): Promise<boolean> {
+  try { return (await res.clone().json()).code === 'session_replaced'; } catch { return false; }
+}
+
+/** This student signed in somewhere else. Drop this device's sign-in and say why on the login page. */
+function sessionReplaced() {
+  clearTokens();
+  if (typeof window !== 'undefined') window.location.assign('/?reason=session_replaced');
+}
+
 function clearTokens() {
   sessionStorage.removeItem('refresh_token');
   sessionStorage.removeItem('user_role');
@@ -90,7 +114,11 @@ async function _refreshToken(): Promise<string | null> {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ refresh }),
     });
-    if (!res.ok) { clearTokens(); return null; }
+    if (!res.ok) {
+      if (res.status === 401 && await isSessionReplaced(res)) sessionReplaced();
+      else clearTokens();
+      return null;
+    }
     const data = await res.json();
     setCookie('access_token', data.access);
     sessionStorage.setItem('refresh_token', data.refresh);
@@ -121,6 +149,10 @@ async function request<T = unknown>(
   let res = await fetch(`${API_BASE}${path}`, fetchOpts);
 
   if (res.status === 401) {
+    if (await isSessionReplaced(res)) {
+      sessionReplaced();
+      throw new ApiError(REPLACED_MESSAGE, 401);
+    }
     const newToken = await refreshToken();
     if (newToken) {
       headers['Authorization'] = `Bearer ${newToken}`;
@@ -163,12 +195,12 @@ export { request, setTokens };
 
 export const auth = {
   async login(email: string, password: string) {
-    const data = await request<{ access: string; refresh: string; role?: string }>('POST', '/auth/login/', { email, password });
+    const data = await request<{ access: string; refresh: string; role?: string }>('POST', '/auth/login/', { email, password, device_id: getDeviceId() });
     setTokens(data.access, data.refresh, data.role);
     return data;
   },
   async studentLogin(studentId: string, password: string) {
-    const data = await request<{ access: string; refresh: string; role?: string }>('POST', '/auth/student-login/', { student_id: studentId, password });
+    const data = await request<{ access: string; refresh: string; role?: string }>('POST', '/auth/student-login/', { student_id: studentId, password, device_id: getDeviceId() });
     setTokens(data.access, data.refresh, data.role);
     return data;
   },

@@ -46,6 +46,14 @@ export default function LoginPage() {
   const [selectedRole, setSelectedRole] = useState<Role>('staff');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [notice, setNotice] = useState('');
+
+  // sent back here because the account was opened on another device
+  useEffect(() => {
+    if (new URLSearchParams(window.location.search).get('reason') === 'session_replaced') {
+      setNotice('You were signed out because your account was opened on another device. If that was not you, tell your school.');
+    }
+  }, []);
 
   // staff fields
   const [staffEmail, setStaffEmail] = useState('');
@@ -245,6 +253,7 @@ export default function LoginPage() {
         {selectedRole === 'staff' && renderStaffForm()}
         {selectedRole === 'student' && renderStudentForm()}
         {selectedRole === 'parent' && renderParentForm()}
+        {notice && !error && <div className="mt-4"><FormError>{notice}</FormError></div>}
         {error && <div className="mt-4"><FormError>{error}</FormError></div>}
       </div>
 
