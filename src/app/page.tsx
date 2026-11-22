@@ -1,11 +1,17 @@
 import type { Metadata } from 'next';
 import Image from 'next/image';
 import Link from 'next/link';
+import {
+  ArrowRight, BookOpen, Banknote, CalendarCheck, CalendarClock, Check, ClipboardList, FileSpreadsheet,
+  GraduationCap, History, KeyRound, Layers, Lock, Megaphone, MonitorCheck, UserCheck, Users,
+} from 'lucide-react';
+import { Reveal } from '@/components/landing/reveal';
+import { CbtIllustration, FeesIllustration, ResultsIllustration } from '@/components/landing/illustrations';
 
 export const metadata: Metadata = {
   title: 'Clariva: school management for Nigerian secondary schools',
   description:
-    'Student records, attendance, results, fees and computer-based tests in one place. Built for JSS and SS schools in Nigeria. Exams keep working when the internet drops.',
+    'Student records, attendance, results, fees and computer-based tests in one platform. Built for JSS and SS schools in Nigeria. Exams keep working when the internet drops.',
   openGraph: {
     title: 'Clariva: run your school with clarity',
     description: 'Records, results, fees and CBT exams for Nigerian secondary schools.',
@@ -13,27 +19,35 @@ export const metadata: Metadata = {
   },
 };
 
-const PEOPLE = [
-  ['School admin', 'Students, classes, staff, fees and results in one place, with a log of every change.'],
-  ['Teachers', 'Mark attendance, enter scores and set computer-based tests for your own subjects.'],
-  ['Bursar', 'One invoice per student, payments recorded with a receipt, and a report of who still owes.'],
-  ['Students', 'See results, timetable and attendance, and sit exams on a phone or a computer.'],
-  ['Parents', "Check a child's report card and fees from the guardian page."],
+const BEFORE = [
+  [FileSpreadsheet, 'Scores in spreadsheets'],
+  [BookOpen, 'Fees in notebooks'],
+  [ClipboardList, 'Attendance on paper'],
 ] as const;
 
-const STRENGTHS = [
-  ['Exams that survive a bad connection',
-    'Answers are saved on the device as students type. If the network drops they keep going, and everything is sent when it returns. Scores go straight into the grade book.'],
-  ['Fees that add up',
-    'Add Tuition and Interhouse and each student gets one invoice with both lines. Part payments are tracked, and the outstanding report can be filtered by class.'],
-  ['Scores out of 100, your way',
-    'CA 1, CA 2, assignment and exam, with the split your school uses, for example 10, 10, 10 and 70. Report cards follow from the scores.'],
+const FEATURES = [
+  [Users, 'Student records', 'Profiles, classes and guardians in one place. Import a whole class from a CSV file; admission numbers are generated for you.'],
+  [CalendarCheck, 'Attendance', "Mark daily attendance by class and follow each student's attendance rate."],
+  [GraduationCap, 'Results and report cards', 'Enter CA and exam scores, apply your grade boundaries, and produce report cards with class position.'],
+  [Banknote, 'Fees and invoices', 'One invoice per student, part payments, printable receipts and an outstanding report by class.'],
+  [MonitorCheck, 'CBT exams', 'Multiple choice, true or false and short answer, marked automatically and posted to the grade book.'],
+  [CalendarClock, 'Timetables', 'Class timetables that teachers and students check from their own portal.'],
+  [UserCheck, 'Parent access', "Parents check a child's report card and fees from the guardian page."],
+  [Megaphone, 'Announcements', 'Publish notices for the audience you choose.'],
+  [KeyRound, 'Staff and roles', 'Accounts for the principal, teachers and bursar, each limited to what their role needs.'],
+  [History, 'Audit log and backup', 'Every change is logged with who made it, and admins can back up school data.'],
+] as const;
+
+const TRUST = [
+  [Layers, 'Separate by school', "Each school's records are kept apart from every other school's."],
+  [Lock, 'Encrypted details', 'Phone numbers, guardian details and exam answers are encrypted in the database.'],
+  [History, 'Every change logged', 'See who changed what, and when. Only the right roles can change fees, scores and exams.'],
 ] as const;
 
 const STEPS = [
-  'Create your school account.',
-  'Add your classes and import students from a CSV file. Admission numbers are generated for you.',
-  'Create accounts for staff and students, and start your term.',
+  ['Create your school account', 'Set up takes a few minutes. Your 30-day trial starts straight away.'],
+  ['Add classes and students', 'Import students from a CSV file. Admission numbers are generated for you.'],
+  ['Open accounts and start the term', 'Create staff and student accounts, then take attendance, set exams and raise fees.'],
 ] as const;
 
 const FAQ = [
@@ -47,9 +61,32 @@ const FAQ = [
     'No. Clariva runs in the browser on phones and computers.'],
 ] as const;
 
-const BTN = 'inline-flex items-center justify-center h-11 px-5 rounded text-sm font-medium transition-opacity';
+const BTN = 'inline-flex items-center justify-center gap-2 h-11 px-5 rounded text-sm font-medium transition-[opacity,transform] duration-150 active:scale-[0.98]';
 const PRIMARY = `${BTN} bg-brand text-brand-ink hover:opacity-90`;
 const SECONDARY = `${BTN} border border-line bg-surface text-ink hover:bg-surface-2`;
+const H2 = 'text-2xl sm:text-3xl font-semibold tracking-tight text-balance';
+
+function Spotlight({ kicker, title, body, points, art, flip }: {
+  kicker: string; title: string; body: string; points: readonly string[]; art: React.ReactNode; flip?: boolean;
+}) {
+  return (
+    <div className="max-w-6xl mx-auto px-5 py-14 lg:py-20 grid lg:grid-cols-2 gap-10 lg:gap-16 items-center">
+      <Reveal className={flip ? 'lg:order-2' : ''}>
+        <p className="text-[13px] font-semibold text-brand">{kicker}</p>
+        <h3 className={`${H2} mt-2`}>{title}</h3>
+        <p className="mt-4 text-muted text-pretty max-w-[52ch]">{body}</p>
+        <ul className="mt-5 space-y-2.5">
+          {points.map(p => (
+            <li key={p} className="flex gap-2.5 text-[15px] text-ink">
+              <Check size={18} className="mt-0.5 shrink-0 text-success" aria-hidden="true" /> {p}
+            </li>
+          ))}
+        </ul>
+      </Reveal>
+      <Reveal delay={120}>{art}</Reveal>
+    </div>
+  );
+}
 
 export default function LandingPage() {
   return (
@@ -58,10 +95,13 @@ export default function LandingPage() {
         Skip to content
       </a>
 
-      <header className="border-b border-line">
+      <header className="sticky top-0 z-40 border-b border-line bg-page">
         <div className="max-w-6xl mx-auto px-5 h-16 flex items-center justify-between">
           <Link href="/" className="text-xl font-semibold tracking-tight">Clariva</Link>
-          <nav aria-label="Main" className="flex items-center gap-4">
+          <nav aria-label="Main" className="flex items-center gap-5">
+            <a href="#features" className="hidden md:block text-sm text-muted hover:text-ink py-3">Features</a>
+            <a href="#start" className="hidden md:block text-sm text-muted hover:text-ink py-3">How it works</a>
+            <a href="#faq" className="hidden md:block text-sm text-muted hover:text-ink py-3">Questions</a>
             <Link href="/login" className="text-sm text-muted hover:text-ink py-3">Sign in</Link>
             <Link href="/onboard" className={`${PRIMARY} hidden sm:inline-flex`}>Set up your school</Link>
           </nav>
@@ -69,92 +109,151 @@ export default function LandingPage() {
       </header>
 
       <main id="main">
-        <section className="max-w-6xl mx-auto px-5 py-12 lg:py-20 grid lg:grid-cols-[1fr_1.1fr] gap-10 lg:gap-14 items-center">
+        <section className="max-w-6xl mx-auto px-5 py-12 lg:py-20 grid lg:grid-cols-[1fr_1.1fr] gap-12 lg:gap-14 items-center">
           <div>
-            <h1 className="text-4xl sm:text-5xl font-semibold tracking-tight text-balance leading-[1.1]">
+            <p className="rise inline-flex items-center gap-2 rounded-full border border-line bg-surface px-3 py-1 text-[13px] text-muted">
+              <span className="size-1.5 rounded-full bg-success" aria-hidden="true" /> Built for JSS and SS schools in Nigeria
+            </p>
+            <h1 className="rise mt-5 text-4xl sm:text-5xl lg:text-[3.4rem] font-semibold tracking-tight text-balance leading-[1.08]" style={{ '--d': '80ms' } as React.CSSProperties}>
               Run your school with clarity
             </h1>
-            <p className="mt-5 text-lg text-muted max-w-[34ch] sm:max-w-[44ch] text-pretty">
-              Students, attendance, results, fees and computer-based tests for Nigerian secondary schools. One system for your office, your teachers, your students and their parents.
+            <p className="rise mt-5 text-lg text-muted max-w-[46ch] text-pretty" style={{ '--d': '160ms' } as React.CSSProperties}>
+              Clariva brings student records, attendance, results, fees and computer-based tests into one secure platform, so your office, teachers, students and parents work from the same record.
             </p>
-            <div className="mt-8 flex flex-wrap gap-3">
-              <Link href="/onboard" className={PRIMARY}>Set up your school</Link>
+            <div className="rise mt-8 flex flex-wrap gap-3" style={{ '--d': '240ms' } as React.CSSProperties}>
+              <Link href="/onboard" className={PRIMARY}>Set up your school <ArrowRight size={16} aria-hidden="true" /></Link>
               <Link href="/login" className={SECONDARY}>Sign in</Link>
             </div>
-            <p className="mt-4 text-[13px] text-muted">30-day trial. Your records stay separate from every other school&apos;s.</p>
+            <p className="rise mt-4 text-[13px] text-muted" style={{ '--d': '320ms' } as React.CSSProperties}>30-day trial. Your records stay separate from every other school&apos;s.</p>
           </div>
-          <Image
-            src="/images/classroom-hero.jpg"
-            alt="Two students in white and blue uniforms share an exercise book at their desk, with a full classroom behind them"
-            width={1600}
-            height={1082}
-            priority
-            sizes="(min-width: 1024px) 560px, 100vw"
-            className="w-full h-auto rounded"
-          />
+
+          <div className="rise relative" style={{ '--d': '200ms' } as React.CSSProperties}>
+            <Image
+              src="/images/classroom-hero.jpg"
+              alt="Two students in white and blue uniforms share an exercise book at their desk, with a full classroom behind them"
+              width={1600}
+              height={1082}
+              priority
+              sizes="(min-width: 1024px) 560px, 100vw"
+              className="w-full h-auto rounded"
+            />
+            <div className="float-slow absolute left-3 bottom-3 sm:-left-5 sm:bottom-8 flex items-center gap-2 rounded border border-line bg-surface px-3 py-2 text-[13px] font-medium text-ink">
+              <Check size={16} className="text-success" aria-hidden="true" /> All answers saved
+            </div>
+            <div className="float-slow absolute right-3 top-3 sm:-right-4 sm:top-8 flex items-center gap-2 rounded border border-line bg-surface px-3 py-2 text-[13px] font-medium text-ink [animation-delay:-3s]">
+              <GraduationCap size={16} className="text-brand" aria-hidden="true" /> Report card ready
+            </div>
+          </div>
         </section>
 
         <section className="border-y border-line bg-surface">
-          <div className="max-w-6xl mx-auto px-5 py-14 grid lg:grid-cols-[1fr_1.4fr] gap-8">
-            <h2 className="text-2xl font-semibold tracking-tight text-balance">Most schools run on notebooks and spreadsheets</h2>
-            <p className="text-muted text-pretty max-w-[60ch]">
-              Scores sit in one file, fees in another notebook, attendance on paper. At the end of term someone spends days putting it together, and nobody is sure the numbers match. Clariva keeps it all in one place, so a parent, a teacher and the bursar are looking at the same record.
-            </p>
+          <div className="max-w-6xl mx-auto px-5 py-12 grid lg:grid-cols-[1fr_1.3fr] gap-8 items-center">
+            <Reveal><h2 className={H2}>Most schools run on notebooks and spreadsheets</h2></Reveal>
+            <Reveal delay={100}>
+              <ul className="grid sm:grid-cols-3 gap-3">
+                {BEFORE.map(([Icon, text]) => (
+                  <li key={text} className="flex items-center gap-3 rounded border border-line bg-page px-4 py-3.5 text-[15px] text-ink">
+                    <Icon size={20} className="shrink-0 text-muted" aria-hidden="true" /> {text}
+                  </li>
+                ))}
+              </ul>
+              <p className="mt-4 text-muted text-[15px] text-pretty">At the end of term someone spends days putting it together, and nobody is sure the numbers match. Clariva keeps it in one place.</p>
+            </Reveal>
           </div>
         </section>
 
-        <section className="max-w-6xl mx-auto px-5 py-14" aria-labelledby="people">
-          <h2 id="people" className="text-2xl font-semibold tracking-tight">What each person gets</h2>
-          <dl className="mt-8 grid sm:grid-cols-2 lg:grid-cols-3 gap-x-10 gap-y-8">
-            {PEOPLE.map(([who, what]) => (
-              <div key={who} className="border-t border-line pt-4">
-                <dt className="font-semibold">{who}</dt>
-                <dd className="mt-1.5 text-muted text-[15px] text-pretty">{what}</dd>
-              </div>
+        <section id="features" className="max-w-6xl mx-auto px-5 py-16 lg:py-20 scroll-mt-16" aria-labelledby="features-title">
+          <Reveal className="max-w-2xl">
+            <h2 id="features-title" className={H2}>Everything your school runs on, in one platform</h2>
+            <p className="mt-3 text-muted text-pretty">Each person signs in to a portal built for their role: admin, principal, teacher, bursar, student and parent.</p>
+          </Reveal>
+          <ul className="mt-10 grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {FEATURES.map(([Icon, title, body], i) => (
+              <li key={title}>
+                <Reveal delay={(i % 3) * 80} className="h-full">
+                  <div className="h-full rounded border border-line bg-surface p-5 transition-[border-color,transform] duration-200 hover:border-brand/50 hover:-translate-y-0.5">
+                    <Icon size={24} strokeWidth={1.75} className="text-brand" aria-hidden="true" />
+                    <h3 className="mt-4 font-semibold">{title}</h3>
+                    <p className="mt-1.5 text-muted text-[15px] text-pretty">{body}</p>
+                  </div>
+                </Reveal>
+              </li>
             ))}
-          </dl>
+          </ul>
         </section>
 
-        <section className="border-y border-line bg-surface" aria-labelledby="fit">
-          <div className="max-w-6xl mx-auto px-5 py-14">
-            <h2 id="fit" className="text-2xl font-semibold tracking-tight">Built for how Nigerian schools work</h2>
-            <div className="mt-8 grid lg:grid-cols-3 gap-10">
-              {STRENGTHS.map(([title, body]) => (
-                <div key={title}>
-                  <h3 className="font-semibold">{title}</h3>
-                  <p className="mt-2 text-muted text-[15px] text-pretty">{body}</p>
-                </div>
+        <section className="border-y border-line bg-surface">
+          <Spotlight
+            kicker="Computer-based tests"
+            title="Exams that survive a bad connection"
+            body="Answers are saved on the device as students type. If the network drops they keep going, and everything is sent when it returns."
+            points={['Reload the page and nothing is lost', 'The time limit is enforced by the server', 'Scores post straight into the grade book']}
+            art={<CbtIllustration />}
+          />
+        </section>
+        <Spotlight
+          flip
+          kicker="Fees"
+          title="Fees that add up on one invoice"
+          body="Add Tuition and Interhouse and each student gets a single invoice with both lines, instead of a pile of separate bills."
+          points={['Part payments and printable receipts', 'Outstanding report, filtered by class', 'New students are billed as soon as they join']}
+          art={<FeesIllustration />}
+        />
+        <section className="border-y border-line bg-surface">
+          <Spotlight
+            kicker="Results"
+            title="Scores out of 100, your way"
+            body="CA 1, CA 2, assignment and exam, with the split your school uses. Report cards follow from the scores."
+            points={['You choose each component and its maximum', 'Your own grade boundaries', 'Class position on every report card']}
+            art={<ResultsIllustration />}
+          />
+        </section>
+
+        <section className="max-w-6xl mx-auto px-5 py-16 lg:py-20" aria-labelledby="trust-title">
+          <Reveal><h2 id="trust-title" className={H2}>Your data stays yours</h2></Reveal>
+          <ul className="mt-8 grid md:grid-cols-3 gap-8">
+            {TRUST.map(([Icon, title, body], i) => (
+              <li key={title}>
+                <Reveal delay={i * 90}>
+                  <Icon size={22} strokeWidth={1.75} className="text-brand" aria-hidden="true" />
+                  <h3 className="mt-3 font-semibold">{title}</h3>
+                  <p className="mt-1.5 text-muted text-[15px] text-pretty">{body}</p>
+                </Reveal>
+              </li>
+            ))}
+          </ul>
+        </section>
+
+        <section id="start" className="border-y border-line bg-surface scroll-mt-16" aria-labelledby="start-title">
+          <div className="max-w-6xl mx-auto px-5 py-16 lg:py-20">
+            <Reveal><h2 id="start-title" className={H2}>Start in three steps</h2></Reveal>
+            <ol className="mt-10 grid md:grid-cols-3 gap-6">
+              {STEPS.map(([title, body], i) => (
+                <li key={title}>
+                  <Reveal delay={i * 100} className="h-full">
+                    <div className="h-full rounded border border-line bg-page p-6">
+                      <span className="font-mono text-sm font-semibold text-brand">0{i + 1}</span>
+                      <h3 className="mt-3 font-semibold">{title}</h3>
+                      <p className="mt-1.5 text-muted text-[15px] text-pretty">{body}</p>
+                    </div>
+                  </Reveal>
+                </li>
               ))}
-            </div>
-          </div>
-        </section>
-
-        <section className="max-w-6xl mx-auto px-5 py-14 grid lg:grid-cols-2 gap-12">
-          <div>
-            <h2 className="text-2xl font-semibold tracking-tight">Your data stays yours</h2>
-            <p className="mt-3 text-muted text-pretty max-w-[52ch]">
-              Each school&apos;s records are kept apart from every other school. Phone numbers, guardian details and exam answers are encrypted in the database. Every change is logged with who made it. Only the right roles can change fees, scores and exams.
-            </p>
-          </div>
-          <div>
-            <h2 className="text-2xl font-semibold tracking-tight">Start in three steps</h2>
-            <ol className="mt-3 space-y-3 list-decimal pl-5 text-muted marker:text-ink marker:font-semibold">
-              {STEPS.map(s => <li key={s} className="pl-1 text-pretty">{s}</li>)}
             </ol>
           </div>
         </section>
 
-        <section className="border-t border-line bg-surface" aria-labelledby="faq">
-          <div className="max-w-3xl mx-auto px-5 py-14">
-            <h2 id="faq" className="text-2xl font-semibold tracking-tight">Questions</h2>
+        <section id="faq" className="scroll-mt-16" aria-labelledby="faq-title">
+          <div className="max-w-3xl mx-auto px-5 py-16 lg:py-20">
+            <h2 id="faq-title" className={H2}>Questions</h2>
             <div className="mt-6 divide-y divide-line border-y border-line">
               {FAQ.map(([q, a]) => (
                 <details key={q} className="group py-1.5">
                   <summary className="cursor-pointer font-medium list-none flex items-center justify-between gap-4 min-h-11">
                     {q}
-                    <span aria-hidden="true" className="text-muted group-open:rotate-45 transition-transform">+</span>
+                    <span aria-hidden="true" className="text-muted text-xl leading-none group-open:rotate-45 transition-transform">+</span>
                   </summary>
-                  <p className="mt-2 text-muted text-[15px] text-pretty">{a}</p>
+                  <p className="pb-3 text-muted text-[15px] text-pretty">{a}</p>
                 </details>
               ))}
             </div>
@@ -163,9 +262,9 @@ export default function LandingPage() {
 
         <section className="bg-[#0D2B55] text-white">
           <div className="max-w-6xl mx-auto px-5 py-14 flex flex-col sm:flex-row sm:items-center justify-between gap-6">
-            <h2 className="text-2xl font-semibold tracking-tight text-balance max-w-[24ch]">Try Clariva with your school this term</h2>
+            <h2 className="text-2xl sm:text-3xl font-semibold tracking-tight text-balance max-w-[24ch]">Try Clariva with your school this term</h2>
             <div className="flex flex-wrap gap-3">
-              <Link href="/onboard" className={`${BTN} bg-white text-[#0D2B55] hover:opacity-90`}>Set up your school</Link>
+              <Link href="/onboard" className={`${BTN} bg-white text-[#0D2B55] hover:opacity-90`}>Set up your school <ArrowRight size={16} aria-hidden="true" /></Link>
               <Link href="/login" className={`${BTN} border border-white/40 text-white hover:bg-white/10`}>Sign in</Link>
             </div>
           </div>
@@ -173,17 +272,21 @@ export default function LandingPage() {
       </main>
 
       <footer className="border-t border-line">
-        <div className="max-w-6xl mx-auto px-5 py-6 flex flex-wrap items-center justify-between gap-3 text-[13px] text-muted">
-          <span>Clariva</span>
-          <span>
-            Photo by Tosin Olowoleni on{' '}
-            <a href="https://www.pexels.com/photo/african-students-focused-on-classroom-studies-34162714/" className="underline underline-offset-2 hover:text-ink">Pexels</a>
+        <div className="max-w-6xl mx-auto px-5 py-6 grid gap-3 sm:grid-cols-3 sm:items-center text-[13px] text-muted">
+          <span>© Clariva</span>
+          <span className="sm:text-center">
+            Powered by{' '}
+            <a href="https://www.studio8six.com" target="_blank" rel="noopener noreferrer" className="font-medium text-ink underline underline-offset-2 hover:opacity-80">Studio8six</a>
           </span>
-          <nav aria-label="Footer" className="flex gap-4">
+          <nav aria-label="Footer" className="flex gap-4 sm:justify-end">
             <Link href="/terms" className="hover:text-ink py-3">Terms</Link>
             <Link href="/login" className="hover:text-ink py-3">Sign in</Link>
           </nav>
         </div>
+        <p className="max-w-6xl mx-auto px-5 pb-5 text-xs text-muted">
+          Photo by Tosin Olowoleni on{' '}
+          <a href="https://www.pexels.com/photo/african-students-focused-on-classroom-studies-34162714/" className="underline underline-offset-2 hover:text-ink">Pexels</a>.
+        </p>
       </footer>
     </div>
   );
