@@ -1,15 +1,30 @@
 import { Check, Timer, WifiOff } from 'lucide-react';
 
-/* Flat product illustrations for the landing page. The names and amounts are samples, not real records.
-   They use the app's own colour tokens, so they follow light and dark mode. */
+/* Product illustrations for the landing page. Names and amounts are samples, not real records.
+   They use the page's colour tokens, so they follow light and dark mode. */
 
-const PANEL = 'rounded border border-line bg-surface-2 p-5 sm:p-8';
-const CARD = 'rounded border border-line bg-surface p-4 sm:p-5 text-left text-[13px]';
+const CARD = 'rounded-xl border border-line bg-surface p-4 sm:p-5 text-left text-[13px]';
+
+/** A browser-style frame around a product screen. */
+export function Window({ url, label, children }: { url: string; label: string; children: React.ReactNode }) {
+  return (
+    <div role="img" aria-label={label} className="rounded-2xl border border-line bg-surface-2 overflow-hidden">
+      <div className="flex items-center gap-3 border-b border-line bg-surface px-4 py-2.5">
+        <span className="flex gap-1.5" aria-hidden="true">
+          <i className="size-2.5 rounded-full bg-[#F2A5A0]" /><i className="size-2.5 rounded-full bg-[#F4D27A]" /><i className="size-2.5 rounded-full bg-[#9ED9A8]" />
+        </span>
+        <span className="mx-auto rounded-full border border-line bg-surface-2 px-4 py-0.5 text-xs text-muted">{url}</span>
+        <span className="w-10" aria-hidden="true" />
+      </div>
+      <div className="p-4 sm:p-7">{children}</div>
+    </div>
+  );
+}
 
 /** Exam screen. The status line loops between "saved" and "no connection, kept on this device". */
 export function CbtIllustration() {
   return (
-    <div className={PANEL} role="img" aria-label="Illustration of an exam screen that keeps saving answers on the device when the connection drops">
+    <Window url="clariva.ng/exams" label="Illustration of an exam screen that keeps saving answers on the device when the connection drops">
       <div className={CARD}>
         <div className="flex items-center justify-between gap-3 border-b border-line pb-3">
           <div>
@@ -22,7 +37,7 @@ export function CbtIllustration() {
         <p className="mt-1 font-medium text-ink text-sm">Write 3/5 as a decimal.</p>
         <ul className="mt-3 space-y-2">
           {[['A', '0.35', false], ['B', '0.6', true], ['C', '0.8', false]].map(([k, v, on]) => (
-            <li key={String(k)} className={`flex items-center gap-2.5 rounded border px-3 py-2.5 ${on ? 'border-brand bg-brand-soft font-medium text-ink' : 'border-line text-ink'}`}>
+            <li key={String(k)} className={`flex items-center gap-2.5 rounded-lg border px-3 py-2.5 ${on ? 'border-brand bg-brand-soft font-medium text-ink' : 'border-line text-ink'}`}>
               <span className="font-semibold">{k}.</span> {v}
             </li>
           ))}
@@ -32,21 +47,21 @@ export function CbtIllustration() {
           <span className="anim-status-b absolute inset-0 inline-flex items-center gap-1.5 text-warning font-medium"><WifiOff size={15} aria-hidden="true" /> No connection. Kept on this device</span>
         </div>
       </div>
-    </div>
+    </Window>
   );
 }
 
 /** Invoice. A second fee drops in and the total changes, to show fees adding up on one invoice. */
 export function FeesIllustration() {
   return (
-    <div className={PANEL} role="img" aria-label="Illustration of one invoice with Tuition and Interhouse fees added up to a single total">
+    <Window url="clariva.ng/fees" label="Illustration of one invoice with Tuition and Interhouse fees added up to a single total">
       <div className={CARD}>
         <div className="flex items-center justify-between gap-3 border-b border-line pb-3">
           <div>
             <p className="font-semibold text-ink">Amaka Eze</p>
             <p className="text-muted text-xs">JSS1A · First term</p>
           </div>
-          <span className="rounded px-2 py-0.5 text-xs font-semibold bg-danger-soft text-danger">Unpaid</span>
+          <span className="rounded-full px-2.5 py-0.5 text-xs font-semibold bg-danger-soft text-danger">Unpaid</span>
         </div>
         <ul className="mt-3 divide-y divide-line">
           <li className="flex justify-between py-2.5"><span className="text-ink">Tuition fee</span><span className="tabular-nums text-ink">₦79,400</span></li>
@@ -61,7 +76,7 @@ export function FeesIllustration() {
         </div>
         <p className="mt-3 text-xs text-muted">One invoice per student. Part payments are tracked against it.</p>
       </div>
-    </div>
+    </Window>
   );
 }
 
@@ -69,14 +84,14 @@ export function FeesIllustration() {
 export function ResultsIllustration() {
   const rows = [['CA 1', 14, 15], ['CA 2', 13, 15], ['Assignment', 9, 10], ['Exam', 51, 60]] as const;
   return (
-    <div className={PANEL} role="img" aria-label="Illustration of a report card with CA, assignment and exam scores adding up to 87 out of 100">
+    <Window url="clariva.ng/results" label="Illustration of a report card with CA, assignment and exam scores adding up to 87 out of 100">
       <div className={CARD}>
         <div className="flex items-center justify-between gap-3 border-b border-line pb-3">
           <div>
             <p className="font-semibold text-ink">Mathematics</p>
             <p className="text-muted text-xs">JSS1A · First term</p>
           </div>
-          <span className="rounded px-2 py-0.5 text-xs font-semibold bg-success/10 text-success">A1</span>
+          <span className="rounded-full px-2.5 py-0.5 text-xs font-semibold bg-success/10 text-success">A1</span>
         </div>
         <ul className="mt-3 space-y-3">
           {rows.map(([label, got, max]) => (
@@ -92,6 +107,6 @@ export function ResultsIllustration() {
           <span>Total</span><span className="tabular-nums">87 / 100</span>
         </div>
       </div>
-    </div>
+    </Window>
   );
 }

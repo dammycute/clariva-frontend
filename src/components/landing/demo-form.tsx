@@ -6,7 +6,7 @@ import { ApiError, request } from '@/lib/api';
 import { WHATSAPP_DISPLAY, WHATSAPP_LINK } from '@/lib/pricing';
 
 const ROLES = [['proprietor', 'Proprietor or owner'], ['principal', 'Principal or head teacher'], ['admin', 'School administrator'], ['other', 'Other']] as const;
-const FIELD = 'mt-1.5 h-11 w-full rounded border border-line bg-page px-3 text-[15px] text-ink outline-none focus:border-brand';
+const FIELD = 'mt-1.5 h-11 w-full rounded-xl border border-line bg-page px-3.5 text-[15px] text-ink outline-none focus:border-brand';
 const LABEL = 'block text-sm font-medium text-ink';
 
 /** The landing page's "Request a demo" form. The server saves it and emails the team. */
@@ -34,12 +34,12 @@ export function DemoForm() {
 
   if (done) {
     return (
-      <div role="status" className="rounded border border-line bg-surface p-6 sm:p-8">
+      <div role="status" className="rounded-3xl border border-line bg-surface p-6 sm:p-8">
         <Check size={28} className="text-success" aria-hidden="true" />
         <h3 className="mt-3 text-xl font-semibold text-ink">Thank you. We have your request.</h3>
         <p className="mt-2 text-muted text-pretty">We will contact you by phone or WhatsApp to arrange your demo. If you would rather not wait, message us now.</p>
         <a href={WHATSAPP_LINK} target="_blank" rel="noopener noreferrer"
-          className="mt-5 inline-flex h-11 items-center gap-2 rounded bg-brand px-5 text-sm font-medium text-brand-ink hover:opacity-90">
+          className="mt-5 inline-flex h-11 items-center gap-2 rounded-full bg-brand px-5 text-sm font-medium text-brand-ink hover:opacity-90">
           <MessageCircle size={16} aria-hidden="true" /> Chat on WhatsApp
         </a>
       </div>
@@ -49,7 +49,7 @@ export function DemoForm() {
   const err = (k: string) => errors[k]?.[0] && <p role="alert" className="mt-1 text-[13px] text-danger">{errors[k][0]}</p>;
 
   return (
-    <form onSubmit={submit} noValidate className="rounded border border-line bg-surface p-5 sm:p-8 space-y-4">
+    <form onSubmit={submit} noValidate className="rounded-3xl border border-line bg-surface p-5 sm:p-8 space-y-4">
       <div className="grid sm:grid-cols-2 gap-4">
         <div><label htmlFor="d-name" className={LABEL}>Your name</label>
           <input id="d-name" name="name" required autoComplete="name" className={FIELD} />{err('name')}</div>
@@ -72,7 +72,7 @@ export function DemoForm() {
       <div aria-hidden="true" className="absolute -left-[9999px]"><label>Website<input name="website" tabIndex={-1} autoComplete="off" /></label></div>
       <div className="flex flex-wrap items-center gap-4 pt-1">
         <button type="submit" disabled={busy}
-          className="inline-flex h-11 items-center rounded bg-brand px-6 text-sm font-medium text-brand-ink hover:opacity-90 disabled:opacity-50 cursor-pointer">
+          className="inline-flex h-11 items-center rounded-full bg-brand px-6 text-sm font-medium text-brand-ink hover:opacity-90 disabled:opacity-50 cursor-pointer">
           {busy ? 'Sending…' : 'Request a demo'}
         </button>
         <a href={WHATSAPP_LINK} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 text-sm text-muted hover:text-ink py-3">
