@@ -1,5 +1,4 @@
 import type { Metadata } from 'next';
-import Image from 'next/image';
 import Link from 'next/link';
 import {
   ArrowRight, BookOpen, Banknote, CalendarCheck, CalendarClock, Check, ClipboardList, FileSpreadsheet,
@@ -9,6 +8,7 @@ import { Reveal } from '@/components/landing/reveal';
 import { DemoForm } from '@/components/landing/demo-form';
 import { PricingCalculator } from '@/components/landing/pricing-calculator';
 import { CbtIllustration, FeesIllustration, ResultsIllustration } from '@/components/landing/illustrations';
+import { HeroIllustration } from '@/components/landing/hero-illustration';
 import { BLOCK_SIZE, PRICE_PER_BLOCK, WHATSAPP_DISPLAY, WHATSAPP_LINK, naira, rangeFor } from '@/lib/pricing';
 
 export const metadata: Metadata = {
@@ -18,7 +18,6 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'Clariva: run your school with clarity',
     description: 'Records, results, fees and CBT exams for Nigerian secondary schools.',
-    images: [{ url: '/images/classroom-hero.jpg', width: 1600, height: 1082, alt: 'Students at their desks in a Nigerian classroom' }],
   },
 };
 
@@ -149,21 +148,8 @@ export default function LandingPage() {
             </div>
 
             <div className="rise relative" style={{ '--d': '200ms' } as React.CSSProperties}>
-              <div className="rounded-[28px] border border-line bg-surface p-2.5 shadow-[0_30px_60px_-30px_rgba(13,43,85,0.35)]">
-                <Image
-                  src="/images/classroom-hero.jpg"
-                  alt="Two students in white and blue uniforms share an exercise book at their desk, with a full classroom behind them"
-                  width={1600}
-                  height={1082}
-                  priority
-                  sizes="(min-width: 1024px) 520px, 100vw"
-                  className="w-full h-auto rounded-[20px]"
-                />
-              </div>
-              <div className="float-slow absolute left-3 bottom-8 sm:-left-7 sm:bottom-12 flex items-center gap-2.5 rounded-2xl border border-line bg-surface px-4 py-3 text-sm font-medium shadow-[0_12px_30px_-12px_rgba(13,43,85,0.3)]">
-                <span className="grid size-7 place-items-center rounded-full bg-[var(--tint-mint)]"><Check size={15} className="text-success" aria-hidden="true" /></span> All answers saved
-              </div>
-              <div className="float-slow absolute right-3 top-6 sm:-right-5 sm:top-12 flex items-center gap-2.5 rounded-2xl border border-line bg-surface px-4 py-3 text-sm font-medium shadow-[0_12px_30px_-12px_rgba(13,43,85,0.3)] [animation-delay:-3s]">
+              <HeroIllustration />
+              <div className="float-slow absolute right-3 -top-4 sm:right-6 sm:-top-5 flex items-center gap-2.5 rounded-2xl border border-line bg-surface px-4 py-3 text-sm font-medium shadow-[0_12px_30px_-12px_rgba(13,43,85,0.3)] [animation-delay:-3s]">
                 <span className="grid size-7 place-items-center rounded-full bg-[var(--tint-sky)]"><GraduationCap size={15} className="text-brand" aria-hidden="true" /></span> Report card ready
               </div>
             </div>
@@ -373,8 +359,7 @@ export default function LandingPage() {
           </nav>
         </div>
         <p className="max-w-6xl mx-auto px-5 pb-6 text-xs text-muted">
-          © Clariva. Photo by Tosin Olowoleni on{' '}
-          <a href="https://www.pexels.com/photo/african-students-focused-on-classroom-studies-34162714/" className="underline underline-offset-2 hover:text-ink">Pexels</a>.
+          © Clariva
         </p>
       </footer>
     </div>

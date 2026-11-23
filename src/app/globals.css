@@ -207,3 +207,8 @@ body {
   .marquee-dup { display: none; }
   .marquee-mask { mask-image: none; }
 }
+
+/* Hero chart bars grow up on load. */
+@keyframes grow { to { transform: scaleY(1); } }
+.bar-up { transform: scaleY(0); transform-origin: bottom; animation: grow 0.9s cubic-bezier(0.2, 0.7, 0.2, 1) forwards; animation-delay: calc(0.5s + var(--i, 0) * 90ms); }
+@media (prefers-reduced-motion: reduce) { .bar-up { animation: none; transform: none; } }
