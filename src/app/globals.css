@@ -146,11 +146,21 @@ body {
 
 /* Landing page theme: a warm cream page with soft tints. Scoped, so the app itself is unchanged. */
 .landing {
+  color-scheme: light;
   --c-page: #FBF8F3;
   --c-surface: #FFFFFF;
   --c-surface-2: #F4EFE6;
   --c-line: #E9E1D4;
+  --c-ink: #0F172A;
+  --c-muted: #64748B;
   --c-brand: #0D2B55;
+  --c-brand-ink: #FFFFFF;
+  --c-brand-soft: #E8F0FA;
+  --c-success: #1A7A4A;
+  --c-warning: #B45309;
+  --c-danger: #B91C1C;
+  --c-danger-soft: #FEF2F2;
+  --c-ring: #0D2B55;
   --tint-sky: #E3EEFB;
   --tint-mint: #DDF3E5;
   --tint-gold: #FCEFC8;
@@ -158,19 +168,9 @@ body {
   --tint-lilac: #ECE6FA;
   --glow-opacity: 0.75;
 }
-:root[data-theme="dark"] .landing {
-  --c-page: #0B1220;
-  --c-surface: #111A2B;
-  --c-surface-2: #17233A;
-  --c-line: #243247;
-  --c-brand: #7FA6E6;
-  --tint-sky: #14233D;
-  --tint-mint: #14301F;
-  --tint-gold: #33290E;
-  --tint-peach: #3A2118;
-  --tint-lilac: #241E3D;
-  --glow-opacity: 0.35;
-}
+/* Keep the page edges light too when the visitor's device is set to dark. */
+html:has(.landing) { color-scheme: light; background: #FBF8F3; }
+body:has(.landing) { background: #FBF8F3; color: #0F172A; }
 .landing { background: var(--c-page); }
 
 /* Soft sunrise glow behind the hero. */

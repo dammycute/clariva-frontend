@@ -14,6 +14,7 @@ export function DemoForm() {
   const [busy, setBusy] = useState(false);
   const [done, setDone] = useState(false);
   const [errors, setErrors] = useState<Record<string, string[]>>({});
+  const [failed, setFailed] = useState(false);
 
   async function submit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -21,6 +22,7 @@ export function DemoForm() {
     const f = Object.fromEntries(new FormData(e.currentTarget)) as Record<string, string>;
     setBusy(true);
     setErrors({});
+    setFailed(false);
     try {
       await request('POST', '/leads/demo/', {
         name: f.name, school_name: f.school_name, role: f.role, phone: f.phone,
@@ -28,7 +30,9 @@ export function DemoForm() {
       });
       setDone(true);
     } catch (err) {
-      if (err instanceof ApiError) setErrors(err.fields);     // the message is already shown as a toast
+      const fields = err instanceof ApiError ? err.fields : {};
+      setErrors(fields);
+      if (Object.keys(fields).length === 0) setFailed(true);   // not a mistake in the form: the server or network let us down
     } finally { setBusy(false); }
   }
 
@@ -70,6 +74,11 @@ export function DemoForm() {
         <textarea id="d-message" name="message" rows={3} maxLength={2000} className={`${FIELD} h-auto py-2.5`} />{err('message')}</div>
       {/* Bot trap: hidden from people, filled in by scripts. */}
       <div aria-hidden="true" className="absolute -left-[9999px]"><label>Website<input name="website" tabIndex={-1} autoComplete="off" /></label></div>
+      {failed && (
+        <p role="alert" className="rounded-xl bg-danger-soft px-4 py-3 text-sm text-danger">
+          We could not send your request just now. Please try again in a moment, or message us on WhatsApp ({WHATSAPP_DISPLAY}) and we will reply.
+        </p>
+      )}
       <div className="flex flex-wrap items-center gap-4 pt-1">
         <button type="submit" disabled={busy}
           className="inline-flex h-11 items-center rounded-full bg-brand px-6 text-sm font-medium text-brand-ink hover:opacity-90 disabled:opacity-50 cursor-pointer">
