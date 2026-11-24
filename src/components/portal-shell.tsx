@@ -56,6 +56,8 @@ export function PortalShell({ nav, children, allowRoles, deniedHref = '/', showS
       try { localStorage.setItem(LAST_USER, JSON.stringify(user)); } catch { /* optional */ }
       show(user, true);
     }).catch(err => {
+      // 402 is handled in api.ts, which is already sending this user to billing or the lapsed page.
+      if (err instanceof ApiError && err.status === 402) return;
       // The server said no (not signed in): go to the sign-in page. But if it simply could not be
       // reached, use the last known user so a student with a weak connection is not thrown out of an exam.
       if (!(err instanceof ApiError)) {

@@ -3,7 +3,7 @@ import { type NextRequest, NextResponse } from 'next/server';
 const ROLE_HOME: Record<string, string> = {
   school_admin: '/dashboard',
   admin_officer: '/dashboard',
-  super_admin: '/super_admin',
+  super_admin: '/admin',
   principal: '/principal',
   teacher: '/teacher',
   bursary: '/bursary',
@@ -29,16 +29,20 @@ function decodeJwtPayload(token: string): Record<string, unknown> | null {
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // `/guardian` is the guardian login page; `/guardian/dashboard` stays protected.
-  if (pathname.startsWith('/portal') || pathname === '/' || pathname === '/login' || pathname.startsWith('/opengraph-image') || pathname.startsWith('/onboard') || pathname === '/guardian' || pathname === '/terms') {
+  // `/guardian` is the guardian login page and `/admin/login` the console sign-in page;
+  // `/guardian/dashboard` and the rest of `/admin` stay protected.
+  if (pathname.startsWith('/portal') || pathname === '/' || pathname === '/login' || pathname === '/admin/login' || pathname.startsWith('/opengraph-image') || pathname.startsWith('/onboard') || pathname === '/guardian' || pathname === '/terms') {
     return NextResponse.next();
   }
 
   const token = request.cookies.get('access_token')?.value;
 
+  // The console has its own door; everything else uses the school login.
+  const loginPath = pathname.startsWith('/admin') ? '/admin/login' : '/login';
+
   if (!token) {
     const url = request.nextUrl.clone();
-    url.pathname = '/login';
+    url.pathname = loginPath;
     url.searchParams.set('redirect', pathname);
     return NextResponse.redirect(url);
   }
@@ -48,13 +52,13 @@ export async function middleware(request: NextRequest) {
 
   if (!role || !ROLE_HOME[role]) {
     const url = request.nextUrl.clone();
-    url.pathname = '/login';
+    url.pathname = loginPath;
     return NextResponse.redirect(url);
   }
 
   const home = ROLE_HOME[role];
 
-  const portalRoots = ['/dashboard', '/super_admin', '/principal', '/teacher', '/bursary', '/student', '/guardian/dashboard'];
+  const portalRoots = ['/dashboard', '/admin', '/principal', '/teacher', '/bursary', '/student', '/guardian/dashboard'];
   const onWrongPortal = portalRoots.some(
     p => pathname.startsWith(p) && !pathname.startsWith(home)
   );
