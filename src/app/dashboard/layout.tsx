@@ -1,10 +1,11 @@
 'use client';
 
 import { PortalShell } from '@/components/portal-shell';
+import { BillingBanner } from '@/components/billing-banner';
 import type { NavSection } from '@/components/sidebar';
 import {
   LayoutDashboard, Users, School, CheckCircle2, UserCog, FileText, Calendar,
-  MonitorCheck, Banknote, Megaphone, ClipboardList, Settings, HardDrive,
+  MonitorCheck, Banknote, Megaphone, ClipboardList, Settings, HardDrive, CreditCard,
 } from 'lucide-react';
 
 const icon = { size: 16, strokeWidth: 1.75 } as const;
@@ -29,6 +30,7 @@ const NAV: NavSection[] = [
     { label: 'Communications', href: '/dashboard/comms', icon: <Megaphone {...icon} /> },
   ]},
   { section: 'Admin', items: [
+    { label: 'Billing', href: '/dashboard/billing', icon: <CreditCard {...icon} /> },
     { label: 'Activity log', href: '/dashboard/audit', icon: <ClipboardList {...icon} /> },
     { label: 'Settings', href: '/dashboard/settings', icon: <Settings {...icon} /> },
     { label: 'Backup', href: '/dashboard/backup', icon: <HardDrive {...icon} /> },
@@ -36,5 +38,10 @@ const NAV: NavSection[] = [
 ];
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
-  return <PortalShell nav={NAV} showSchool bell>{children}</PortalShell>;
+  return (
+    <PortalShell nav={NAV} showSchool bell>
+      <BillingBanner />
+      {children}
+    </PortalShell>
+  );
 }

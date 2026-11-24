@@ -5,6 +5,7 @@ import toast from 'react-hot-toast';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { auth, api } from '@/lib/api';
+import { blocksForStudents, naira, placesForBlocks, priceForStudents } from '@/lib/billing';
 import { Pencil } from 'lucide-react';
 import { AuthShell, FormError } from '@/components/auth-shell';
 import { Button } from '@/components/ui/button';
@@ -116,7 +117,7 @@ export default function OnboardPage() {
   const [form, setForm] = useState({
     schoolName: '', address: '', lga: '', state: '', schoolType: '',
     proprietorName: '', proprietorPhone: '', proprietorEmail: '',
-    subdomain: '',
+    subdomain: '', students: '',
   });
   const [states, setStates] = useState<{ id: number; name: string }[]>([]);
   const [lgas, setLgas] = useState<{ id: number; name: string }[]>([]);
@@ -165,6 +166,7 @@ export default function OnboardPage() {
     if (!form.schoolType) errs.schoolType = 'Choose a school type.';
     if (!form.state) errs.state = 'Choose a state.';
     if (!form.lga) errs.lga = 'Choose an LGA.';
+    if (!form.students || Number(form.students) < 1) errs.students = 'Enter how many students you have.';
     setFieldErrors(errs);
     return Object.keys(errs).length === 0;
   };
@@ -210,6 +212,7 @@ export default function OnboardPage() {
         school_address: form.address || '',
         school_state: form.state || '',
         school_lga: form.lga || '',
+        school_students: Number(form.students),
       });
 
       setSuccess({ portalUrl: `https://${form.subdomain}.clariva.ng` });
@@ -230,15 +233,25 @@ export default function OnboardPage() {
 
   const portalUrl = `https://${form.subdomain || 'your-school'}.clariva.ng`;
 
+  const quotedStudents = Number(form.students) || 0;
+  const quotedBlocks = blocksForStudents(quotedStudents);
+  const quoteHint = quotedStudents > 0
+    ? `${quotedBlocks} ${quotedBlocks === 1 ? 'block' : 'blocks'} · covers ${placesForBlocks(quotedBlocks)} students · ${naira(priceForStudents(quotedStudents))} per term`
+    : 'This sets the price for your first term.';
+
   // success screen
   if (success) {
     return (
       <AuthShell sideLink={{ href: '/', label: 'Back to sign in' }}>
         <h1 className="text-2xl font-semibold text-ink tracking-tight text-balance">Your school portal is ready</h1>
-        <p className="text-sm text-muted mt-1 mb-6">Your portal address is:</p>
+        <p className="text-sm text-muted mt-1 mb-6">
+          Pay for this term to open it. Your portal address is:
+        </p>
         <p className="font-mono text-sm text-ink break-all border-y border-line py-3 mb-6">{success.portalUrl}</p>
         <div className="space-y-3">
-          <Button onClick={() => router.push('/dashboard')} className="w-full">Go to dashboard</Button>
+          <Button onClick={() => router.push('/dashboard/billing')} className="w-full">
+            Pay for this term
+          </Button>
           <Button
             variant="secondary"
             onClick={() => { navigator.clipboard.writeText(success.portalUrl); toast.success('Address copied.'); }}
@@ -333,6 +346,11 @@ export default function OnboardPage() {
             </div>
             {fieldErrors.schoolType && <p className="text-[13px] text-danger mt-1.5">{fieldErrors.schoolType}</p>}
           </fieldset>
+
+          <TextField id="school-students" label="How many students does your school have?" type="number"
+            min={1} inputMode="numeric" value={form.students}
+            onChange={e => setField('students', e.target.value)} placeholder="e.g. 240"
+            hint={quoteHint} error={fieldErrors.students} />
 
           <div className="grid grid-cols-2 gap-3">
             <SearchSelect label="State" value={form.state} options={states} placeholder="Select state"

@@ -13,7 +13,7 @@ export interface School {
   current_term: string | null;
   current_academic_year: string | null;
   plan: 'trial' | 'basic' | 'standard' | 'premium';
-  status: 'active' | 'suspended' | 'inactive';
+  status: 'active' | 'suspended' | 'inactive' | 'pending';
   created_at: string;
 }
 

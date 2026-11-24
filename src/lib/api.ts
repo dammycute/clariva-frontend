@@ -87,8 +87,12 @@ async function isSessionReplaced(res: Response): Promise<boolean> {
 
 /** This student signed in somewhere else. Drop this device's sign-in and say why on the login page. */
 function sessionReplaced() {
+  const role = sessionStorage.getItem('user_role');
   clearTokens();
-  if (typeof window !== 'undefined') window.location.assign('/login?reason=session_replaced');
+  if (typeof window !== 'undefined') {
+    const login = role === 'super_admin' ? '/admin/login' : '/login';
+    window.location.assign(`${login}?reason=session_replaced`);
+  }
 }
 
 function clearTokens() {
@@ -130,6 +134,23 @@ async function _refreshToken(): Promise<string | null> {
   }
 }
 
+/** Roles that can open the billing page. Everyone else gets the plain lapsed page. */
+const BILLING_ROLES = ['school_admin', 'admin_officer', 'principal'];
+
+/**
+ * 402 means the school has to pay before it can go on. Admins are sent to the billing page;
+ * teachers and students to a plain page that tells them to speak to their administrator.
+ * Never redirects from inside the billing calls themselves, or the page could not show why.
+ */
+function handleBillingBlock(path: string) {
+  if (typeof window === 'undefined') return;
+  if (path.includes('/billing/')) return;
+  const role = sessionStorage.getItem('user_role') || '';
+  const target = BILLING_ROLES.includes(role) ? '/dashboard/billing' : '/lapsed';
+  if (window.location.pathname.startsWith(target)) return;
+  window.location.assign(target);
+}
+
 async function request<T = unknown>(
   method: string,
   path: string,
@@ -160,6 +181,8 @@ async function request<T = unknown>(
     }
   }
 
+  if (res.status === 402) handleBillingBlock(path);
+
   if (!res.ok) {
     const err = await res.json().catch(() => ({ detail: res.statusText }));
     const fields: Record<string, string[]> = {};
@@ -183,7 +206,8 @@ async function request<T = unknown>(
     let msg = shown.join(' · ');
     if (extra > 0) msg += ` (+${extra} more)`;
     if (!msg) msg = fallback || 'Request failed';
-    toast.error(msg);
+    // A 402 is already redirecting; a toast on top of that is noise.
+    if (res.status !== 402) toast.error(msg);
     throw new ApiError(msg, res.status, fields);
   }
 
@@ -213,7 +237,22 @@ export const auth = {
     return request<Record<string, unknown>>('POST', '/auth/admin/create-user/', payload);
   },
   async me() {
-    return request<{ id: number; email: string; first_name: string; last_name: string; phone: string | null; role: string; school_id: number | null }>('GET', '/auth/me/');
+    return request<{
+      id: number; email: string; first_name: string; last_name: string; phone: string | null;
+      role: string; school_id: number | null; must_change_password?: boolean;
+    }>('GET', '/auth/me/');
+  },
+  async changePassword(currentPassword: string, newPassword: string) {
+    return request<{ detail: string }>('POST', '/auth/change-password/', {
+      current_password: currentPassword,
+      new_password: newPassword,
+    });
+  },
+  /** Super admin makes another admin from an email. The generated password comes back once. */
+  async generateAdminLogin(payload: { email: string; first_name?: string; last_name?: string }) {
+    return request<{ email: string; password: string; user: Record<string, unknown> }>(
+      'POST', '/auth/admin/generate-login/', payload,
+    );
   },
   logout() {
     const refresh = typeof window !== 'undefined' ? sessionStorage.getItem('refresh_token') : null;
