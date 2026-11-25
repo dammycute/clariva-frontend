@@ -218,8 +218,10 @@ async function request<T = unknown>(
 export { request, setTokens };
 
 export const auth = {
-  async login(email: string, password: string) {
-    const data = await request<{ access: string; refresh: string; role?: string }>('POST', '/auth/login/', { email, password, device_id: getDeviceId() });
+  async login(email: string, password: string, school?: string) {
+    const data = await request<{ access: string; refresh: string; role?: string }>('POST', '/auth/login/', {
+      email, password, device_id: getDeviceId(), ...(school ? { school } : {}),
+    });
     setTokens(data.access, data.refresh, data.role);
     return data;
   },
@@ -248,9 +250,9 @@ export const auth = {
       new_password: newPassword,
     });
   },
-  /** Super admin makes another admin from an email. The generated password comes back once. */
+  /** Super admin makes another admin from an email. The details are emailed, and come back once. */
   async generateAdminLogin(payload: { email: string; first_name?: string; last_name?: string }) {
-    return request<{ email: string; password: string; user: Record<string, unknown> }>(
+    return request<{ email: string; password: string; emailed: boolean; user: Record<string, unknown> }>(
       'POST', '/auth/admin/generate-login/', payload,
     );
   },
@@ -351,6 +353,23 @@ export type ExamResult = {
   passed?: boolean;
   percentage?: number;
 };
+
+/** Which school owns an address, so a subdomain can carry its own sign-in page. */
+export const schoolsByDomain = (host: string) =>
+  request<{
+    found: boolean; subdomain: string | null; base_domain: string;
+    school: {
+      id: string; name: string; subdomain: string;
+      logo_url: string | null; accent_color: string; portal_url: string;
+    } | null;
+  }>('GET', `/schools/by-domain/?host=${encodeURIComponent(host)}`);
+
+/** The address a school's portal lives at, built from the domain this site runs on. */
+export const portalAddress = (schoolId?: string) =>
+  request<{
+    base_domain: string; current_host: string; subdomain: string;
+    url: string; wildcard_record: string; ready: boolean;
+  }>('GET', `/schools/portal-address/${schoolId ? `?school=${schoolId}` : ''}`);
 
 export const api = {
   schools: createApi('/schools/'),

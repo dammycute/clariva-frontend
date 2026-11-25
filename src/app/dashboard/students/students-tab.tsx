@@ -42,7 +42,7 @@ export default function StudentsTab() {
   const [importClass, setImportClass] = useState('');
   const [importCsv, setImportCsv] = useState('');
   const [importing, setImporting] = useState(false);
-  const [importResult, setImportResult] = useState<{ created: number; errors: string[]; students?: { name: string; admission_no: string }[] } | null>(null);
+  const [importResult, setImportResult] = useState<{ created: number; errors: string[]; students?: { name: string; admission_no: string; email?: string; password?: string }[] } | null>(null);
   const [importFileName, setImportFileName] = useState('');
   const [form, setForm] = useState({
     first_name: '', last_name: '', gender: '', date_of_birth: '', state_of_origin: '', lga_of_origin: '',
@@ -214,7 +214,18 @@ export default function StudentsTab() {
             <div className="p-5 space-y-3.5">
               {importResult ? (
                 <div>
-                  <p className="text-sm font-semibold text-brand inline-flex items-center gap-1"><Check size={16} aria-hidden="true" /> {importResult.created} students imported. Admission numbers were generated.</p>
+                  <p className="text-sm font-semibold text-brand inline-flex items-center gap-1"><Check size={16} aria-hidden="true" /> {importResult.created} students imported, each with a login account.</p>
+                  {importResult.students && importResult.students.length > 0 && (
+                    <div className="mt-3 border border-line rounded divide-y divide-line max-h-[220px] overflow-y-auto">
+                      <p className="px-3 py-2 text-xs text-muted bg-page">Passwords are shown once. Copy them now.</p>
+                      {importResult.students.map((s, i) => (
+                        <div key={i} className="px-3 py-2 text-xs">
+                          <p className="font-semibold text-ink">{s.name} · {s.admission_no}</p>
+                          {s.password && <p className="text-brand font-semibold">Password: {s.password}</p>}
+                        </div>
+                      ))}
+                    </div>
+                  )}
                   {importResult.errors.length > 0 && (
                     <div className="mt-2 bg-danger-soft rounded p-3 max-h-[200px] overflow-y-auto">
                       {importResult.errors.map((e, i) => <p key={i} className="text-xs text-danger">{e}</p>)}
@@ -243,7 +254,7 @@ export default function StudentsTab() {
                       }}
                       className="block w-full text-sm text-ink file:mr-3 file:px-3 file:py-2 file:rounded file:border file:border-line file:bg-surface-2 file:text-sm file:cursor-pointer" />
                     {importFileName && <p className="text-xs text-muted mt-1">{importFileName}: {Math.max(importCsv.trim().split('\n').length - 1, 0)} rows</p>}
-                    <p className="text-xs text-muted mt-2">Columns: <strong>full_name</strong> (or first_name and last_name), gender, guardian_name, guardian_phone, guardian_email, and <strong>class</strong> (a class name such as JSS1A). Admission numbers are made for you after the import.</p>
+                    <p className="text-xs text-muted mt-2">Columns: <strong>full_name</strong> (or first_name and last_name), gender, guardian_name, guardian_phone, guardian_email, and <strong>class</strong> (a class name such as JSS1A). Admission numbers and login passwords are made for you, so every student can sign in straight away.</p>
                   </div>
                   <div className="flex justify-end gap-2 pt-2">
                     <button onClick={() => setShowImport(false)} className="text-sm px-4 py-2 rounded border border-line bg-surface hover:bg-surface-2">Cancel</button>
@@ -251,7 +262,7 @@ export default function StudentsTab() {
                       if (!importCsv.trim()) return;
                       setImporting(true);
                       try {
-                        const data = await request<{ created: number; errors: string[]; students?: { name: string; admission_no: string }[] }>(
+                        const data = await request<{ created: number; errors: string[]; students?: { name: string; admission_no: string; email?: string; password?: string }[] }>(
                           'POST', '/students/import_csv/', { csv: importCsv, class_id: importClass || null });
                         setImportResult(data);
                         loadData();

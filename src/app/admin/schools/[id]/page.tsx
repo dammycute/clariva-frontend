@@ -17,6 +17,11 @@ type Person = {
   role: string; is_active: boolean; school_id: string | null;
 };
 
+type PortalAddress = {
+  base_domain: string; current_host: string; subdomain: string;
+  url: string; wildcard_record: string; ready: boolean;
+};
+
 type AuditEntry = {
   id: string; action: string; model_name: string; object_repr: string | null;
   user_name: string | null; created_at: string;
@@ -25,14 +30,14 @@ type AuditEntry = {
 const PEOPLE_ROLES = ['school_admin', 'admin_officer', 'principal', 'teacher', 'bursary', 'student', 'parent'];
 
 type Form = {
-  name: string; plan: string; status: string; trial_ends_at: string;
+  name: string; subdomain: string; plan: string; status: string; trial_ends_at: string;
   current_term: string; current_academic_year: string; single_device_students: boolean;
   school_type: string; state: string; lga: string; address: string;
   proprietor_name: string; proprietor_phone: string;
 };
 
 const emptyForm: Form = {
-  name: '', plan: 'trial', status: 'active', trial_ends_at: '',
+  name: '', subdomain: '', plan: 'trial', status: 'active', trial_ends_at: '',
   current_term: '1st Term', current_academic_year: '', single_device_students: true,
   school_type: '', state: '', lga: '', address: '', proprietor_name: '', proprietor_phone: '',
 };
@@ -48,6 +53,7 @@ export default function ConsoleSchoolDetail() {
   const [analytics, setAnalytics] = useState<Analytics | null>(null);
   const [people, setPeople] = useState<Person[]>([]);
   const [activity, setActivity] = useState<AuditEntry[]>([]);
+  const [portal, setPortal] = useState<PortalAddress | null>(null);
   const [form, setForm] = useState<Form>(emptyForm);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState<'' | 'save' | 'status' | 'backup'>('');
@@ -55,11 +61,12 @@ export default function ConsoleSchoolDetail() {
   const [isError, setIsError] = useState(false);
 
   const load = useCallback(async () => {
-    const [record, numbers, users, logs] = await Promise.all([
+    const [record, numbers, users, logs, address] = await Promise.all([
       api.schools.get(id) as Promise<AdminSchool>,
       api.analytics.get(id).catch(() => null),
       request<{ results: Person[] } | Person[]>('GET', '/auth/users/?page_size=500').catch(() => []),
       request<{ results: AuditEntry[] } | AuditEntry[]>('GET', `/audit/?school=${id}&page_size=50`).catch(() => []),
+      request<PortalAddress>('GET', `/schools/portal-address/?school=${id}`).catch(() => null),
     ]);
 
     setSchool(record);
@@ -67,9 +74,11 @@ export default function ConsoleSchoolDetail() {
     const allUsers = Array.isArray(users) ? users : users.results ?? [];
     setPeople(allUsers.filter(u => u.school_id === id));
     setActivity(Array.isArray(logs) ? logs : logs.results ?? []);
+    setPortal(address);
 
     setForm({
       name: record.name || '',
+      subdomain: record.subdomain || '',
       plan: record.plan || 'trial',
       status: record.status || 'active',
       trial_ends_at: record.trial_ends_at ? record.trial_ends_at.slice(0, 10) : '',
@@ -109,6 +118,7 @@ export default function ConsoleSchoolDetail() {
     try {
       const updated = await api.schools.update(id, {
         name: form.name,
+        subdomain: form.subdomain.trim().toLowerCase(),
         plan: form.plan,
         status: form.status,
         trial_ends_at: form.trial_ends_at ? new Date(`${form.trial_ends_at}T23:59:59`).toISOString() : null,
@@ -258,6 +268,39 @@ export default function ConsoleSchoolDetail() {
         />
       </SummaryStrip>
 
+      <div className="mb-6">
+        <Panel title="School portal address">
+          <div className="p-4 space-y-3">
+            {portal ? (
+              <>
+                <div className="flex flex-wrap items-center gap-2">
+                  <code className="text-sm text-ink bg-page border border-line rounded px-2.5 py-1.5">
+                    {portal.url || 'No address yet'}
+                  </code>
+                  {portal.url && (
+                    <>
+                      <Button variant="secondary" onClick={() => navigator.clipboard.writeText(portal.url)}>Copy</Button>
+                      <a href={portal.url} target="_blank" rel="noreferrer" className="text-sm text-brand underline underline-offset-2">Open</a>
+                    </>
+                  )}
+                </div>
+                <p className="text-[13px] text-muted">
+                  Staff, students and parents sign in here instead of coming through the main site.
+                  The address is this school&apos;s subdomain <strong className="text-ink">{portal.subdomain}</strong>
+                  {' '}added to <strong className="text-ink">{portal.base_domain}</strong>, the domain this console runs on.
+                </p>
+                <p className="text-[13px] text-muted">
+                  One DNS record covers every school: a wildcard <code className="text-ink">{portal.wildcard_record}</code>
+                  {' '}pointing at the same host as the main site. Change the subdomain below to move a school.
+                </p>
+              </>
+            ) : (
+              <p className="text-sm text-muted">Reading the address…</p>
+            )}
+          </div>
+        </Panel>
+      </div>
+
       <form onSubmit={save} className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
         <section className="bg-surface border border-line rounded p-5">
           <h2 className="text-[15px] font-semibold text-ink mb-4">Account</h2>
@@ -319,6 +362,14 @@ export default function ConsoleSchoolDetail() {
             <div className="col-span-2">
               <label htmlFor="name" className={labelClass}>School name</label>
               <input id="name" value={form.name} onChange={e => update('name', e.target.value)} className={fieldClass} />
+            </div>
+            <div className="col-span-2">
+              <label htmlFor="subdomain" className={labelClass}>School address</label>
+              <div className="flex items-center gap-2">
+                <input id="subdomain" value={form.subdomain} onChange={e => update('subdomain', e.target.value)} className={fieldClass} placeholder="queens-college" />
+                <span className="text-sm text-muted whitespace-nowrap">.{portal?.base_domain || 'clariva.ng'}</span>
+              </div>
+              <p className="text-xs text-muted mt-1">Letters, numbers and dashes. This is the school&apos;s own sign-in address.</p>
             </div>
             <div>
               <label htmlFor="school-type" className={labelClass}>School type</label>

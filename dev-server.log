@@ -1,0 +1,41 @@
+
+> web@0.1.0 dev
+> next dev
+
+   ▲ Next.js 15.5.27
+   - Local:        http://localhost:57975
+   - Network:      http://192.168.1.102:57975
+   - Environments: .env.local
+
+ ✓ Starting...
+ ✓ Ready in 5.2s
+ ○ Compiling /middleware ...
+ ✓ Compiled /middleware in 1389ms (115 modules)
+ ○ Compiling / ...
+ ✓ Compiled / in 9.4s (768 modules)
+ GET / 200 in 11547ms
+ ○ Compiling /login ...
+ ✓ Compiled /login in 1123ms (764 modules)
+ GET /login?redirect=%2Fadmin 200 in 2012ms
+ ✓ Compiled in 794ms (280 modules)
+ ✓ Compiled in 620ms (706 modules)
+ ✓ Compiled in 776ms (821 modules)
+ ✓ Compiled in 169ms (280 modules)
+ ✓ Compiled in 189ms (280 modules)
+ ✓ Compiled in 154ms (280 modules)
+ ✓ Compiled in 181ms (807 modules)
+ ✓ Compiled in 167ms (280 modules)
+ ✓ Compiled in 155ms (280 modules)
+ ✓ Compiled in 149ms (280 modules)
+ ✓ Compiled in 147ms (280 modules)
+ ✓ Compiled in 154ms (280 modules)
+ ✓ Compiled in 163ms (280 modules)
+ ✓ Compiled in 192ms (280 modules)
+ ✓ Compiled in 370ms (821 modules)
+ ✓ Compiled in 171ms (280 modules)
+ ✓ Compiled in 170ms (807 modules)
+ ✓ Compiled in 149ms (280 modules)
+ ✓ Compiled in 212ms (280 modules)
+ ✓ Compiled in 277ms (280 modules)
+ ✓ Compiled in 163ms (280 modules)
+[?25h

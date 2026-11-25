@@ -14,7 +14,7 @@ import { BLOCK_SIZE, PRICE_PER_BLOCK, WHATSAPP_DISPLAY, WHATSAPP_LINK, naira, ra
 export const metadata: Metadata = {
   title: 'Clariva: school management for Nigerian secondary schools',
   description:
-    'Student records, attendance, results, fees and computer-based tests in one platform. Built for JSS and SS schools in Nigeria. Exams keep working when the internet drops.',
+    'Student records, attendance, results, fees and computer-based tests in one platform. Exams keep working when the internet drops.',
   openGraph: {
     title: 'Clariva: run your school with clarity',
     description: 'Records, results, fees and CBT exams for Nigerian secondary schools.',
@@ -104,17 +104,20 @@ export default function LandingPage() {
       </a>
 
       <header className="sticky top-0 z-40 border-b border-line bg-page/90 backdrop-blur">
-        <div className="max-w-6xl mx-auto px-5 h-[72px] flex items-center justify-between gap-6">
-          <Link href="/" className="font-display text-2xl font-semibold tracking-tight">Clariva</Link>
-          <nav aria-label="Main" className="hidden md:flex items-center gap-8">
+        <div className="max-w-6xl mx-auto px-4 sm:px-5 h-[72px] flex items-center justify-between gap-3 sm:gap-6">
+          <Link href="/" className="font-display text-2xl font-semibold tracking-tight shrink-0">Clariva</Link>
+          <nav aria-label="Main" className="hidden lg:flex items-center gap-8">
             <a href="#features" className="text-[15px] text-muted hover:text-ink py-3">Features</a>
             <a href="#start" className="text-[15px] text-muted hover:text-ink py-3">How it works</a>
             <a href="#pricing" className="text-[15px] text-muted hover:text-ink py-3">Pricing</a>
             <a href="#faq" className="text-[15px] text-muted hover:text-ink py-3">Questions</a>
           </nav>
-          <div className="flex items-center gap-2.5">
-            <Link href="/login" className={`${SECONDARY} !h-10 !px-4 !text-sm`}>Sign in</Link>
-            <a href="#demo" className={`${PRIMARY} !h-10 !px-4 !text-sm`}>Request a demo</a>
+          <div className="flex shrink-0 items-center gap-2">
+            <Link href="/login" className={`${SECONDARY} !h-10 !px-3.5 sm:!px-4 !text-[13px] sm:!text-sm whitespace-nowrap`}>Sign in</Link>
+            <a href="#demo" className={`${PRIMARY} !h-10 !px-3.5 sm:!px-4 !text-[13px] sm:!text-sm whitespace-nowrap`}>
+              <span className="sm:hidden">Demo</span>
+              <span className="hidden sm:inline">Request a demo</span>
+            </a>
           </div>
         </div>
       </header>
@@ -125,10 +128,7 @@ export default function LandingPage() {
           <div className="hero-glow" aria-hidden="true" />
           <div className="relative z-10 max-w-6xl mx-auto px-5 pt-14 pb-16 lg:pt-24 lg:pb-24 grid lg:grid-cols-[1.05fr_1fr] gap-14 lg:gap-12 items-center">
             <div>
-              <p className="rise inline-flex items-center gap-2 rounded-full border border-line bg-surface px-3.5 py-1.5 text-[13px] text-muted">
-                <span className="size-1.5 rounded-full bg-success" aria-hidden="true" /> Built for JSS and SS schools in Nigeria
-              </p>
-              <h1 className="rise mt-6 font-display text-[2.8rem] sm:text-6xl lg:text-7xl font-semibold tracking-tight text-balance leading-[1.04]" style={{ '--d': '80ms' } as React.CSSProperties}>
+              <h1 className="rise font-display text-[2.8rem] sm:text-6xl lg:text-7xl font-semibold tracking-tight text-balance leading-[1.04]" style={{ '--d': '80ms' } as React.CSSProperties}>
                 Run your school with{' '}
                 <span className="relative inline-block">
                   clarity

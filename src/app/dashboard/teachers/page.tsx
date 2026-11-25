@@ -53,7 +53,10 @@ export default function StaffPage() {
   const [creating, setCreating] = useState<string | null>(null);
   const [creds, setCreds] = useState<{ email: string; password: string } | null>(null);
   const [importing, setImporting] = useState(false);
-  const [importResult, setImportResult] = useState<{ created: number; errors: string[] } | null>(null);
+  const [importResult, setImportResult] = useState<{
+    created: number; errors: string[];
+    credentials?: { name: string; email: string; password: string; role: string }[];
+  } | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => { loadStaff(); }, []);
@@ -319,7 +322,19 @@ export default function StaffPage() {
           <div className="bg-surface rounded w-[460px] max-w-[95vw]" onClick={e => e.stopPropagation()}>
             <div className="p-5">
               <h3 className="text-base font-semibold text-ink mb-2">Import Complete</h3>
-              <p className="text-sm text-brand font-semibold mb-4">{importResult.created} staff created</p>
+              <p className="text-sm text-brand font-semibold mb-2">{importResult.created} staff created, each with a login</p>
+              {importResult.credentials && importResult.credentials.length > 0 && (
+                <div className="mb-4 border border-line rounded divide-y divide-line max-h-56 overflow-y-auto">
+                  <p className="px-3 py-2 text-xs text-muted bg-page">Passwords are shown once. Copy them now.</p>
+                  {importResult.credentials.map((c, i) => (
+                    <div key={i} className="px-3 py-2 text-xs">
+                      <p className="font-semibold text-ink">{c.name} · {c.role}</p>
+                      <p className="text-muted">{c.email}</p>
+                      <p className="text-brand font-semibold">Password: {c.password}</p>
+                    </div>
+                  ))}
+                </div>
+              )}
               {importResult.errors.length > 0 && (
                 <div className="max-h-48 overflow-y-auto border border-danger-soft rounded divide-y divide-danger-soft">
                   {importResult.errors.map((err, i) => (

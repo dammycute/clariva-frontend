@@ -4,8 +4,11 @@ import { request } from '@/lib/api';
  * Billing rules, shared by the portal and the console.
  *
  * Deliberately separate from `lib/pricing.ts`: the landing page still quotes
- * "purely per 50" and is not part of this change. Here the buffer applies:
- * 1 to 60 students is one block, 61 starts the second.
+ * "purely per 50" and is not part of this change.
+ *
+ * The 10 free places belong to the school once, not to every block: one block
+ * covers 60 students, two cover 110, six cover 310. Past 10 students each block
+ * is a full 50.
  */
 export const PRICE_PER_BLOCK = 30000;
 export const BLOCK_SIZE = 50;
@@ -14,7 +17,7 @@ export const GRACE_DAYS = 21;
 
 export function blocksForStudents(students: number): number {
   if (!Number.isFinite(students) || students < 1) return 0;
-  return Math.max(1, Math.ceil((students - BUFFER_STUDENTS) / BLOCK_SIZE));
+  return Math.max(1, Math.ceil(Math.max(students - BUFFER_STUDENTS, 1) / BLOCK_SIZE));
 }
 
 export const priceForStudents = (students: number) => blocksForStudents(students) * PRICE_PER_BLOCK;
@@ -39,6 +42,7 @@ export type BillingTerm = {
   next_term: string;
   next_resumes_on: string;
   access_until: string;
+  assumed?: boolean;
 };
 
 export type BillingStatus = {
@@ -64,6 +68,7 @@ export type BillingStatus = {
   payment_opens_on: string | null;
   can_pay: boolean;
   blocked_reason: string | null;
+  dates_provisional: boolean;
 };
 
 export type Payment = {
