@@ -24,7 +24,7 @@ export function Window({ url, label, children }: { url: string; label: string; c
 /** Exam screen. The status line loops between "saved" and "no connection, kept on this device". */
 export function CbtIllustration() {
   return (
-    <Window url="clariva.ng/exams" label="Illustration of an exam screen that keeps saving answers on the device when the connection drops">
+    <Window url="clarriva.com/exams" label="Illustration of an exam screen that keeps saving answers on the device when the connection drops">
       <div className={CARD}>
         <div className="flex items-center justify-between gap-3 border-b border-line pb-3">
           <div>
@@ -54,7 +54,7 @@ export function CbtIllustration() {
 /** Invoice. A second fee drops in and the total changes, to show fees adding up on one invoice. */
 export function FeesIllustration() {
   return (
-    <Window url="clariva.ng/fees" label="Illustration of one invoice with Tuition and Interhouse fees added up to a single total">
+    <Window url="clarriva.com/fees" label="Illustration of one invoice with Tuition and Interhouse fees added up to a single total">
       <div className={CARD}>
         <div className="flex items-center justify-between gap-3 border-b border-line pb-3">
           <div>
@@ -84,7 +84,7 @@ export function FeesIllustration() {
 export function ResultsIllustration() {
   const rows = [['CA 1', 14, 15], ['CA 2', 13, 15], ['Assignment', 9, 10], ['Exam', 51, 60]] as const;
   return (
-    <Window url="clariva.ng/results" label="Illustration of a report card with CA, assignment and exam scores adding up to 87 out of 100">
+    <Window url="clarriva.com/results" label="Illustration of a report card with CA, assignment and exam scores adding up to 87 out of 100">
       <div className={CARD}>
         <div className="flex items-center justify-between gap-3 border-b border-line pb-3">
           <div>

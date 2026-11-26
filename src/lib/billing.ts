@@ -4,8 +4,11 @@ import { request } from '@/lib/api';
  * Billing rules, shared by the portal and the console.
  *
  * Deliberately separate from `lib/pricing.ts`: the landing page still quotes
- * "purely per 50" and is not part of this change. Here the buffer applies:
- * 1 to 60 students is one block, 61 starts the second.
+ * "purely per 50" and is not part of this change.
+ *
+ * The 10 free places belong to the school once, not to every block: one block
+ * covers 60 students, two cover 110, six cover 310. Past 10 students each block
+ * is a full 50.
  */
 export const PRICE_PER_BLOCK = 30000;
 export const BLOCK_SIZE = 50;
@@ -14,7 +17,7 @@ export const GRACE_DAYS = 21;
 
 export function blocksForStudents(students: number): number {
   if (!Number.isFinite(students) || students < 1) return 0;
-  return Math.max(1, Math.ceil((students - BUFFER_STUDENTS) / BLOCK_SIZE));
+  return Math.max(1, Math.ceil(Math.max(students - BUFFER_STUDENTS, 1) / BLOCK_SIZE));
 }
 
 export const priceForStudents = (students: number) => blocksForStudents(students) * PRICE_PER_BLOCK;
@@ -64,6 +67,7 @@ export type BillingStatus = {
   payment_opens_on: string | null;
   can_pay: boolean;
   blocked_reason: string | null;
+  dates_provisional: boolean;
 };
 
 export type Payment = {
@@ -133,15 +137,19 @@ export const billingAdmin = {
     const qs = params ? `?${new URLSearchParams(params).toString()}` : '';
     return list<TermCalendarRow>(`/billing/calendars/${qs}`);
   },
-  missingCalendars: () =>
-    request<{ states: { id: string; name: string; code: string }[]; horizon_days: number }>(
-      'GET', '/billing/calendars/missing/',
-    ),
+  calendarsDue: () => request<CalendarsDue>('GET', '/billing/calendars/due/'),
+  saveSessionDates: (payload: { states: string[]; dates: SessionDate[]; confirm_unusual?: boolean }) =>
+    request<{ saved: number; extended_schools: number }>('POST', '/billing/calendars/bulk/', payload),
+  reminderRecipients: () => request<Recipient[]>('GET', '/billing/calendars/recipients/'),
+  saveReminderRecipients: (ids: string[]) =>
+    request<Recipient[]>('PUT', '/billing/calendars/recipients/', { ids }),
   createCalendar: (payload: {
     state: string; school?: string | null; academic_year: string;
-    term: string; resumes_on: string; provisional?: boolean;
+    term: string; resumes_on: string; provisional?: boolean; source_url?: string; confirm_unusual?: boolean;
   }) => request<TermCalendarRow>('POST', '/billing/calendars/', payload),
-  updateCalendar: (id: string, payload: { resumes_on?: string; provisional?: boolean }) =>
+  updateCalendar: (id: string, payload: {
+    resumes_on?: string; provisional?: boolean; source_url?: string; confirm_unusual?: boolean;
+  }) =>
     request<TermCalendarRow>('PATCH', `/billing/calendars/${id}/`, payload),
   deleteCalendar: (id: string) => request<void>('DELETE', `/billing/calendars/${id}/`),
 };
@@ -156,7 +164,19 @@ export type TermCalendarRow = {
   term: string;
   resumes_on: string;
   provisional: boolean;
+  source_url: string;
+  confirmed_by_name: string | null;
+  confirmed_at: string | null;
 };
+
+export type DueSlot = { academic_year: string; term: string };
+export type CalendarsDue = {
+  states: { id: string; name: string; schools: number; missing: DueSlot[]; unconfirmed: DueSlot[] }[];
+  schools_without_state: string[];
+  email_ready: boolean;
+};
+export type SessionDate = DueSlot & { resumes_on: string; provisional: boolean; source_url: string };
+export type Recipient = { id: string; name: string; email: string; selected: boolean };
 
 /** The one-line status the portal shows in its banner and on the billing page. */
 export function stateLabel(state: BillingState): { text: string; tone: 'success' | 'warning' | 'danger' | 'muted' } {

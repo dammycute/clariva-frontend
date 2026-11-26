@@ -2,7 +2,11 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import { Pencil, Trash2 } from 'lucide-react';
-import { billingAdmin, shortDate, type TermCalendarRow } from '@/lib/billing';
+import { billingAdmin, shortDate, type CalendarsDue, type TermCalendarRow } from '@/lib/billing';
+import { ApiError } from '@/lib/api';
+import { SessionDates } from '@/components/session-dates';
+import { ReminderRecipients } from '@/components/reminder-recipients';
+import { DATES_CHANGED } from '@/components/calendar-warning';
 import { listAll, type AdminSchool } from '@/lib/admin';
 import { Button } from '@/components/ui/button';
 import { Panel } from '@/components/ui/summary';
@@ -17,19 +21,21 @@ const selectClass =
 function currentYear() {
   const now = new Date();
   const y = now.getFullYear();
-  return now.getMonth() >= 7 ? `${y}/${y + 1}` : `${y - 1}/${y}`;
+  return now.getMonth() >= 8 ? `${y}/${y + 1}` : `${y - 1}/${y}`;
 }
 
 const EMPTY = {
   state: '', academic_year: currentYear(), term: '1st Term' as string,
-  resumes_on: '', school: '', provisional: false,
+  resumes_on: '', school: '', provisional: false, source_url: '',
 };
 
 export default function ConsoleCalendars() {
   const [rows, setRows] = useState<TermCalendarRow[]>([]);
   const [states, setStates] = useState<{ id: string; name: string; code: string }[]>([]);
   const [schools, setSchools] = useState<AdminSchool[]>([]);
-  const [missing, setMissing] = useState<{ id: string; name: string; code: string }[]>([]);
+  const [due, setDue] = useState<CalendarsDue | null>(null);
+  const [askUnusual, setAskUnusual] = useState(false);
+  const [confirmUnusual, setConfirmUnusual] = useState(false);
   const [form, setForm] = useState({ ...EMPTY });
   const [editing, setEditing] = useState<string | null>(null);
   const [deleting, setDeleting] = useState<TermCalendarRow | null>(null);
@@ -42,12 +48,13 @@ export default function ConsoleCalendars() {
       billingAdmin.calendars(),
       listAll<{ id: string; name: string; code: string }>('/locations/states/'),
       listAll<AdminSchool>('/schools/'),
-      billingAdmin.missingCalendars(),
+      billingAdmin.calendarsDue(),
     ]);
     setRows(calendars);
     setStates(stateList);
     setSchools(schoolList);
-    setMissing(gaps.states);
+    setDue(gaps);
+    window.dispatchEvent(new Event(DATES_CHANGED));     // every save and delete reloads through here
   }, []);
 
   useEffect(() => {
@@ -56,7 +63,7 @@ export default function ConsoleCalendars() {
       .finally(() => setLoading(false));
   }, [load]);
 
-  const reset = () => { setForm({ ...EMPTY }); setEditing(null); };
+  const reset = () => { setForm({ ...EMPTY }); setEditing(null); setAskUnusual(false); setConfirmUnusual(false); };
 
   const save = async () => {
     setError('');
@@ -69,6 +76,7 @@ export default function ConsoleCalendars() {
       if (editing) {
         await billingAdmin.updateCalendar(editing, {
           resumes_on: form.resumes_on, provisional: form.provisional,
+          source_url: form.source_url.trim(), confirm_unusual: confirmUnusual,
         });
       } else {
         await billingAdmin.createCalendar({
@@ -78,11 +86,14 @@ export default function ConsoleCalendars() {
           term: form.term,
           resumes_on: form.resumes_on,
           provisional: form.provisional,
+          source_url: form.source_url.trim(),
+          confirm_unusual: confirmUnusual,
         });
       }
       reset();
       await load();
     } catch (err) {
+      if (err instanceof ApiError && err.code === 'unusual_gap') setAskUnusual(true);
       setError(err instanceof Error ? err.message : 'Could not save that date.');
     } finally {
       setBusy(false);
@@ -94,6 +105,7 @@ export default function ConsoleCalendars() {
     setForm({
       state: row.state, academic_year: row.academic_year, term: row.term,
       resumes_on: row.resumes_on, school: row.school || '', provisional: row.provisional,
+      source_url: row.source_url || '',
     });
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -128,18 +140,11 @@ export default function ConsoleCalendars() {
         </div>
       )}
 
-      {!loading && missing.length > 0 && (
-        <div className="mb-4 text-sm text-warning bg-warning/10 border border-warning/30 rounded px-3 py-2">
-          <span className="font-medium">
-            {missing.length} {missing.length === 1 ? 'state has' : 'states have'} no resumption date in the next 90 days:
-          </span>{' '}
-          {missing.map(s => s.name).join(', ')}.
-        </div>
-      )}
+      {!loading && <SessionDates defaultYear={currentYear()} states={states} due={due} onSaved={load} />}
 
       <Panel
-        title={editing ? 'Edit a date' : 'Add a date'}
-        aside={editing ? 'Only the date and the provisional flag can change' : undefined}
+        title={editing ? 'Edit a date' : 'Add one date or a school override'}
+        aside={editing ? 'The date, its link and the provisional flag can change' : undefined}
       >
         <div className="p-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
           <div>
@@ -206,6 +211,17 @@ export default function ConsoleCalendars() {
             />
             Provisional date
           </label>
+          <div className="sm:col-span-2 lg:col-span-3">
+            <TextField id="cal-link" label="Link to the official notice" type="url" value={form.source_url}
+              onChange={e => setForm(f => ({ ...f, source_url: e.target.value }))} placeholder="https://…"
+              hint="Needed unless the date is provisional." />
+          </div>
+          {askUnusual && (
+            <label className="flex items-center gap-2.5 cursor-pointer text-sm text-ink sm:col-span-2">
+              <input type="checkbox" checked={confirmUnusual} onChange={e => setConfirmUnusual(e.target.checked)} className="w-4 h-4 accent-brand" />
+              Dates are correct
+            </label>
+          )}
         </div>
         <div className="px-4 pb-4 flex items-center gap-2">
           <Button onClick={save} disabled={busy}>
@@ -255,8 +271,13 @@ export default function ConsoleCalendars() {
                     <td className="px-4 py-2.5 text-muted whitespace-nowrap">{row.academic_year}</td>
                     <td className="px-4 py-2.5 text-muted whitespace-nowrap">{row.term}</td>
                     <td className="px-4 py-2.5 text-ink whitespace-nowrap">{shortDate(row.resumes_on)}</td>
-                    <td className="px-4 py-2.5 text-xs text-warning whitespace-nowrap">
-                      {row.provisional ? 'Provisional' : ''}
+                    <td className="px-4 py-2.5 text-xs whitespace-nowrap">
+                      {row.provisional
+                        ? <span className="text-warning">Provisional</span>
+                        : <span className="text-muted">{row.confirmed_by_name ? `Confirmed by ${row.confirmed_by_name}` : 'Confirmed'}</span>}
+                      {row.source_url && /^https?:\/\//i.test(row.source_url) && (
+                        <a href={row.source_url} target="_blank" rel="noopener noreferrer" className="block text-brand underline underline-offset-2">Notice</a>
+                      )}
                     </td>
                     <td className="px-4 py-2.5">
                       <div className="flex items-center justify-end gap-1">
@@ -283,6 +304,8 @@ export default function ConsoleCalendars() {
           </div>
         )}
       </div>
+
+      <ReminderRecipients />
 
       <ConfirmDialog
         open={Boolean(deleting)}

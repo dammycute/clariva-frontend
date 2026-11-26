@@ -5,6 +5,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import { auth, ApiError } from '@/lib/api';
 import { Sidebar, type NavSection } from '@/components/sidebar';
 import { ThemeSwitch } from '@/components/theme-switch';
+import { CalendarWarning } from '@/components/calendar-warning';
 
 const LAST_ADMIN = 'console-last-admin';
 
@@ -88,7 +89,10 @@ export function AdminShell({ nav, children }: { nav: NavSection[]; children: Rea
           <span className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted">Platform console</span>
           <span className="hidden lg:block text-xs text-muted truncate max-w-[40ch]">{admin.email}</span>
         </header>
-        <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 pb-20 lg:pb-8">{children}</main>
+        <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 pb-20 lg:pb-8">
+          <CalendarWarning key={pathname} />
+          {children}
+        </main>
       </div>
     </div>
   );

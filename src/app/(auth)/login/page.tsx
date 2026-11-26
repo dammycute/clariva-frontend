@@ -94,6 +94,14 @@ export default function LoginPage() {
     }, 50);
   };
 
+  // On a school's own address the middleware drops this cookie, so sign-in is
+  // already aimed at that school and nobody has to type a school code.
+  const [school, setSchool] = useState('');
+  useEffect(() => {
+    const match = document.cookie.match(/(?:^|;\s*)school_subdomain=([^;]*)/);
+    if (match) setSchool(decodeURIComponent(match[1]));
+  }, []);
+
   // ---- auth handlers ----
   const handleStaffLogin = useCallback(async () => {
     const email = staffEmailRef.current?.value;
@@ -101,7 +109,7 @@ export default function LoginPage() {
     if (!email || !pass) return;
     setLoading(true); setError('');
     try {
-      const data = await auth.login(email, pass);
+      const data = await auth.login(email, pass, school || undefined);
       const role = data.role;
       // Go back to the page the person wanted. The middleware sends anyone
       // who asked for the wrong portal to their own home page.
@@ -117,7 +125,7 @@ export default function LoginPage() {
       setError(err instanceof Error ? err.message : 'Invalid credentials');
     }
     finally { setLoading(false); }
-  }, []);
+  }, [school]);
 
   const handleStudentLogin = useCallback(async () => {
     const sid = studentIdRef.current?.value;

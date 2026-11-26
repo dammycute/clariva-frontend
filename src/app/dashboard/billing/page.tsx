@@ -131,7 +131,7 @@ export default function BillingPage() {
           {status.school.name}
           {status.school.state ? ` · ${status.school.state}` : ''}
           {' · '}{status.price_per_block.toLocaleString('en-NG')} naira per block of 50 students,
-          with 10 extra places on every block.
+          plus 10 free places for the school.
         </p>
       </header>
 
@@ -188,6 +188,13 @@ export default function BillingPage() {
                     <dd className="text-ink mt-0.5 font-medium">{naira(status.price_per_term)}</dd>
                   </div>
                 </dl>
+
+                {status.dates_provisional && (
+                  <p className="text-sm text-warning">
+                    These term dates are provisional (not yet confirmed). If the confirmed date is later, your
+                    access is extended. It is never shortened.
+                  </p>
+                )}
 
                 {status.blocked_reason && blocked[status.blocked_reason] && (
                   <p className="text-sm text-warning">{blocked[status.blocked_reason]}</p>
@@ -296,7 +303,7 @@ export default function BillingPage() {
           <Panel title="How billing works">
             <ul className="p-4 space-y-3 text-[13px] text-muted">
               <li>₦{status.price_per_block.toLocaleString('en-NG')} per term for each block of 50 students.</li>
-              <li>Every block includes 10 extra places, so one block covers 60 students.</li>
+              <li>10 free places come with the school, not with each block: one block covers 60 students, two cover 110, six cover 310.</li>
               <li>A paid term runs to three weeks after the next term resumes.</li>
               <li>Nothing is restricted during those three weeks.</li>
               <li>Upgrades pay only the difference in blocks, with no proration.</li>

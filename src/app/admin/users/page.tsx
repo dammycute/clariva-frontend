@@ -41,7 +41,7 @@ export default function ConsoleUsers() {
   const [inviteLast, setInviteLast] = useState('');
   const [inviting, setInviting] = useState(false);
   const [inviteError, setInviteError] = useState('');
-  const [created, setCreated] = useState<{ email: string; password: string } | null>(null);
+  const [created, setCreated] = useState<{ email: string; password: string; emailed: boolean } | null>(null);
   const [copied, setCopied] = useState(false);
 
   useEffect(() => {
@@ -96,7 +96,7 @@ export default function ConsoleUsers() {
         first_name: inviteFirst.trim(),
         last_name: inviteLast.trim(),
       });
-      setCreated({ email: data.email, password: data.password });
+      setCreated({ email: data.email, password: data.password, emailed: data.emailed });
       setUsers(prev => [data.user as unknown as Person, ...prev]);
     } catch (err) {
       setInviteError(err instanceof Error ? err.message : 'Could not create the account.');
@@ -244,7 +244,7 @@ export default function ConsoleUsers() {
               <div>
                 <h2 id="new-admin-title" className="text-base font-semibold text-ink">New admin login</h2>
                 <p className="text-xs text-muted mt-0.5">
-                  The server generates the password. They set their own on first sign-in.
+                  The server generates the password and emails it to them. They set their own on first sign-in.
                 </p>
               </div>
               <button
@@ -260,7 +260,9 @@ export default function ConsoleUsers() {
             {created ? (
               <div className="px-5 py-4 space-y-4">
                 <p className="text-sm text-ink">
-                  Share these with the new admin once. The password is not shown again.
+                  {created.emailed
+                    ? 'We emailed these details to the new admin. The password is not shown again.'
+                    : 'The email could not be sent. Share these details with the new admin yourself; the password is not shown again.'}
                 </p>
                 <dl className="rounded border border-line bg-page px-3 py-2.5 space-y-1.5 text-sm">
                   <div className="flex items-center justify-between gap-3">

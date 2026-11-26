@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { auth } from '@/lib/api';
 import { Button } from '@/components/ui/button';
 
-const ADMIN_ROLES = ['school_admin', 'admin_officer', 'principal'];
+const ADMIN_ROLES = ['school_admin', 'admin_officer'];   // principals cannot open /dashboard
 
 /**
  * What a teacher, student or parent sees when the school's subscription has lapsed.
