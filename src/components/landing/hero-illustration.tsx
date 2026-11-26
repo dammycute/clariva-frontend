@@ -10,7 +10,7 @@ const OPTIONS = [['A', '0.35', false], ['B', '0.6', true], ['C', '0.8', false]] 
 export function HeroIllustration() {
   return (
     <div className="relative pb-24 sm:pb-32">
-      <Window url="clariva.ng/dashboard" label="Illustration of the Clariva school dashboard with student numbers, attendance, fees collected and recent activity, and a phone showing a student sitting an exam">
+      <Window url="clarriva.com/dashboard" label="Illustration of the Clariva school dashboard with student numbers, attendance, fees collected and recent activity, and a phone showing a student sitting an exam">
         <div className="grid grid-cols-3 gap-2.5">
           {STATS.map(([label, value]) => (
             <div key={label} className="rounded-xl border border-line bg-surface p-3">

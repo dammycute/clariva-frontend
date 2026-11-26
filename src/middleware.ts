@@ -18,7 +18,8 @@ const PLATFORM_DOMAIN = (process.env.NEXT_PUBLIC_PLATFORM_DOMAIN || '').toLowerC
 const RESERVED_SUBDOMAINS = new Set([
   'www', 'app', 'api', 'admin', 'portal', 'dashboard', 'login', 'signup',
   'mail', 'smtp', 'cdn', 'static', 'assets', 'docs', 'help', 'support',
-  'status', 'billing', 'pay', 'payments', 'school', 'schools',
+  'status', 'billing', 'pay', 'payments', 'school', 'schools', 'clariva', 'clarriva',
+  'test', 'api-test', 'staging', 'dev',
 ]);
 
 /** The school named by the address the browser used, or '' for the main site. */

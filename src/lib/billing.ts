@@ -42,7 +42,6 @@ export type BillingTerm = {
   next_term: string;
   next_resumes_on: string;
   access_until: string;
-  assumed?: boolean;
 };
 
 export type BillingStatus = {
@@ -138,15 +137,19 @@ export const billingAdmin = {
     const qs = params ? `?${new URLSearchParams(params).toString()}` : '';
     return list<TermCalendarRow>(`/billing/calendars/${qs}`);
   },
-  missingCalendars: () =>
-    request<{ states: { id: string; name: string; code: string }[]; horizon_days: number }>(
-      'GET', '/billing/calendars/missing/',
-    ),
+  calendarsDue: () => request<CalendarsDue>('GET', '/billing/calendars/due/'),
+  saveSessionDates: (payload: { states: string[]; dates: SessionDate[]; confirm_unusual?: boolean }) =>
+    request<{ saved: number; extended_schools: number }>('POST', '/billing/calendars/bulk/', payload),
+  reminderRecipients: () => request<Recipient[]>('GET', '/billing/calendars/recipients/'),
+  saveReminderRecipients: (ids: string[]) =>
+    request<Recipient[]>('PUT', '/billing/calendars/recipients/', { ids }),
   createCalendar: (payload: {
     state: string; school?: string | null; academic_year: string;
-    term: string; resumes_on: string; provisional?: boolean;
+    term: string; resumes_on: string; provisional?: boolean; source_url?: string; confirm_unusual?: boolean;
   }) => request<TermCalendarRow>('POST', '/billing/calendars/', payload),
-  updateCalendar: (id: string, payload: { resumes_on?: string; provisional?: boolean }) =>
+  updateCalendar: (id: string, payload: {
+    resumes_on?: string; provisional?: boolean; source_url?: string; confirm_unusual?: boolean;
+  }) =>
     request<TermCalendarRow>('PATCH', `/billing/calendars/${id}/`, payload),
   deleteCalendar: (id: string) => request<void>('DELETE', `/billing/calendars/${id}/`),
 };
@@ -161,7 +164,19 @@ export type TermCalendarRow = {
   term: string;
   resumes_on: string;
   provisional: boolean;
+  source_url: string;
+  confirmed_by_name: string | null;
+  confirmed_at: string | null;
 };
+
+export type DueSlot = { academic_year: string; term: string };
+export type CalendarsDue = {
+  states: { id: string; name: string; schools: number; missing: DueSlot[]; unconfirmed: DueSlot[] }[];
+  schools_without_state: string[];
+  email_ready: boolean;
+};
+export type SessionDate = DueSlot & { resumes_on: string; provisional: boolean; source_url: string };
+export type Recipient = { id: string; name: string; email: string; selected: boolean };
 
 /** The one-line status the portal shows in its banner and on the billing page. */
 export function stateLabel(state: BillingState): { text: string; tone: 'success' | 'warning' | 'danger' | 'muted' } {

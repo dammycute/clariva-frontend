@@ -191,9 +191,8 @@ export default function BillingPage() {
 
                 {status.dates_provisional && (
                   <p className="text-sm text-warning">
-                    {status.school.state
-                      ? `${status.school.state} has not published its term dates yet, so this payment covers one term from today, ${shortDate(term.resumes_on)} to ${shortDate(term.access_until)}.`
-                      : `This school has no term dates yet, so this payment covers one term from today, ${shortDate(term.resumes_on)} to ${shortDate(term.access_until)}.`}
+                    These term dates are provisional (not yet confirmed). If the confirmed date is later, your
+                    access is extended. It is never shortened.
                   </p>
                 )}
 

@@ -367,7 +367,7 @@ export default function ConsoleSchoolDetail() {
               <label htmlFor="subdomain" className={labelClass}>School address</label>
               <div className="flex items-center gap-2">
                 <input id="subdomain" value={form.subdomain} onChange={e => update('subdomain', e.target.value)} className={fieldClass} placeholder="queens-college" />
-                <span className="text-sm text-muted whitespace-nowrap">.{portal?.base_domain || 'clariva.ng'}</span>
+                <span className="text-sm text-muted whitespace-nowrap">.{portal?.base_domain || 'clarriva.com'}</span>
               </div>
               <p className="text-xs text-muted mt-1">Letters, numbers and dashes. This is the school&apos;s own sign-in address.</p>
             </div>

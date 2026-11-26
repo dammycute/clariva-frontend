@@ -1,7 +1,6 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import Link from 'next/link';
 import { billingAdmin, naira, shortDate, type Payment } from '@/lib/billing';
 import { listAll, type AdminSchool } from '@/lib/admin';
 import { Button } from '@/components/ui/button';
@@ -29,11 +28,11 @@ export default function ConsoleBilling() {
     const [rows, schoolList, gaps] = await Promise.all([
       billingAdmin.payments(),
       listAll<AdminSchool>('/schools/'),
-      billingAdmin.missingCalendars(),
+      billingAdmin.calendarsDue(),
     ]);
     setPayments(rows);
     setSchools(schoolList);
-    setMissing(gaps.states.length);
+    setMissing(gaps.states.filter(x => x.missing.length > 0).length + gaps.schools_without_state.length);
   }, []);
 
   useEffect(() => {
@@ -109,13 +108,6 @@ export default function ConsoleBilling() {
           {notice}
         </div>
       )}
-      {!loading && missing > 0 && (
-        <div className="mb-4 text-sm text-warning bg-warning/10 border border-warning/30 rounded px-3 py-2">
-          {missing} {missing === 1 ? 'state has' : 'states have'} no resumption date in the next 90 days.{' '}
-          <Link href="/admin/calendars" className="underline underline-offset-2">Open term calendars</Link>
-        </div>
-      )}
-
       <SummaryStrip className="mb-6">
         {loading ? (
           Array.from({ length: 3 }).map((_, i) => <StatSkeleton key={i} />)
@@ -124,7 +116,7 @@ export default function ConsoleBilling() {
             <Stat label="Payments" value={payments.length.toLocaleString()} note={`${paid.length} paid`} />
             <Stat label="Collected" value={naira(collected)} note="Before Paystack's fee" />
             <Stat label="Awaiting" value={payments.filter(p => p.status === 'pending').length.toLocaleString()} note="Started, not confirmed" />
-            <Stat label="States without dates" value={missing.toLocaleString()} note="Schools there cannot pay" tone={missing ? 'danger' : undefined} />
+            <Stat label="Waiting on term dates" value={missing.toLocaleString()} note="States or schools that cannot pay" tone={missing ? 'danger' : undefined} />
           </>
         )}
       </SummaryStrip>

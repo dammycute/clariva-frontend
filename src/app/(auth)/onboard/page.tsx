@@ -198,7 +198,7 @@ export default function OnboardPage() {
     setLoading(true);
 
     try {
-      const email = form.proprietorEmail || `admin@${form.subdomain}.clariva.ng`;
+      const email = form.proprietorEmail || `admin@${form.subdomain}.clarriva.com`;
 
       await auth.onboard({
         email,
@@ -215,7 +215,7 @@ export default function OnboardPage() {
         school_students: Number(form.students),
       });
 
-      setSuccess({ portalUrl: `https://${form.subdomain}.clariva.ng` });
+      setSuccess({ portalUrl: `https://${form.subdomain}.clarriva.com` });
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Something went wrong';
       if (msg.toLowerCase().includes('subdomain') || msg.toLowerCase().includes('taken')) {
@@ -231,7 +231,7 @@ export default function OnboardPage() {
     finally { setLoading(false); }
   };
 
-  const portalUrl = `https://${form.subdomain || 'your-school'}.clariva.ng`;
+  const portalUrl = `https://${form.subdomain || 'your-school'}.clarriva.com`;
 
   const quotedStudents = Number(form.students) || 0;
   const quotedBlocks = blocksForStudents(quotedStudents);
@@ -321,7 +321,7 @@ export default function OnboardPage() {
               ) : (
                 <span className="flex-1 min-w-0 truncate font-mono text-ink">{form.subdomain || 'your-school'}</span>
               )}
-              <span className="text-muted text-[13px] shrink-0">.clariva.ng</span>
+              <span className="text-muted text-[13px] shrink-0">.clarriva.com</span>
               <button type="button" onClick={() => { setSubdomainEdit(true); setSubdomainManual(form.subdomain); }}
                 className="ml-2 p-1 text-muted hover:text-ink cursor-pointer" aria-label="Edit portal address">
                 <Pencil size={14} aria-hidden="true" />

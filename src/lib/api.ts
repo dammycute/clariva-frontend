@@ -6,11 +6,14 @@ const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
 export class ApiError extends Error {
   status: number;
   fields: Record<string, string[]>;
-  constructor(message: string, status: number, fields: Record<string, string[]> = {}) {
+  /** The server's short name for the problem, such as `unusual_gap`. */
+  code?: string;
+  constructor(message: string, status: number, fields: Record<string, string[]> = {}, code?: string) {
     super(message);
     this.name = 'ApiError';
     this.status = status;
     this.fields = fields;
+    this.code = code;
   }
 }
 
@@ -134,8 +137,22 @@ async function _refreshToken(): Promise<string | null> {
   }
 }
 
-/** Roles that can open the billing page. Everyone else gets the plain lapsed page. */
-const BILLING_ROLES = ['school_admin', 'admin_officer', 'principal'];
+async function hasCode(res: Response, code: string): Promise<boolean> {
+  try { return (await res.clone().json()).code === code; } catch { return false; }
+}
+
+/** The server allows nothing else until a generated password has been replaced. */
+function goToPasswordChange() {
+  if (typeof window === 'undefined') return;
+  const target = sessionStorage.getItem('user_role') === 'super_admin' ? '/admin/account' : '/change-password';
+  if (window.location.pathname !== target) window.location.assign(target);
+}
+
+/**
+ * Roles that can open the billing page. Everyone else gets the plain lapsed page. The principal
+ * is not listed: the route guard keeps principals out of /dashboard, which would loop.
+ */
+const BILLING_ROLES = ['school_admin', 'admin_officer'];
 
 /**
  * 402 means the school has to pay before it can go on. Admins are sent to the billing page;
@@ -182,15 +199,22 @@ async function request<T = unknown>(
   }
 
   if (res.status === 402) handleBillingBlock(path);
+  const mustChange = res.status === 403 && await hasCode(res, 'password_change_required');
+  if (mustChange) goToPasswordChange();
 
   if (!res.ok) {
     const err = await res.json().catch(() => ({ detail: res.statusText }));
     const fields: Record<string, string[]> = {};
     let fallback = '';
+    let code: string | undefined;
     for (const [key, val] of Object.entries(err as Record<string, unknown>)) {
       const msgs = toMessages(val);
       if (key === 'detail' || key === 'error') {
         fallback = msgs.join(' ');
+        continue;
+      }
+      if (key === 'code') {          // a name for the program, not a message for the person
+        code = msgs[0];
         continue;
       }
       if (key === 'non_field_errors') {
@@ -206,9 +230,9 @@ async function request<T = unknown>(
     let msg = shown.join(' · ');
     if (extra > 0) msg += ` (+${extra} more)`;
     if (!msg) msg = fallback || 'Request failed';
-    // A 402 is already redirecting; a toast on top of that is noise.
-    if (res.status !== 402) toast.error(msg);
-    throw new ApiError(msg, res.status, fields);
+    // A 402 or a forced password change is already redirecting; a toast on top of that is noise.
+    if (res.status !== 402 && !mustChange) toast.error(msg);
+    throw new ApiError(msg, res.status, fields, code);
   }
 
   if (res.status === 204) return undefined as T;
