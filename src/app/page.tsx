@@ -12,11 +12,11 @@ import { HeroIllustration } from '@/components/landing/hero-illustration';
 import { BLOCK_SIZE, PRICE_PER_BLOCK, WHATSAPP_DISPLAY, WHATSAPP_LINK, naira, rangeFor } from '@/lib/pricing';
 
 export const metadata: Metadata = {
-  title: 'Clariva: school management for Nigerian secondary schools',
+  title: 'Clarriva: school management for Nigerian secondary schools',
   description:
     'Student records, attendance, results, fees and computer-based tests in one platform. Exams keep working when the internet drops.',
   openGraph: {
-    title: 'Clariva: run your school with clarity',
+    title: 'Clarriva: run your school with clarity',
     description: 'Records, results, fees and CBT exams for Nigerian secondary schools.',
   },
 };
@@ -65,7 +65,7 @@ const FAQ = [
   ['How is the price worked out?',
     `${naira(PRICE_PER_BLOCK)} per term for every block of ${BLOCK_SIZE} students. Students are counted in whole blocks: ${BLOCK_SIZE} students is one block, ${BLOCK_SIZE + 1} is two.`],
   ['Is there an app to install?',
-    'No. Clariva runs in the browser on phones and computers.'],
+    'No. Clarriva runs in the browser on phones and computers.'],
 ] as const;
 
 const BTN = 'inline-flex items-center justify-center gap-2 h-12 px-6 rounded-full text-[15px] font-medium transition-[opacity,transform,background-color] duration-150 active:scale-[0.98]';
@@ -105,7 +105,7 @@ export default function LandingPage() {
 
       <header className="sticky top-0 z-40 border-b border-line bg-page/90 backdrop-blur">
         <div className="max-w-6xl mx-auto px-4 sm:px-5 h-[72px] flex items-center justify-between gap-3 sm:gap-6">
-          <Link href="/" className="font-display text-2xl font-semibold tracking-tight shrink-0">Clariva</Link>
+          <Link href="/" className="font-display text-2xl font-semibold tracking-tight shrink-0">Clarriva</Link>
           <nav aria-label="Main" className="hidden lg:flex items-center gap-8">
             <a href="#features" className="text-[15px] text-muted hover:text-ink py-3">Features</a>
             <a href="#start" className="text-[15px] text-muted hover:text-ink py-3">How it works</a>
@@ -144,7 +144,6 @@ export default function LandingPage() {
                 <a href="#demo" className={PRIMARY}>Request a demo <ArrowRight size={17} aria-hidden="true" /></a>
                 <a href="#pricing" className={SECONDARY}>See pricing</a>
               </div>
-              <p className="rise mt-5 text-sm text-muted" style={{ '--d': '320ms' } as React.CSSProperties}>From {naira(PRICE_PER_BLOCK)} per term for every {BLOCK_SIZE} students.</p>
             </div>
 
             <div className="rise relative" style={{ '--d': '200ms' } as React.CSSProperties}>
@@ -157,7 +156,7 @@ export default function LandingPage() {
         </section>
 
         {/* Scrolling list of what is covered */}
-        <section aria-label="What Clariva covers" className="border-y border-line bg-surface overflow-hidden">
+        <section aria-label="What Clarriva covers" className="border-y border-line bg-surface overflow-hidden">
           <div className="marquee-mask py-5">
             <ul className="marquee flex w-max gap-10 text-[15px] text-muted">
               {[0, 1].map(copy => FEATURES.map(([Icon, title]) => (
@@ -181,7 +180,7 @@ export default function LandingPage() {
                 </li>
               ))}
             </ul>
-            <p className="mt-5 text-muted text-pretty">At the end of term someone spends days putting it together, and nobody is sure the numbers match. Clariva keeps it in one place.</p>
+            <p className="mt-5 text-muted text-pretty">At the end of term someone spends days putting it together, and nobody is sure the numbers match. Clarriva keeps it in one place.</p>
           </Reveal>
         </section>
 
@@ -334,7 +333,7 @@ export default function LandingPage() {
         <section id="demo" className="px-3 sm:px-5 pb-16 scroll-mt-20" aria-labelledby="demo-title">
           <div className="max-w-6xl mx-auto rounded-[32px] bg-[#0D2B55] px-5 sm:px-10 py-14 lg:py-20 grid lg:grid-cols-[1fr_1.25fr] gap-10 lg:gap-16 items-start">
             <Reveal className="text-white">
-              <h2 id="demo-title" className="font-display text-3xl sm:text-4xl lg:text-5xl font-semibold tracking-tight text-balance leading-[1.1]">See Clariva running for a school like yours</h2>
+              <h2 id="demo-title" className="font-display text-3xl sm:text-4xl lg:text-5xl font-semibold tracking-tight text-balance leading-[1.1]">See Clarriva running for a school like yours</h2>
               <p className="mt-5 text-white/80 text-lg text-pretty max-w-[40ch]">Tell us a little about your school. We will show you the platform and answer your questions, with no obligation.</p>
               <a href={WHATSAPP_LINK} target="_blank" rel="noopener noreferrer" className="mt-8 inline-flex items-center gap-2 rounded-full border border-white/40 px-5 h-12 text-[15px] font-medium hover:bg-white/10">
                 <MessageCircle size={17} aria-hidden="true" /> WhatsApp {WHATSAPP_DISPLAY}
@@ -347,7 +346,7 @@ export default function LandingPage() {
 
       <footer className="border-t border-line">
         <div className="max-w-6xl mx-auto px-5 py-8 grid gap-4 sm:grid-cols-3 sm:items-center text-[13px] text-muted">
-          <span className="font-display text-lg font-semibold text-ink">Clariva</span>
+          <span className="font-display text-lg font-semibold text-ink">Clarriva</span>
           <span className="sm:text-center">
             Powered by{' '}
             <a href="https://www.studio8six.com" target="_blank" rel="noopener noreferrer" className="font-medium text-ink underline underline-offset-2 hover:opacity-80">Studio8six</a>
@@ -359,7 +358,7 @@ export default function LandingPage() {
           </nav>
         </div>
         <p className="max-w-6xl mx-auto px-5 pb-6 text-xs text-muted">
-          © Clariva
+          © Clarriva
         </p>
       </footer>
     </div>

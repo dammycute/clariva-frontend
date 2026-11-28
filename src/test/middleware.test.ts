@@ -32,6 +32,17 @@ describe('public routes', () => {
   });
 });
 
+describe('return from Paystack', () => {
+  it('keeps the payment reference through the sign-in page', async () => {
+    const { NextRequest } = await import('next/server');
+    const { middleware } = await import('@/middleware');
+    const res = await middleware(new NextRequest('http://localhost/dashboard/billing?trxref=CLV-1&reference=CLV-1'));
+    const target = new URL(res.headers.get('location') as string);
+    expect(target.pathname).toBe('/login');
+    expect(target.searchParams.get('redirect')).toBe('/dashboard/billing?trxref=CLV-1&reference=CLV-1');
+  });
+});
+
 describe('decodeJwtPayload (unit)', () => {
   function decodeJwtPayload(token: string): Record<string, unknown> | null {
     try {

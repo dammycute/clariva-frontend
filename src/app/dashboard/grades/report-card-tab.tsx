@@ -129,7 +129,7 @@ export default function ReportCardTab({ onRefresh }: { onRefresh: () => void }) 
       </style>
     </head><body>
       <div class="header">
-        <div class="title">CLARIVA</div>
+        <div class="title">CLARRIVA</div>
         <div class="sub">School Management Platform</div>
         <div class="heading">TERMLY REPORT CARD</div>
       </div>
@@ -162,7 +162,7 @@ export default function ReportCardTab({ onRefresh }: { onRefresh: () => void }) 
         <div><div class="lbl">Class Rank</div><div class="val">${cardToPrint.class_rank != null ? cardToPrint.class_rank : '-'}</div></div>
       </div>
       <div class="legend">WAEC Grading: A1(75-100%) B2(70-74%) B3(65-69%) C4(60-64%) C5(55-59%) C6(50-54%) D7(45-49%) E8(40-44%) F9(0-39%)</div>
-      <div class="footer">Generated on ${new Date().toLocaleDateString('en-NG', { day: 'numeric', month: 'long', year: 'numeric' })} via Clariva</div>
+      <div class="footer">Generated on ${new Date().toLocaleDateString('en-NG', { day: 'numeric', month: 'long', year: 'numeric' })} via Clarriva</div>
     </body></html>`);
     doc.close();
     setTimeout(() => {
@@ -258,7 +258,7 @@ export default function ReportCardTab({ onRefresh }: { onRefresh: () => void }) 
 
             <div ref={printRef} className="p-8 overflow-y-auto max-h-[70vh]" style={{ fontFamily: 'Inter, sans-serif' }}>
               <div className="text-center mb-6 print:mb-4">
-                <div className="text-2xl font-semibold text-ink">CLARIVA</div>
+                <div className="text-2xl font-semibold text-ink">CLARRIVA</div>
                 <div className="text-xs text-muted">School Management Platform</div>
                 <div className="mt-3 text-lg font-semibold text-ink border-b-2 border-brand pb-2">TERMLY REPORT CARD</div>
               </div>
@@ -314,7 +314,7 @@ export default function ReportCardTab({ onRefresh }: { onRefresh: () => void }) 
                 <span className="font-semibold">WAEC Grading:</span>{' '}
                 A1(75-100%) B2(70-74%) B3(65-69%) C4(60-64%) C5(55-59%) C6(50-54%) D7(45-49%) E8(40-44%) F9(0-39%)
               </div>
-              <div className="text-xs text-muted mt-1">Generated on {new Date().toLocaleDateString('en-NG', { day: 'numeric', month: 'long', year: 'numeric' })} via Clariva</div>
+              <div className="text-xs text-muted mt-1">Generated on {new Date().toLocaleDateString('en-NG', { day: 'numeric', month: 'long', year: 'numeric' })} via Clarriva</div>
             </div>
           </div>
         </div>

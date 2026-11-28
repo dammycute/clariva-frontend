@@ -40,7 +40,7 @@ export default function ConsoleMaintenance() {
     setMessage('');
     setIsError(false);
     try {
-      await downloadBackup(school.id, `clariva-${school.subdomain}-${new Date().toISOString().slice(0, 10)}.json`);
+      await downloadBackup(school.id, `clarriva-${school.subdomain}-${new Date().toISOString().slice(0, 10)}.json`);
       setMessage('Backup downloaded.');
     } catch (err) {
       setIsError(true);

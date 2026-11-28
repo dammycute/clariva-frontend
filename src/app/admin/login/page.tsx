@@ -60,7 +60,7 @@ export default function AdminLoginPage() {
       aside={
         <div className="space-y-3">
           <p className="text-lg leading-relaxed text-white/85 max-w-[300px] text-pretty">
-            Platform administration for every school on Clariva.
+            Platform administration for every school on Clarriva.
           </p>
           <p className="text-sm text-white/60">Customers, billing and system health.</p>
         </div>
@@ -76,7 +76,7 @@ export default function AdminLoginPage() {
       <div className="space-y-4">
         <TextField id="admin-email" label="Email" type="email" autoComplete="username"
           value={email} onChange={e => setEmail(e.target.value)} onKeyDown={onKeyDown}
-          placeholder="you@clariva.app" />
+          placeholder="you@clarriva.com" />
         <PasswordField id="admin-password" label="Password" autoComplete="current-password"
           value={password} onChange={e => setPassword(e.target.value)} onKeyDown={onKeyDown} />
         <Button onClick={submit} disabled={loading || !email || !password} className="w-full">

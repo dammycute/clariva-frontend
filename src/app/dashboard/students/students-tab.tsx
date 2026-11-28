@@ -42,7 +42,7 @@ export default function StudentsTab() {
   const [importClass, setImportClass] = useState('');
   const [importCsv, setImportCsv] = useState('');
   const [importing, setImporting] = useState(false);
-  const [importResult, setImportResult] = useState<{ created: number; errors: string[]; students?: { name: string; admission_no: string; email?: string; password?: string }[] } | null>(null);
+  const [importResult, setImportResult] = useState<{ created: number; errors: string[]; students?: { name: string; admission_no: string; email?: string; password?: string; parent_password?: string }[] } | null>(null);
   const [importFileName, setImportFileName] = useState('');
   const [form, setForm] = useState({
     first_name: '', last_name: '', gender: '', date_of_birth: '', state_of_origin: '', lga_of_origin: '',
@@ -94,14 +94,9 @@ export default function StudentsTab() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setSaving(true);
-    const now = Date.now();
-    const seq = String(now).slice(-5);
     const payload: Record<string, unknown> = {};
     for (const [k, v] of Object.entries(form)) {
       if (v !== '') payload[k] = v;
-    }
-    if (!editingId) {
-      payload.admission_no = `CLR/${new Date().getFullYear()}/${seq}`;
     }
     try {
       if (editingId) {
@@ -221,7 +216,8 @@ export default function StudentsTab() {
                       {importResult.students.map((s, i) => (
                         <div key={i} className="px-3 py-2 text-xs">
                           <p className="font-semibold text-ink">{s.name} · {s.admission_no}</p>
-                          {s.password && <p className="text-brand font-semibold">Password: {s.password}</p>}
+                          {s.password && <p className="text-brand font-semibold">Student password: {s.password}</p>}
+                          {s.parent_password && <p className="text-ink font-semibold">Parent password: {s.parent_password}</p>}
                         </div>
                       ))}
                     </div>
@@ -262,7 +258,7 @@ export default function StudentsTab() {
                       if (!importCsv.trim()) return;
                       setImporting(true);
                       try {
-                        const data = await request<{ created: number; errors: string[]; students?: { name: string; admission_no: string; email?: string; password?: string }[] }>(
+                        const data = await request<{ created: number; errors: string[]; students?: { name: string; admission_no: string; email?: string; password?: string; parent_password?: string }[] }>(
                           'POST', '/students/import_csv/', { csv: importCsv, class_id: importClass || null });
                         setImportResult(data);
                         loadData();

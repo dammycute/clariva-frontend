@@ -18,7 +18,7 @@ interface StudentRow {
 }
 
 /** A login that was just made: the only time the password can be shown. */
-interface Issued { name: string; admission_no: string; password: string }
+interface Issued { name: string; admission_no: string; password: string; parent_password?: string }
 
 const statusTone: Record<string, string> = {
   active: 'bg-success/10 text-success',
@@ -52,7 +52,7 @@ export default function TeacherStudentsPage(): JSX.Element {
   const [importing, setImporting] = useState(false);
   const [importResult, setImportResult] = useState<{
     created: number; errors: string[];
-    students?: { name: string; admission_no: string; password?: string }[];
+    students?: { name: string; admission_no: string; password?: string; parent_password?: string }[];
   } | null>(null);
 
   useEffect(() => {
@@ -90,15 +90,15 @@ export default function TeacherStudentsPage(): JSX.Element {
     if (!selected) return;
     setBusy('one');
     try {
-      const data = await request<{ created: { name: string; admission_no: string; password: string }[] }>(
+      const data = await request<{ created: Issued[] }>(
         'POST', '/students/bulk_create_accounts/', { class_id: selected });
       if (data.created.length === 0) {
-        toast('Every student in this class already has a login.');
+        toast('Every student and parent in this class already has a login.');
         return;
       }
       // Keep each password against the student so the table can show it.
       const byAdmission: Record<string, string> = {};
-      for (const row of data.created) byAdmission[row.admission_no] = row.password;
+      for (const row of data.created) if (row.password) byAdmission[row.admission_no] = row.password;
       setPasswords(prev => {
         const next = { ...prev };
         for (const s of students) {
@@ -107,7 +107,7 @@ export default function TeacherStudentsPage(): JSX.Element {
         return next;
       });
       setIssued(data.created);
-      toast.success(`${data.created.length} logins created`);
+      toast.success(`Logins created for ${data.created.length} student${data.created.length === 1 ? '' : 's'} or their parents`);
       await loadStudents(selected);
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Could not create the logins.');
@@ -126,6 +126,20 @@ export default function TeacherStudentsPage(): JSX.Element {
       toast.success(`New password for ${student.first_name}`);
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Could not reset the password.');
+    } finally {
+      setBusy('');
+    }
+  }
+
+  async function resetParent(student: StudentRow) {
+    setBusy('one');
+    try {
+      const data = await request<{ admission_no: string; parent_password: string }>(
+        'POST', `/students/${student.id}/reset_parent_password/`);
+      setIssued([{ name: `${student.first_name} ${student.last_name}`, password: '', ...data }]);
+      toast.success(`New parent password for ${student.first_name}`);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Could not reset the parent password.');
     } finally {
       setBusy('');
     }
@@ -156,10 +170,10 @@ export default function TeacherStudentsPage(): JSX.Element {
     setForm({ first_name: '', last_name: '', gender: '', guardian_name: '', guardian_phone: '', guardian_email: '' });
     try {
       // Give the new student a login at once, so the teacher can hand it out now.
-      const login = await request<{ admission_no: string; password: string }>(
+      const login = await request<{ admission_no: string; password: string; parent_password: string }>(
         'POST', `/students/${student.id}/create_account/`);
       setPasswords(prev => ({ ...prev, [student.id]: login.password }));
-      setIssued([{ name, admission_no: login.admission_no, password: login.password }]);
+      setIssued([{ name, ...login }]);
       toast.success(`${name} added with a login`);
     } catch {
       toast.success(`${name} added. Use Create logins to make their password.`);
@@ -174,7 +188,7 @@ export default function TeacherStudentsPage(): JSX.Element {
     try {
       const data = await request<{
         created: number; errors: string[];
-        students?: { name: string; admission_no: string; password?: string }[];
+        students?: { name: string; admission_no: string; password?: string; parent_password?: string }[];
       }>('POST', '/students/import_csv/', { csv: importCsv, class_id: selected });
       setImportResult(data);
       const rows = (data.students ?? []).filter(s => s.password) as Issued[];
@@ -191,9 +205,15 @@ export default function TeacherStudentsPage(): JSX.Element {
     if (rows.length === 0) { toast.error('Create the logins first.'); return; }
     const win = window.open('', '_blank', 'width=720,height=900');
     if (!win) { toast.error('Allow pop-ups to print the slips.'); return; }
-    const body = rows
-      .map(r => `<tr><td>${esc(r.name)}</td><td>${esc(r.admission_no)}</td><td><b>${esc(r.password)}</b></td></tr>`)
-      .join('');
+    const sheet = (who: 'Student' | 'Parent', note: string, pick: (r: Issued) => string | undefined) => {
+      const body = rows.filter(pick)
+        .map(r => `<tr><td>${esc(r.name)}</td><td>${esc(r.admission_no)}</td><td><b>${esc(pick(r) ?? '')}</b></td></tr>`)
+        .join('');
+      return body && `<section><h1>${esc(title)} &mdash; ${who.toLowerCase()} logins</h1><p>${note}</p>
+<table><thead><tr><th>Student</th><th>Admission number</th><th>${who} password</th></tr></thead><tbody>${body}</tbody></table></section>`;
+    };
+    const sheets = sheet('Student', 'Sign in at the school portal on the Student tab with the admission number and password below.', r => r.password)
+      + sheet('Parent', 'For parents only. Sign in on the Parent tab with the child&#39;s admission number and the password below.', r => r.parent_password);
     win.document.write(`<!doctype html><title>${esc(title)} logins</title>
 <style>
   body{font:13px/1.6 system-ui,sans-serif;padding:28px;color:#111}
@@ -202,10 +222,9 @@ export default function TeacherStudentsPage(): JSX.Element {
   table{width:100%;border-collapse:collapse}
   th,td{text-align:left;padding:7px 6px;border-bottom:1px solid #e3e3e3}
   th{font-size:12px;color:#666;text-transform:uppercase;letter-spacing:.04em}
+  section+section{break-before:page;margin-top:32px}
 </style>
-<h1>${esc(title)} &mdash; student logins</h1>
-<p>Sign in at the school portal with the admission number and password below. Ask the student to change the password after signing in.</p>
-<table><thead><tr><th>Student</th><th>Admission number</th><th>Password</th></tr></thead><tbody>${body}</tbody></table>`);
+${sheets}`);
     win.document.close();
     win.focus();
     win.print();
@@ -284,24 +303,28 @@ export default function TeacherStudentsPage(): JSX.Element {
       {issued.length > 0 && (
         <div className="bg-warning/5 border border-warning/30 rounded p-4 mb-4">
           <p className="text-sm font-semibold text-ink mb-1">
-            {issued.length} password{issued.length === 1 ? '' : 's'} to hand out
+            Login details to hand out
           </p>
           <p className="text-xs text-muted mb-3">
-            A password is shown only once. Copy or print it now; if it is lost, give the student a new one.
+            Passwords are shown only once. Copy or print them now. Give the parent password to the parent, not the student.
           </p>
           <div className="divide-y divide-line border border-line rounded bg-surface max-h-56 overflow-y-auto">
             {issued.map(r => (
               <div key={`${r.admission_no}-${r.password}`} className="px-3 py-2 text-xs flex items-center justify-between gap-3">
                 <span className="font-semibold text-ink truncate">{r.name}</span>
                 <span className="text-muted whitespace-nowrap">{r.admission_no}</span>
-                <span className="text-brand font-semibold">{r.password}</span>
+                <span className="text-right font-semibold">
+                  {r.password && <span className="block text-brand">Student: {r.password}</span>}
+                  {r.parent_password && <span className="block text-ink">Parent: {r.parent_password}</span>}
+                </span>
               </div>
             ))}
           </div>
           <div className="flex gap-2 mt-3">
             <button
               onClick={() => {
-                const text = issued.map(r => `${r.name}\t${r.admission_no}\t${r.password}`).join('\n');
+                const text = ['Student\tAdmission number\tStudent password\tParent password',
+                  ...issued.map(r => `${r.name}\t${r.admission_no}\t${r.password}\t${r.parent_password ?? ''}`)].join('\n');
                 navigator.clipboard.writeText(text);
                 toast.success('Copied');
               }}
@@ -370,6 +393,13 @@ export default function TeacherStudentsPage(): JSX.Element {
                       className="text-xs px-2 py-1 rounded border border-line bg-surface hover:bg-surface-2 disabled:opacity-50"
                     >
                       New password
+                    </button>
+                    <button
+                      onClick={() => resetParent(s)}
+                      disabled={busy !== ''}
+                      className="ml-1 text-xs px-2 py-1 rounded border border-line bg-surface hover:bg-surface-2 disabled:opacity-50"
+                    >
+                      Parent password
                     </button>
                   </td>
                 </tr>
@@ -450,7 +480,8 @@ export default function TeacherStudentsPage(): JSX.Element {
                       {importResult.students.map((s, i) => (
                         <div key={i} className="px-3 py-2 text-xs">
                           <p className="font-semibold text-ink">{s.name} · {s.admission_no}</p>
-                          {s.password && <p className="text-brand font-semibold">Password: {s.password}</p>}
+                          {s.password && <p className="text-brand font-semibold">Student password: {s.password}</p>}
+                          {s.parent_password && <p className="text-ink font-semibold">Parent password: {s.parent_password}</p>}
                         </div>
                       ))}
                     </div>

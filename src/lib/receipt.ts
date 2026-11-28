@@ -28,7 +28,7 @@ export function generateReceiptPDF(data: ReceiptData) {
   doc.setTextColor(255, 255, 255);
   doc.setFontSize(18);
   doc.setFont('helvetica', 'bold');
-  doc.text('CLARIVA', pageW / 2, 14, { align: 'center' });
+  doc.text('CLARRIVA', pageW / 2, 14, { align: 'center' });
   doc.setFontSize(8);
   doc.setFont('helvetica', 'normal');
   doc.text('School Management Platform', pageW / 2, 22, { align: 'center' });
@@ -142,7 +142,7 @@ export function generateReceiptPDF(data: ReceiptData) {
   doc.setFontSize(7);
   doc.setFont('helvetica', 'normal');
   doc.text('This is a computer-generated receipt. No signature required.', pageW / 2, y + 12, { align: 'center' });
-  doc.text(`Generated on ${data.date} via Clariva`, pageW / 2, y + 17, { align: 'center' });
+  doc.text(`Generated on ${data.date} via Clarriva`, pageW / 2, y + 17, { align: 'center' });
 
   doc.save(`receipt-${data.admissionNo}.pdf`);
 }

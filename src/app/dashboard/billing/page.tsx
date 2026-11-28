@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import toast from 'react-hot-toast';
 import { auth } from '@/lib/api';
 import {
-  billing, blocksForStudents, naira, placesForBlocks, priceForStudents, shortDate,
+  BILLING_CHANGED, billing, blockedReason, blocksForStudents, naira, placesForBlocks, priceForStudents, shortDate,
   stateLabel, type BillingStatus, type Payment,
 } from '@/lib/billing';
 import { Button } from '@/components/ui/button';
@@ -42,16 +42,19 @@ export default function BillingPage() {
     if (role && !BILLING_ROLES.includes(role)) { router.replace('/lapsed'); return; }
 
     (async () => {
+      let confirmed = false;
       try {
         // Paystack sends the browser back here with ?reference= or ?trxref=.
         const params = new URLSearchParams(window.location.search);
         const reference = params.get('reference') || params.get('trxref');
         if (reference) {
           const done = await billing.verify(reference);
-          if (done.status === 'paid') toast.success('Payment confirmed. Thank you.');
+          confirmed = done.status === 'paid';
+          if (confirmed) toast.success('Payment confirmed. Thank you.');
           window.history.replaceState({}, '', '/dashboard/billing');
         }
         await load();
+        if (confirmed) window.dispatchEvent(new Event(BILLING_CHANGED));
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Could not load your billing details.');
       } finally {
@@ -106,14 +109,7 @@ export default function BillingPage() {
     ? (upgradeBlocks - status.paid_blocks) * status.price_per_block
     : 0;
 
-  const blocked = {
-    missing_calendar: "Your state's term dates are not published yet. We will contact you — you cannot pay for this term until they are.",
-    window_closed: status.payment_opens_on
-      ? `Payment for ${term?.term ?? 'the next term'} opens on ${shortDate(status.payment_opens_on)}.`
-      : 'Payment is not open for this term yet.',
-    no_students: 'Add your students first, so we know what to bill for.',
-    suspended: 'This school account is suspended. Contact support.',
-  } as Record<string, string>;
+  const reason = blockedReason(status);
 
   return (
     <div className="max-w-[1120px]">
@@ -159,10 +155,11 @@ export default function BillingPage() {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 space-y-6">
+          <div data-tour="term">
           <Panel title={term ? `${term.term} ${term.academic_year}` : 'Next term'}>
             {term ? (
               <div className="p-4 space-y-4">
-                <dl className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3 text-sm">
+                <dl data-tour="bill" className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3 text-sm">
                   <div>
                     <dt className="text-[13px] text-muted">Resumes</dt>
                     <dd className="text-ink mt-0.5">
@@ -196,11 +193,9 @@ export default function BillingPage() {
                   </p>
                 )}
 
-                {status.blocked_reason && blocked[status.blocked_reason] && (
-                  <p className="text-sm text-warning">{blocked[status.blocked_reason]}</p>
-                )}
+                {reason && <p className="text-sm text-warning">{reason}</p>}
 
-                <div className="flex flex-wrap items-center gap-3 pt-1">
+                <div data-tour="pay" className="flex flex-wrap items-center gap-3 pt-1">
                   <Button
                     onClick={() => pay(status.state === 'pending' ? 'new' : 'renewal')}
                     disabled={busy || !status.can_pay}
@@ -214,10 +209,11 @@ export default function BillingPage() {
               </div>
             ) : (
               <p className="px-4 py-5 text-sm text-muted">
-                {blocked[status.blocked_reason || ''] || 'The term dates for your state are not published yet.'}
+                {reason || 'The term dates for your state are not published yet.'}
               </p>
             )}
           </Panel>
+          </div>
 
           {status.upgrade && (
             <Panel title="Add more students">

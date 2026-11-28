@@ -110,7 +110,7 @@ export default function PortalPage(): JSX.Element {
     <div className="min-h-dvh bg-page print:bg-surface">
       <main className="max-w-3xl mx-auto px-6 py-8 print:px-0 print:py-0">
         <header className="flex items-center justify-between mb-10 print:hidden">
-          <Link href="/" className="text-lg font-semibold text-ink">Clariva</Link>
+          <Link href="/" className="text-lg font-semibold text-ink">Clarriva</Link>
           <Button variant="secondary" onClick={() => window.print()} className="h-9 px-3">Print</Button>
         </header>
 
@@ -220,7 +220,7 @@ export default function PortalPage(): JSX.Element {
             Want to check anytime?{' '}
             <Link href="/guardian" className="text-ink underline underline-offset-2">Create a parent account</Link>
           </p>
-          <p>Provided by {data.school_name || 'the school'} through Clariva. Generated {ts}.</p>
+          <p>Provided by {data.school_name || 'the school'} through Clarriva. Generated {ts}.</p>
         </footer>
       </main>
     </div>

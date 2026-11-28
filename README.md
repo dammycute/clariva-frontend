@@ -1,4 +1,4 @@
-# Clariva — Frontend
+# Clarriva — Frontend
 
 Next.js 15 school management SPA with CBT exam engine, fees, grades, timetables, attendance, and parent portal.
 

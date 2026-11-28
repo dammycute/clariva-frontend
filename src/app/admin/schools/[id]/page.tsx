@@ -168,7 +168,7 @@ export default function ConsoleSchoolDetail() {
     setMessage('');
     setIsError(false);
     try {
-      await downloadBackup(id, `clariva-${school.subdomain}-${new Date().toISOString().slice(0, 10)}.json`);
+      await downloadBackup(id, `clarriva-${school.subdomain}-${new Date().toISOString().slice(0, 10)}.json`);
       setMessage('Backup downloaded.');
     } catch (err) {
       setIsError(true);

@@ -4,7 +4,7 @@ import { PortalShell } from '@/components/portal-shell';
 import type { NavSection } from '@/components/sidebar';
 import {
   LayoutDashboard, School, BookOpen, Calendar, CheckCircle2,
-  FileText, FileSignature, MonitorCheck, Users, Megaphone, ClipboardList,
+  FileText, FileSignature, MonitorCheck, Users, Megaphone, ClipboardList, Banknote,
 } from 'lucide-react';
 
 const icon = { size: 16, strokeWidth: 1.75 } as const;
@@ -23,6 +23,9 @@ const NAV: NavSection[] = [
     { label: 'Grades', href: '/principal/grades', icon: <FileText {...icon} /> },
     { label: 'Report cards', href: '/principal/reports', icon: <FileSignature {...icon} /> },
     { label: 'CBT exams', href: '/principal/cbt', icon: <MonitorCheck {...icon} /> },
+  ]},
+  { section: 'Finance', items: [
+    { label: 'Fees', href: '/principal/fees', icon: <Banknote {...icon} /> },
   ]},
   { section: 'Administration', items: [
     { label: 'Teachers', href: '/principal/teachers', icon: <Users {...icon} /> },

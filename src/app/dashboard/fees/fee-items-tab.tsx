@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import toast from 'react-hot-toast';
 import { api } from '@/lib/api';
 import ConfirmDialog from '@/components/confirm-dialog';
+import { useCanEditFees } from './use-can-edit-fees';
 import { Pencil, Trash2, X, ChevronDown, ChevronRight } from 'lucide-react';
 
 const YEAR_GROUPS = ['JSS1', 'JSS2', 'JSS3', 'SS1', 'SS2', 'SS3'];
@@ -29,6 +30,7 @@ function feeClassLabel(item: FeeItem, classes: Class[]): string {
 }
 
 export default function FeeItemsTab({ onRefresh }: { onRefresh: () => void }) {
+  const canEdit = useCanEditFees();
   const [items, setItems] = useState<FeeItem[]>([]);
   const [classes, setClasses] = useState<Class[]>([]);
   const [loading, setLoading] = useState(true);
@@ -119,10 +121,10 @@ export default function FeeItemsTab({ onRefresh }: { onRefresh: () => void }) {
     <div>
       <div className="flex items-center justify-between mb-4">
         <p className="text-xs text-muted">{items.length} fee items configured</p>
-        <div className="flex gap-2">
+        {canEdit && <div className="flex gap-2">
           <button onClick={() => setShowBulk(true)} className="text-sm px-3.5 py-2 rounded border border-brand text-brand hover:bg-success/10">Bulk Create</button>
           <button onClick={openAdd} className="text-sm px-3.5 py-2 rounded bg-brand text-brand-ink hover:opacity-90">+ Add Fee Item</button>
-        </div>
+        </div>}
       </div>
 
       <div className="bg-surface border border-line rounded overflow-x-auto">
@@ -139,7 +141,7 @@ export default function FeeItemsTab({ onRefresh }: { onRefresh: () => void }) {
                 <th className="text-left px-4 py-3">Term</th>
                 <th className="text-left px-4 py-3">Academic Year</th>
                 <th className="text-left px-4 py-3">Mandatory</th>
-                <th className="text-right px-4 py-3">Actions</th>
+                {canEdit && <th className="text-right px-4 py-3">Actions</th>}
               </tr>
             </thead>
             <tbody>
@@ -162,12 +164,12 @@ export default function FeeItemsTab({ onRefresh }: { onRefresh: () => void }) {
                       <td className="px-4 py-3">{i.term || '-'}</td>
                       <td className="px-4 py-3">{i.academic_year || '-'}</td>
                       <td className="px-4 py-3"><span className={`px-2 py-0.5 rounded text-xs font-semibold ${i.is_mandatory ? 'bg-warning/10 text-warning' : 'bg-page text-muted'}`}>{i.is_mandatory ? 'Yes' : 'No'}</span></td>
-                      <td className="px-4 py-3 text-right">
+                      {canEdit && <td className="px-4 py-3 text-right">
                         <div className="flex gap-1 justify-end">
                           <button onClick={() => openEdit(i)} className="text-xs px-2 py-1 rounded border border-line bg-surface hover:bg-surface-2" aria-label="Edit"><Pencil size={16} aria-hidden="true" /></button>
                       <button onClick={() => askDelete(i.id)} className="text-xs px-2 py-1 rounded border border-danger-soft bg-surface text-danger hover:bg-danger-soft" aria-label="Delete"><Trash2 size={16} aria-hidden="true" /></button>
                     </div>
-                  </td>
+                  </td>}
                 </tr>
                 {isExpanded && hasTiers && (
                   <tr key={`tiers-${i.id}`} className="bg-page">

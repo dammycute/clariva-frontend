@@ -265,8 +265,11 @@ export const auth = {
   async me() {
     return request<{
       id: number; email: string; first_name: string; last_name: string; phone: string | null;
-      role: string; school_id: number | null; must_change_password?: boolean;
+      role: string; school_id: number | null; must_change_password?: boolean; walkthrough_done?: boolean | null;
     }>('GET', '/auth/me/');
+  },
+  async finishWalkthrough() {
+    return request('PATCH', '/auth/me/', { walkthrough_done: true });
   },
   async changePassword(currentPassword: string, newPassword: string) {
     return request<{ detail: string }>('POST', '/auth/change-password/', {
@@ -341,9 +344,6 @@ export const portal = {
     };
     recent_notifications: { id: string; type: string; title: string; message: string; read: boolean; created_at: string }[];
   }>('POST', '/portal/lookup/', params as Record<string, unknown>),
-
-  setup: (phone: string, password: string, student_code: string) =>
-    request<{ message: string }>('POST', '/portal/setup/', { phone, password, student_code }),
 
   children: () => request<Array<{
     id: string; full_name: string; admission_no: string; class_name: string | null;

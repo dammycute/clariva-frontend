@@ -110,6 +110,22 @@ async function list<T>(path: string): Promise<T[]> {
   return Array.isArray(data) ? data : data.results ?? [];
 }
 
+/** Sent on `window` once a payment is confirmed, so the tour can move on without a reload. */
+export const BILLING_CHANGED = 'clarriva:billing-changed';
+
+/** Why a school cannot pay right now, in words. */
+export function blockedReason(status: BillingStatus): string {
+  const reasons: Record<string, string> = {
+    missing_calendar: "Your state's term dates are not published yet. We will contact you — you cannot pay for this term until they are.",
+    window_closed: status.payment_opens_on
+      ? `Payment for ${status.next_term?.term ?? 'the next term'} opens on ${shortDate(status.payment_opens_on)}.`
+      : 'Payment is not open for this term yet.',
+    no_students: 'Add your students first, so we know what to bill for.',
+    suspended: 'This school account is suspended. Contact support.',
+  };
+  return reasons[status.blocked_reason || ''] || '';
+}
+
 export const billing = {
   status: () => request<BillingStatus>('GET', '/billing/status/'),
   payments: () => list<Payment>('/billing/payments/?page_size=100'),

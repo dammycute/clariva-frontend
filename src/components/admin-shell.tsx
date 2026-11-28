@@ -6,6 +6,7 @@ import { auth, ApiError } from '@/lib/api';
 import { Sidebar, type NavSection } from '@/components/sidebar';
 import { ThemeSwitch } from '@/components/theme-switch';
 import { CalendarWarning } from '@/components/calendar-warning';
+import { Walkthrough } from '@/components/walkthrough';
 
 const LAST_ADMIN = 'console-last-admin';
 
@@ -21,12 +22,14 @@ export function AdminShell({ nav, children }: { nav: NavSection[]; children: Rea
   const pathname = usePathname();
   const [admin, setAdmin] = useState<Admin | null>(null);
   const [mustChange, setMustChange] = useState(false);
+  const [guide, setGuide] = useState(false);
 
   useEffect(() => {
     if (!auth.getToken()) { router.replace('/admin/login'); return; }
     auth.me().then(user => {
       if (user.role !== 'super_admin') { router.replace('/dashboard'); return; }
       setMustChange(user.must_change_password === true);
+      setGuide(!user.must_change_password && user.walkthrough_done !== undefined && !user.walkthrough_done);
       const next = {
         name: `${user.first_name || ''} ${user.last_name || ''}`.trim() || user.email,
         email: user.email,
@@ -54,7 +57,7 @@ export function AdminShell({ nav, children }: { nav: NavSection[]; children: Rea
   const header = (
     <div className="hidden lg:block px-5 pt-5 pb-4 border-b border-line">
       <div className="flex items-center gap-2">
-        <span className="text-lg font-semibold text-ink leading-tight">Clariva</span>
+        <span className="text-lg font-semibold text-ink leading-tight">Clarriva</span>
         <span className="text-[10px] font-semibold uppercase tracking-wide px-1.5 py-0.5 rounded bg-brand-soft text-brand">
           Console
         </span>
@@ -94,6 +97,7 @@ export function AdminShell({ nav, children }: { nav: NavSection[]; children: Rea
           {children}
         </main>
       </div>
+      {guide && <Walkthrough role="super_admin" onClose={() => setGuide(false)} />}
     </div>
   );
 }

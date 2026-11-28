@@ -89,7 +89,7 @@ export default function ConsoleOverview() {
       <header className="mb-6">
         <h1 className="text-[22px] font-semibold text-ink leading-tight">Platform overview</h1>
         <p className="text-[13px] text-muted mt-1">
-          Every school on Clariva ·{' '}
+          Every school on Clarriva ·{' '}
           {new Date().toLocaleDateString('en-NG', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
         </p>
       </header>
