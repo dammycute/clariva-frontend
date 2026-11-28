@@ -30,6 +30,7 @@ export default function StudentDetailPage() {
   const [loading, setLoading] = useState(true);
   const [pwdResult, setPwdResult] = useState<{ admission_no: string | null; email: string; password: string } | null>(null);
   const [resetting, setResetting] = useState(false);
+  const [parentPassword, setParentPassword] = useState('');
   const [confirmSignOut, setConfirmSignOut] = useState(false);
   const [signingOut, setSigningOut] = useState(false);
 
@@ -230,6 +231,28 @@ export default function StudentDetailPage() {
           </div>
         </div>
       )}
+
+      <div className="bg-surface border border-line rounded p-5 mt-4">
+        <div className="flex items-center justify-between gap-3">
+          <div>
+            <h3 className="text-sm font-semibold text-ink">Parent sign-in</h3>
+            <p className="text-xs text-muted mt-0.5">The parent signs in with the admission number and their own password.</p>
+          </div>
+          <button onClick={async () => {
+            try {
+              const data = await request<{ parent_password: string }>('POST', `/students/${id}/reset_parent_password/`);
+              setParentPassword(data.parent_password);
+            } catch { /* the reason is already shown */ }
+          }} className="shrink-0 text-xs px-3 py-1.5 rounded border border-line bg-surface hover:bg-surface-2 cursor-pointer">
+            New parent password
+          </button>
+        </div>
+        {parentPassword && (
+          <p role="status" className="text-xs mt-3">
+            Parent password: <strong className="text-brand">{parentPassword}</strong>. It is shown only once. Any older parent password has stopped working.
+          </p>
+        )}
+      </div>
 
       {/* Guardian Info */}
       <div className="bg-surface border border-line rounded p-5 mt-4">

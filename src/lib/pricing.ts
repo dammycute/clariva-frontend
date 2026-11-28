@@ -1,4 +1,4 @@
-/** Clariva pricing: ₦30,000 per term for every 50 students, counted in whole blocks of 50. */
+/** Clarriva pricing: ₦30,000 per term for every 50 students, counted in whole blocks of 50. */
 export const PRICE_PER_BLOCK = 30000;
 export const BLOCK_SIZE = 50;
 
@@ -17,4 +17,4 @@ export const naira = (n: number): string => `₦${n.toLocaleString('en-NG')}`;
 
 export const WHATSAPP_NUMBER = '2347066752449';
 export const WHATSAPP_DISPLAY = '0706 675 2449';
-export const WHATSAPP_LINK = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent('Hello, I would like to see a demo of Clariva for my school.')}`;
+export const WHATSAPP_LINK = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent('Hello, I would like to see a demo of Clarriva for my school.')}`;

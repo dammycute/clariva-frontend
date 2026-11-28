@@ -91,7 +91,9 @@ export async function middleware(request: NextRequest) {
   if (!token) {
     const url = request.nextUrl.clone();
     url.pathname = loginPath;
-    url.searchParams.set('redirect', pathname);
+    // Keep the query: Paystack's payment reference must survive the trip through sign-in.
+    url.search = '';
+    url.searchParams.set('redirect', pathname + request.nextUrl.search);
     return NextResponse.redirect(url);
   }
 

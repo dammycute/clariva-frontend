@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { auth, portal } from '@/lib/api';
+import { auth } from '@/lib/api';
 import { AuthShell, FormError } from '@/components/auth-shell';
 import { Button } from '@/components/ui/button';
 import { TextField, PasswordField } from '@/components/ui/text-field';
@@ -23,6 +23,10 @@ export default function LoginPage() {
   // auto-redirect if already logged in
   useEffect(() => {
     if (!auth.getToken()) return;
+    // Coming back from another site (Paystack), the SameSite=Strict cookie is not sent, so the
+    // middleware lands a signed-in person here. A same-site load sends it: go where they asked.
+    const wanted = safeRedirect(new URLSearchParams(window.location.search).get('redirect'));
+    if (wanted) { window.location.replace(wanted); return; }
     const storedRole = auth.getRole();
     if (storedRole === 'teacher') { router.push('/teacher'); return; }
     if (storedRole === 'principal') { router.push('/principal'); return; }
@@ -69,10 +73,9 @@ export default function LoginPage() {
 
   // parent fields
   const [parentAdm, setParentAdm] = useState('');
-  const [parentCode, setParentCode] = useState('');
-  const [lookupResult, setLookupResult] = useState<Record<string, unknown> | null>(null);
+  const [parentPassword, setParentPassword] = useState('');
   const parentAdmRef = useRef<HTMLInputElement>(null);
-  const parentCodeRef = useRef<HTMLInputElement>(null);
+  const parentPassRef = useRef<HTMLInputElement>(null);
 
   // helpers
   const resetAll = () => {
@@ -80,7 +83,7 @@ export default function LoginPage() {
     setLoading(false);
     setStaffEmail(''); setStaffPassword('');
     setStudentId(''); setStudentPassword('');
-    setParentAdm(''); setParentCode(''); setLookupResult(null);
+    setParentAdm(''); setParentPassword('');
   };
 
   const selectRole = (r: Role) => {
@@ -142,19 +145,20 @@ export default function LoginPage() {
     finally { setLoading(false); }
   }, []);
 
-  const handleParentLookup = useCallback(async () => {
-    const adm = parentAdmRef.current?.value;
-    const code = parentCodeRef.current?.value;
-    if (!adm?.trim() || !code?.trim()) return;
+  const handleParentLogin = useCallback(async () => {
+    const adm = parentAdmRef.current?.value.trim();
+    const pass = parentPassRef.current?.value;
+    if (!adm || !pass) return;
     setLoading(true); setError('');
     try {
-      const res = await portal.lookup({ admission_no: adm.trim(), code: code.trim().toUpperCase() }) as Record<string, unknown>;
-      setLookupResult(res);
+      await auth.login(adm, pass, school || undefined);
+      const wanted = safeRedirect(new URLSearchParams(window.location.search).get('redirect'));
+      window.location.href = wanted || '/guardian/dashboard';
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Invalid admission number or access code');
+      setError(err instanceof Error ? err.message : 'Invalid credentials');
     }
     finally { setLoading(false); }
-  }, []);
+  }, [school]);
 
   const handleKeyDown = (fn: () => void) => (e: React.KeyboardEvent) => {
     if (e.key === 'Enter') fn();
@@ -180,7 +184,7 @@ export default function LoginPage() {
     <div className="space-y-4">
       <TextField ref={studentIdRef} id="student-id" label="Admission number" autoComplete="username"
         value={studentId} onChange={e => setStudentId(e.target.value)}
-        onKeyDown={handleKeyDown(handleStudentLogin)} placeholder="e.g. CLR/2026/00201" />
+        onKeyDown={handleKeyDown(handleStudentLogin)} placeholder="e.g. QC/2026/00201" />
       <PasswordField ref={studentPassRef} id="student-password" label="Password" autoComplete="current-password"
         value={studentPassword} onChange={e => setStudentPassword(e.target.value)}
         onKeyDown={handleKeyDown(handleStudentLogin)} />
@@ -191,45 +195,20 @@ export default function LoginPage() {
     </div>
   );
 
-  const renderParentForm = () => {
-    const r = lookupResult as Record<string, string> | null;
-    const fee = lookupResult ? (lookupResult as Record<string, Record<string, unknown>>).fee_summary : null;
-    const report = lookupResult ? (lookupResult as Record<string, Record<string, unknown>>).latest_report_card : null;
-    return (
-      <div className="space-y-4">
-        <TextField ref={parentAdmRef} id="parent-adm" label="Student admission number"
-          value={parentAdm} onChange={e => setParentAdm(e.target.value)}
-          onKeyDown={handleKeyDown(handleParentLookup)} placeholder="e.g. CLR/2026/00201" />
-        <TextField ref={parentCodeRef} id="parent-code" label="Access code"
-          hint="You can find this code on your child's report card or fee receipt."
-          value={parentCode} onChange={e => setParentCode(e.target.value)}
-          onKeyDown={handleKeyDown(handleParentLookup)} placeholder="e.g. CLR-XXXXXXXX"
-          className="font-mono tracking-wider" />
-        <Button onClick={handleParentLookup} disabled={loading || !parentAdm.trim() || !parentCode.trim()} className="w-full">
-          {loading ? 'Looking up…' : 'View records'}
-        </Button>
-
-        {r && (
-          <div className="border border-line rounded bg-surface p-4 space-y-1.5">
-            <p className="text-sm font-semibold text-ink">{r.full_name}</p>
-            <p className="text-[13px] text-muted">{r.admission_no} · {r.class_name || 'Class not set'}</p>
-            <p className="text-[13px] text-ink tabular-nums">
-              Fees: ₦{((fee?.balance as number) || 0).toLocaleString()} due
-              {report && <> · Latest average: {report.average as number}%</>}
-            </p>
-            <Link href={`/portal/${parentAdm.trim()}`} className="inline-block text-[13px] font-medium text-brand hover:underline pt-1">
-              View full report
-            </Link>
-          </div>
-        )}
-
-        <p className="text-[13px] text-muted">
-          Have a parent account?{' '}
-          <Link href="/guardian" className="text-ink underline underline-offset-2">Sign in with your phone number</Link>
-        </p>
-      </div>
-    );
-  };
+  const renderParentForm = () => (
+    <div className="space-y-4">
+      <TextField ref={parentAdmRef} id="parent-adm" label="Child's admission number" autoComplete="username"
+        value={parentAdm} onChange={e => setParentAdm(e.target.value)}
+        onKeyDown={handleKeyDown(handleParentLogin)} placeholder="e.g. QC/2026/00201" />
+      <PasswordField ref={parentPassRef} id="parent-password" label="Parent password" autoComplete="current-password"
+        value={parentPassword} onChange={e => setParentPassword(e.target.value)}
+        onKeyDown={handleKeyDown(handleParentLogin)} />
+      <Button onClick={handleParentLogin} disabled={loading || !parentAdm.trim() || !parentPassword} className="w-full">
+        {loading ? 'Signing in…' : 'Sign in'}
+      </Button>
+      <p className="text-[13px] text-muted">The school gives you the parent password. It is not the student&apos;s password.</p>
+    </div>
+  );
 
   return (
     <AuthShell sideLink={{ href: '/onboard', label: 'Set up your school' }}>

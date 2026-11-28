@@ -4,11 +4,13 @@ import { useState } from 'react';
 import FeeItemsTab from './fee-items-tab';
 import InvoicesTab from './invoices-tab';
 import OutstandingTab from './outstanding-tab';
+import { useCanEditFees } from './use-can-edit-fees';
 import { ClipboardList, FileText, BarChart3 } from 'lucide-react';
 
 export default function FeesPage() {
   const [tab, setTab] = useState<'items' | 'invoices' | 'outstanding'>('items');
   const [refreshKey, setRefreshKey] = useState(0);
+  const canEdit = useCanEditFees();
   const refresh = () => setRefreshKey(k => k + 1);
 
   return (
@@ -16,7 +18,9 @@ export default function FeesPage() {
       <div className="flex items-center justify-between mb-5">
         <div>
           <h1 className="text-2xl font-semibold text-ink">Fee Management</h1>
-          <p className="text-xs text-muted mt-0.5">Tuition, levies & collections</p>
+          <p className="text-xs text-muted mt-0.5">
+            Tuition, levies & collections{!canEdit && '. Only the bursar can make changes.'}
+          </p>
         </div>
       </div>
 

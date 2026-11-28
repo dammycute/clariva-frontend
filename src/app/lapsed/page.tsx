@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 const ADMIN_ROLES = ['school_admin', 'admin_officer'];   // principals cannot open /dashboard
 
 /**
- * What a teacher, student or parent sees when the school's subscription has lapsed.
+ * What a teacher, student or parent sees while the school's payment is outstanding.
  * They cannot open the billing page, so they are told who can.
  */
 export default function LapsedPage() {
@@ -24,10 +24,10 @@ export default function LapsedPage() {
   return (
     <main className="min-h-dvh flex items-center justify-center bg-page px-4">
       <div className="w-full max-w-[420px] bg-surface border border-line rounded p-6">
-        <h1 className="text-xl font-semibold text-ink">Your school&apos;s subscription has lapsed</h1>
+        <h1 className="text-xl font-semibold text-ink">Your school&apos;s access is waiting for payment</h1>
         <p className="text-sm text-muted mt-2">
-          Clariva is paused for your school until the administrator pays for the new term.
-          Tell your school administrator — nothing you have entered is lost.
+          Clarriva opens again once your school pays for the term. Tell your school
+          administrator. Your account and your school&apos;s records are kept.
         </p>
         {admin && (
           <Button className="w-full mt-5" onClick={() => router.push('/dashboard/billing')}>

@@ -20,7 +20,7 @@ export function AuthShell({
   return (
     <div className="min-h-dvh flex bg-page">
       <aside className="hidden lg:flex lg:w-[400px] shrink-0 flex-col justify-between p-10 bg-[#0D2B55] text-white">
-        <Link href="/" className="text-2xl font-semibold tracking-tight w-fit">Clariva</Link>
+        <Link href="/" className="text-2xl font-semibold tracking-tight w-fit">Clarriva</Link>
         {aside ?? (
           <p className="text-lg leading-relaxed text-white/85 max-w-[300px] text-pretty">
             School management for fees, attendance, grades and CBT exams.
@@ -35,7 +35,7 @@ export function AuthShell({
 
       <main className="flex-1 flex justify-center px-6 py-10 lg:px-10 lg:py-16">
         <div className={`w-full ${width} self-start lg:self-center`}>
-          <Link href="/" className="lg:hidden block text-xl font-semibold text-ink mb-8 w-fit">Clariva</Link>
+          <Link href="/" className="lg:hidden block text-xl font-semibold text-ink mb-8 w-fit">Clarriva</Link>
           {children}
         </div>
       </main>

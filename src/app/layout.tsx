@@ -18,7 +18,7 @@ const fraunces = Fraunces({
 });
 
 export const metadata: Metadata = {
-  title: "Clariva — Run your school with clarity",
+  title: "Clarriva — Run your school with clarity",
   description:
     "Nigeria's school management platform. Manage students, results, fees, CBT exams, attendance, and timetables in one place. Built for Nigerian schools. Exams keep working when the internet drops.",
 };

@@ -2,13 +2,14 @@
 
 import { PortalShell } from '@/components/portal-shell';
 import type { NavSection } from '@/components/sidebar';
-import { LayoutDashboard, Receipt } from 'lucide-react';
+import { LayoutDashboard, Receipt, Banknote } from 'lucide-react';
 
 const icon = { size: 16, strokeWidth: 1.75 } as const;
 
 const NAV: NavSection[] = [
   { section: '', items: [
     { label: 'Dashboard', href: '/bursary', icon: <LayoutDashboard {...icon} /> },
+    { label: 'Fees', href: '/bursary/fees', icon: <Banknote {...icon} /> },
     { label: 'Invoices', href: '/bursary/invoices', icon: <Receipt {...icon} /> },
   ]},
 ];

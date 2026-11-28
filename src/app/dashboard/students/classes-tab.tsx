@@ -22,7 +22,7 @@ export default function ClassesTab() {
   const [submitError, setSubmitError] = useState('');
   const [confirm, setConfirm] = useState<{ id: string; name: string } | null>(null);
   const [creatingAccounts, setCreatingAccounts] = useState<string | null>(null);
-  const [accountsResult, setAccountsResult] = useState<{ name: string; admission_no: string; email: string; password: string }[] | null>(null);
+  const [accountsResult, setAccountsResult] = useState<{ name: string; admission_no: string; email: string; password: string; parent_password: string }[] | null>(null);
   const [staffList, setStaffList] = useState<StaffMember[]>([]);
 
   useEffect(() => { loadClasses(); loadStaff(); }, []);
@@ -152,9 +152,9 @@ export default function ClassesTab() {
                       <button onClick={async () => {
                         setCreatingAccounts(c.id);
                         try {
-                          const data = await request<{ created: { name: string; admission_no: string; email: string; password: string }[] }>(
+                          const data = await request<{ created: { name: string; admission_no: string; email: string; password: string; parent_password: string }[] }>(
                             'POST', '/students/bulk_create_accounts/', { class_id: c.id });
-                          if (data.created.length === 0) toast('Every student in this class already has an account.');
+                          if (data.created.length === 0) toast('Every student and parent in this class already has an account.');
                           else setAccountsResult(data.created);
                         } catch { /* the reason is already shown */ }
                         finally { setCreatingAccounts(null); }
@@ -179,17 +179,18 @@ export default function ClassesTab() {
         <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center" onClick={() => setAccountsResult(null)}>
           <div className="bg-surface rounded w-[500px] max-w-[95vw] max-h-[80vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between p-5 pb-0">
-              <h2 className="text-base font-semibold text-ink">Student Accounts Created</h2>
+              <h2 className="text-base font-semibold text-ink">Accounts created</h2>
               <button onClick={() => setAccountsResult(null)} className="text-muted hover:text-ink text-lg" aria-label="Close"><X size={16} aria-hidden="true" /></button>
             </div>
             <div className="p-5">
-              <p className="text-xs text-muted mb-4">{accountsResult.length} accounts created. Students sign in on the Student tab with the admission number and this password. Passwords are shown only once, so print or copy them now.</p>
+              <p className="text-xs text-muted mb-4">Students sign in on the Student tab, and parents on the Parent tab, each with the admission number and their own password. Give the parent password to the parent only. Passwords are shown only once, so copy them now.</p>
               <div className="divide-y divide-line max-h-[400px] overflow-y-auto border border-line rounded">
                 {accountsResult.map((a, i) => (
                   <div key={i} className="p-3 text-xs">
                     <p className="font-semibold text-ink">{a.name}</p>
                     <p className="text-muted">Login ID (admission number): {a.admission_no}</p>
-                    <p className="text-brand font-semibold">Password: {a.password}</p>
+                    {a.password && <p className="text-brand font-semibold">Student password: {a.password}</p>}
+                    {a.parent_password && <p className="text-ink font-semibold">Parent password: {a.parent_password}</p>}
                   </div>
                 ))}
               </div>

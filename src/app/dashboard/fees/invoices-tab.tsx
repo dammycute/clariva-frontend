@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { api, auth } from '@/lib/api';
 import { generateReceiptPDF } from '@/lib/receipt';
+import { useCanEditFees } from './use-can-edit-fees';
 import { Search, FileText, X, ChevronDown, ChevronRight } from 'lucide-react';
 
 interface InvoiceItem {
@@ -41,13 +42,14 @@ const CATEGORY_GROUPS = ['JSS', 'SS'];
 const ARMS = ['A', 'B', 'C'];
 
 export default function InvoicesTab({ onRefresh }: { onRefresh: () => void }) {
+  const canEdit = useCanEditFees();
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [feeItems, setFeeItems] = useState<FeeItem[]>([]);
   const [students, setStudents] = useState<Student[]>([]);
   const [clsList, setClsList] = useState<Cls[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [schoolName, setSchoolName] = useState('Clariva');
+  const [schoolName, setSchoolName] = useState('Clarriva');
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
 
   const [showGenerate, setShowGenerate] = useState(false);
@@ -88,7 +90,7 @@ export default function InvoicesTab({ onRefresh }: { onRefresh: () => void }) {
       setFeeItems(feeRes as FeeItem[]);
       setStudents(stuRes as Student[]);
       setClsList(clsRes as Cls[]);
-      if (me?.school_id) setSchoolName('Clariva');
+      if (me?.school_id) setSchoolName('Clarriva');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load data');
     } finally {
@@ -270,7 +272,7 @@ export default function InvoicesTab({ onRefresh }: { onRefresh: () => void }) {
     <div>
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-base font-semibold text-ink">Invoices</h3>
-        <button onClick={openGenerate} className="text-sm px-4 py-2 rounded bg-brand text-brand-ink hover:opacity-90">+ Generate Invoices</button>
+        {canEdit && <button onClick={openGenerate} className="text-sm px-4 py-2 rounded bg-brand text-brand-ink hover:opacity-90">+ Generate Invoices</button>}
       </div>
 
       {error && (
@@ -304,7 +306,7 @@ export default function InvoicesTab({ onRefresh }: { onRefresh: () => void }) {
       <div className="bg-surface border border-line rounded overflow-x-auto">
         {loading ? <div className="p-8 text-center text-sm text-muted">Loading invoices…</div>
         : filteredInvoices().length === 0 ? (
-          <div className="p-8 text-center text-sm text-muted">{invoices.length === 0 ? 'No invoices yet. Click Generate Invoices to create them.' : 'No invoices match your filters.'}</div>
+          <div className="p-8 text-center text-sm text-muted">{invoices.length > 0 ? 'No invoices match your filters.' : canEdit ? 'No invoices yet. Click Generate Invoices to create them.' : 'No invoices yet.'}</div>
         ) : (
           <table className="w-full text-xs">
             <thead>
@@ -341,7 +343,7 @@ export default function InvoicesTab({ onRefresh }: { onRefresh: () => void }) {
                         <span className={`px-2.5 py-0.5 rounded text-xs font-semibold ${statusBadge(inv.status)}`}>{inv.status}</span>
                       </td>
                       <td className="px-4 py-3">
-                        {Number(inv.amount_paid) < Number(inv.amount_due) && (
+                        {canEdit && Number(inv.amount_paid) < Number(inv.amount_due) && (
                           <button onClick={() => openPayment(inv)} className="text-xs px-2.5 py-1 rounded bg-brand text-brand-ink hover:opacity-90">Pay</button>
                         )}
                         {Number(inv.amount_paid) > 0 && (

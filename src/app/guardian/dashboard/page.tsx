@@ -5,6 +5,7 @@ import { auth, portal } from '@/lib/api';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Section, Figure } from '@/components/ui/report';
+import { Walkthrough } from '@/components/walkthrough';
 
 interface NotificationItem {
   id: string; type: string; title: string; message: string; read: boolean; created_at: string;
@@ -26,6 +27,14 @@ export default function GuardianDashboard() {
   const [children, setChildren] = useState<ChildData[]>([]);
   const [loading, setLoading] = useState(true);
   const [active, setActive] = useState(0);
+  const [guide, setGuide] = useState(false);
+
+  useEffect(() => {
+    if (!auth.getToken()) return;
+    auth.me()
+      .then(u => setGuide(!u.must_change_password && u.walkthrough_done !== undefined && !u.walkthrough_done))
+      .catch(() => {});
+  }, []);
 
   useEffect(() => {
     const token = auth.getToken();
@@ -53,7 +62,7 @@ export default function GuardianDashboard() {
 
   const header = (
     <header className="flex items-center justify-between mb-10">
-      <span className="text-lg font-semibold text-ink">Clariva</span>
+      <span className="text-lg font-semibold text-ink">Clarriva</span>
       <Button variant="secondary" onClick={handleLogout} className="h-9 px-3">Sign out</Button>
     </header>
   );
@@ -73,10 +82,11 @@ export default function GuardianDashboard() {
 
   return (
     <div className="min-h-dvh bg-page">
+      {guide && <Walkthrough role="parent" onClose={() => setGuide(false)} />}
       <main className="max-w-3xl mx-auto px-6 py-8">
         {header}
 
-        <div className="mb-6">
+        <div className="mb-6" data-tour="children">
           <h1 className="text-2xl font-semibold text-ink tracking-tight">Your children</h1>
           {children.length > 0 && (
             <p className="text-sm text-muted mt-1">
@@ -122,6 +132,7 @@ export default function GuardianDashboard() {
               </p>
             </div>
 
+            <div data-tour="fees">
             <Section title="Fees">
               <dl className="grid grid-cols-3 gap-4">
                 <Figure label="Charged" value={naira(child.fee_summary.total_due)} />
@@ -129,7 +140,9 @@ export default function GuardianDashboard() {
                 <Figure label="Balance" value={naira(child.fee_summary.balance)} tone={child.fee_summary.balance > 0 ? 'danger' : 'success'} />
               </dl>
             </Section>
+            </div>
 
+            <div data-tour="results">
             <Section title="Latest report card">
               {child.latest_report_card ? (
                 <dl className="grid grid-cols-2 gap-4">
@@ -139,6 +152,7 @@ export default function GuardianDashboard() {
                 <p className="text-sm text-muted">No report cards have been released yet.</p>
               )}
             </Section>
+            </div>
 
             <Section title="Attendance">
               {child.attendance_rate !== null ? (
